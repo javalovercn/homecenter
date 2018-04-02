@@ -24,6 +24,8 @@ public interface PlatformService {
 	public static final int BIZ_INIT_RUBOTO_ENVIROMENT = 6;
 	public static final int BIZ_GO_HOME = 7;
 	public static final int BIZ_BCL = 8;
+	public static final int BIZ_DISABLE_TEXTFIELD_HINT = 9;
+	public static final int BIZ_PRINT_MAIN_TRACE_STACK = 10;
 
 	/**
 	 * 

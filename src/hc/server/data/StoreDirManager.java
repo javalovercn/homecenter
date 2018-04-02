@@ -1,20 +1,19 @@
 package hc.server.data;
 
-import hc.core.util.ExceptionReporter;
-import hc.server.ui.ProjectContext;
-import hc.server.util.SafeDataManager;
-import hc.util.HttpUtil;
-import hc.util.ResourceUtil;
-
 import java.io.File;
 import java.util.Locale;
+
+import hc.core.util.ExceptionReporter;
+import hc.server.ui.ProjectContext;
+import hc.util.HttpUtil;
+import hc.util.ResourceUtil;
 
 public class StoreDirManager {
 	public static final String HCTMP_EXT = ".hctmp";
 
 	public static final String ICO_DIR = File.separator + "user_ico";
 	public static final String HC_RMS = "hc_rms";
-	private static final String TEMP_DIR_NAME = "temp";
+	public static final String TEMP_DIR_NAME = "temp";
 	public static final String LINK_DIR_NAME = "link";
 	public static final String LOGS_DIR_NAME = "logs";
 	static final String CFG_DIR_NAME = "cfg";
@@ -34,10 +33,13 @@ public class StoreDirManager {
 		}
 	}
 
+	public static final String USER_DATA = "user_data";
+	public static final String USER_DATA_SAFE = USER_DATA + "_safe";
+
 	public static final Locale locale = Locale.getDefault();
 	private static final String hcRootPath = getCanonicalPath("./") + File.separator;
-	private static final String user_data_dir = hcRootPath + SafeDataManager.USER_DATA + File.separator;
-	private static final String user_data_safe_dir = hcRootPath + SafeDataManager.USER_DATA_SAFE + File.separator;
+	private static final String user_data_dir = hcRootPath + USER_DATA + File.separator;
+	private static final String user_data_safe_dir = hcRootPath + USER_DATA_SAFE + File.separator;
 	public static final String user_data_dirLower = user_data_dir.toLowerCase(locale);
 	public static final String user_data_safe_dirLower = user_data_safe_dir.toLowerCase(locale);
 

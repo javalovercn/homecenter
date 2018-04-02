@@ -1,17 +1,5 @@
 package hc.server.util;
 
-import hc.App;
-import hc.core.util.CCoreUtil;
-import hc.core.util.LogManager;
-import hc.core.util.ThreadPriorityManager;
-import hc.res.ImageSrc;
-import hc.server.DisposeListener;
-import hc.server.HCActionListener;
-import hc.server.SingleJFrame;
-import hc.server.ui.ClientDesc;
-import hc.util.ResourceUtil;
-import hc.util.StringBuilderCacher;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -35,6 +23,18 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
+import hc.App;
+import hc.core.util.CCoreUtil;
+import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
+import hc.res.ImageSrc;
+import hc.server.DisposeListener;
+import hc.server.HCActionListener;
+import hc.server.SingleJFrame;
+import hc.server.ui.ClientDesc;
+import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
+
 public class ExceptionViewer {
 	private static final ArrayDeque<Object[]> array = new ArrayDeque<Object[]>(32);
 	private static final Calendar calendar = Calendar.getInstance();
@@ -51,7 +51,7 @@ public class ExceptionViewer {
 	private static ExceptionViewer msbViewer;
 
 	private JFrame dialog;
-	private final JButton clearBtn = new JButton((String) ResourceUtil.get(8026), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
+	private final JButton clearBtn = new JButton(ResourceUtil.get(8026), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
 	private int currRow;
 	private final ScrollTable tableException, tableStacks;
 	private JScrollPane scrollPaneException, scrollPaneStacks;
@@ -332,7 +332,7 @@ public class ExceptionViewer {
 			}
 		}
 
-		public void pushIn(final String paraMessage, final StackTraceElement[] ste) {
+		private final void pushIn(final String paraMessage, final StackTraceElement[] ste) {
 			final StringBuilder sb = StringBuilderCacher.getFree();
 
 			calendar.setTimeInMillis(System.currentTimeMillis());
@@ -355,6 +355,10 @@ public class ExceptionViewer {
 				stacks.add(ste);
 			}
 
+			if(ResourceUtil.isNonUIServer()) {
+				return;
+			}
+			
 			if (msbViewer == null) {
 				msbViewer = new ExceptionViewer();
 			}

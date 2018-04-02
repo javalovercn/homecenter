@@ -66,6 +66,8 @@ public class LinkProjectManager {
 	public static final String CURRENT_DIR = ".";
 
 	final static Vector<LinkProjectStore> lpsVector = new Vector<LinkProjectStore>(5);
+	
+	static boolean isRemoveNoRefrenceProjs = false;
 
 	static synchronized void reloadLinkProjects() {
 		lpsVector.clear();
@@ -80,6 +82,36 @@ public class LinkProjectManager {
 			}
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
+		}
+		
+		if(isRemoveNoRefrenceProjs == false) {
+			isRemoveNoRefrenceProjs = true;
+			removeNoRefrenceProjs();
+		}
+	}
+	
+	private static void removeNoRefrenceProjs() {
+		final int lpsSize = lpsVector.size();
+		final File[] subDirs = ResourceUtil.getBaseDir().listFiles();
+		
+		for (int i = 0; i < subDirs.length; i++) {
+			final File sub = subDirs[i];
+			if(sub.isDirectory() && ResourceUtil.isRandomNumDir(sub)) {
+				boolean isExists = false;
+				final String dirName = sub.getName();
+				
+				for (int j = 0; j < lpsSize; j++) {
+					final LinkProjectStore lps = lpsVector.elementAt(j);
+					if(dirName.equals(lps.getDeployTmpDir())) {
+						isExists = true;
+						break;
+					}
+				}
+				
+				if(isExists == false) {
+					ResourceUtil.deleteDirectoryNow(sub, true);
+				}
+			}
 		}
 	}
 
@@ -879,7 +911,7 @@ public class LinkProjectManager {
 	static String deployToRandomDir(final File har) {
 		String randomShareFolder;
 		// 系统资源处于未拆分到随机目录下，需要重新读取并拆分
-		randomShareFolder = ResourceUtil.createRandomFileNameWithExt(ResourceUtil.getBaseDir(), "");
+		randomShareFolder = ResourceUtil.createRandomFileNameWithExt(ResourceUtil.getBaseDir(), "");//注意：请勿修改此算法，它与ResourceUtil.isRandomNumDir保持一致
 		final Map<String, Object> map = HCjar.loadHar(har, true);
 		ProjResponser.deloyToWorkingDir(map, new File(ResourceUtil.getBaseDir(), randomShareFolder));
 		return randomShareFolder;

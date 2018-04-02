@@ -1,14 +1,14 @@
 package hc.server.util;
 
-import hc.App;
-import hc.core.ContextManager;
-import hc.util.PropertiesManager;
-
 import java.util.ArrayList;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+
+import hc.App;
+import hc.core.ContextManager;
+import hc.util.PropertiesManager;
 
 public class IDArrayGroup {
 	final String groupName;
@@ -22,6 +22,7 @@ public class IDArrayGroup {
 	public static final String MSG_SYSTEM_CLASS_LIMITED = "S5";
 	public static final String MSG_MIN_JRE_7 = "S6";
 	public static final String MSG_CSS_NOTE = "S7";
+	public static final String MSG_ADD_PROJ_VIA_QR = "S8";
 
 	public static final void showMsg(final String msgId, final String sys_icon_str, final String title, final String message) {
 		if (checkAndAdd(msgId)) {

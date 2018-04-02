@@ -1,17 +1,19 @@
 package hc.util;
 
-import hc.App;
-import hc.core.ContextManager;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.server.HCException;
-
 import java.awt.Component;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
+
+import hc.App;
+import hc.core.ContextManager;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.server.HCException;
+import hc.server.PlatformManager;
+import hc.server.PlatformService;
 
 public class ClassUtil {
 	public static final Class[] NULL_PARA_TYPES = {};
@@ -300,27 +302,34 @@ public class ClassUtil {
 																			// isDaemon
 																			// ==
 																			// false
-				final StringBuilder sb = StringBuilderCacher.getFree();
-
-				sb.append("--------------- Thread Name : ");
-				sb.append(t.getName());
-				// sb.append("@:");
-				// sb.append(Integer.toHexString(t.hashCode()));//非final，
-				sb.append(", isDaemon : ");
-				sb.append(isDaemon);
-				sb.append("--------------------\n");
 				final StackTraceElement[] ste = map.get(t);
-				final int size = ste.length;
-				for (int i = 0; i < size; i++) {
-					sb.append("\tat : ");
-					sb.append(ste[i]);
-					sb.append("\n");
-				}
 
-				LogManager.log(sb.toString());
-				StringBuilderCacher.cycle(sb);
+				printTraceStack(t, isDaemon, ste);
 			}
 		}
+		
+		PlatformManager.getService().doExtBiz(PlatformService.BIZ_PRINT_MAIN_TRACE_STACK, null);
+	}
+
+	public static void printTraceStack(final Thread t, final boolean isDaemon, final StackTraceElement[] ste) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+
+		sb.append("--------------- Thread Name : ");
+		sb.append(t.getName());
+		// sb.append("@:");
+		// sb.append(Integer.toHexString(t.hashCode()));//非final，
+		sb.append(", isDaemon : ");
+		sb.append(isDaemon);
+		sb.append("--------------------\n");
+		final int size = ste.length;
+		for (int i = 0; i < size; i++) {
+			sb.append("\tat : ");
+			sb.append(ste[i]);
+			sb.append("\n");
+		}
+
+		LogManager.log(sb.toString());
+		StringBuilderCacher.cycle(sb);
 	}
 
 	public static void buildOneStackWithCause(final Throwable t, final StringBuilder sb, final boolean isAfterCauseBy,

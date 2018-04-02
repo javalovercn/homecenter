@@ -65,6 +65,7 @@ import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.DelDeployedProjManager;
+import hc.server.util.IDArrayGroup;
 import hc.server.util.SignHelper;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
@@ -423,6 +424,7 @@ public class LinkProjectPanel extends ProjectListPanel {
 								} finally {
 									if (url == null) {
 										selfBiz.setPara(Boolean.FALSE);
+										showAddViaQRTip();
 										return;
 									}
 								}
@@ -434,7 +436,7 @@ public class LinkProjectPanel extends ProjectListPanel {
 									// 支持har和had下载
 									final String lowerCaseURL = url.toLowerCase();
 									if (lowerCaseURL.startsWith("http") == false) {
-										throw new Exception("it must be download file.");
+										throw new Exception(ResourceUtil.get(9283));//9283=URL must begin with http or https.
 									}
 									if (lowerCaseURL.endsWith(Designer.HAR_EXT)) {
 										strharurl = url;
@@ -446,21 +448,18 @@ public class LinkProjectPanel extends ProjectListPanel {
 											throw new Exception(ResourceUtil.getErrProjIsDeledNeedRestart(null));
 										}
 									} else {
-										throw new Exception("invaild url, it must be har or had file.");
+										throw new Exception(ResourceUtil.get(9284));//9284=invaild URL, it must be har or had file.
 									}
 									PropertiesManager.addDelFile(fileHar);
 
 									lastRemoteURL = strharurl;
 									final String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
 									ProcessingWindowManager.showCenterMessage(ResourceUtil.get(9275));//downloading...
-									final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 3,
+									final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 1,
 											ResourceUtil.getUserAgentForHAD());
 									if (succ == false) {
 										ProcessingWindowManager.disposeProcessingWindow();
-										final String httpError = ResourceUtil.get(9269);// connection
-																						// error
-																						// or
-																						// timeout
+										final String httpError = ResourceUtil.get(9269);// connection error or timeout
 										throw new Exception(httpError);
 									}
 
@@ -476,8 +475,9 @@ public class LinkProjectPanel extends ProjectListPanel {
 																					// later
 									}
 								} catch (final Exception e) {
+									showAddViaQRTip();
 									ExceptionReporter.printStackTrace(e);
-									App.showErrorMessageDialog(self, "Exception : " + e.toString(), "Fail download");
+									App.showErrorMessageDialog(self, e.getMessage(), ResourceUtil.getErrorI18N());
 									selfBiz.setPara(Boolean.FALSE);
 									return;
 								}
@@ -969,6 +969,7 @@ public class LinkProjectPanel extends ProjectListPanel {
 		}
 
 		selfBiz.setPara(Boolean.FALSE);
+		showAddViaQRTip();
 	}
 
 	/**
@@ -1043,8 +1044,14 @@ public class LinkProjectPanel extends ProjectListPanel {
 			tablePanel.table.updateUI();
 			selfBiz.setPara(Boolean.FALSE);
 		}
+		
+		showAddViaQRTip();
 
 		return;
+	}
+
+	private final void showAddViaQRTip() {
+		IDArrayGroup.showMsg(IDArrayGroup.MSG_ADD_PROJ_VIA_QR, App.SYS_INFO_ICON, ResourceUtil.getHintI18N(), ResourceUtil.get(9292));//9292=Scanning QR code from mobile to add is good choice!
 	}
 
 	@Override

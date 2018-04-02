@@ -37,7 +37,8 @@ public class PropertiesManager {
 
 	public static final String p_stunServerPorts = "StunServerPorts";
 	public static final String p_IsSimu = "isSimu";
-	public static final String p_IsDevLogOn = "isDevLoggerOn";
+	public static final String p_IsDevLogOn = "isDevLoggerOn";//deprecated
+	public static final String p_IsForceNoLogger = "isForceNoLogger";
 	public static final String p_IsLoggerOn = "isLoggerOn";
 	public static final String p_IsMobiMenu = "mMenu";
 	public static final String p_uuid = "uuid";
@@ -62,7 +63,7 @@ public class PropertiesManager {
 	// 仅使用中继，但不排斥家庭内网
 	public static final String p_ForceRelay = IConstant.ForceRelay;
 	public static final String p_UPnPUseSTUNIP = "UPnPUseSTUNIP";
-	public static final String p_Log = "Log";
+	public static final String p_Log = "Log";//deprecated
 	public static final String p_DirectUPnPExtPort = "DirectUPnPExtPort";
 	public static final String p_RelayServerUPnPExtPort = "RelayUPnPExtPort";
 	public static final String PWD_ERR_TRY = "pwdErrTry";
@@ -158,12 +159,7 @@ public class PropertiesManager {
 	public static final String p_WindowWidth = "_ww";
 	public static final String p_WindowHeight = "_wh";
 
-	public static final String p_isNonUIServer = "isNonUIServer";// for Non-UI
-																	// server,
-																	// for
-																	// example
-																	// No-X11
-																	// CentOS
+	public static final String p_isNonUIServer = "isNonUIServer";// for Non-UI server, for example No-X11 CentOS or Android
 	public static final String p_NonUIServerIP = "NonUIServerIP";
 
 	public static final String p_isDemoServer = "isDemoServer";
@@ -190,6 +186,9 @@ public class PropertiesManager {
 	public static final String p_selectedNetworkPort = "selectedNetworkPort";
 
 	public static final String p_screenDeviceScale = "screenDeviceScale";
+	
+	public static final String p_J2SECACertsPassword = "J2SECACertsPassword";
+	public static final String p_isAcceptCertsOnlyFromJ2SECACerts = "isAcceptCertsOnlyFromJ2SECACerts";
 
 	/**
 	 * for Android auto start or not
@@ -418,7 +417,7 @@ public class PropertiesManager {
 		}
 	}
 
-	private static boolean isSecurityProperties(final String key) {
+	private static boolean isSecurityProperties(final String key) {//注意：如无必要，请添加到setValue中
 		for (int i = 0; i < needSecurityProperties.length; i++) {
 			if (key.equals(needSecurityProperties[i])) {
 				return true;
@@ -455,8 +454,9 @@ public class PropertiesManager {
 					|| key.startsWith(S_THIRD_DIR, 0) || key.startsWith(CAP_PREFIX, 0) || key.startsWith(S_SecurityProperties, 0)
 					|| key.equals(p_isDemoServer)// 影响securityManager
 					|| key.equals(p_NewCertIsNotTransed) || key.equals(p_EnableTransNewCertKeyNow) || key.equals(p_HideIDForErrCert)
-					|| key.equals(p_Log) || key.equals(p_SecurityCipher) || key.equals(p_SecuritySDPVersion)
-					|| key.equals(p_SecuritySecretKeySize) || key.equals(p_isRememberDevCertPassword)) {// 注意：如果增加逻辑，请同步到remove中
+					|| key.equals(p_IsLoggerOn) || key.equals(p_IsForceNoLogger) || key.equals(p_SecurityCipher) || key.equals(p_SecuritySDPVersion)
+					|| key.equals(p_SecuritySecretKeySize) || key.equals(p_isRememberDevCertPassword)
+					|| key.equals(p_J2SECACertsPassword) || key.equals(p_isAcceptCertsOnlyFromJ2SECACerts)) {// 注意：如果增加逻辑，请同步到remove中
 				ResourceUtil.checkHCStackTrace();
 			}
 
@@ -620,7 +620,8 @@ public class PropertiesManager {
 
 			isSecurityData = isSecurityProperties(key);
 
-			if (isSecurityData || key.startsWith(S_LINK_PROJECTS, 0) || key.equals(p_SecurityCipher) || key.equals(p_SecuritySDPVersion)) {
+			if (isSecurityData || key.startsWith(S_LINK_PROJECTS, 0) || key.equals(p_SecurityCipher) || key.equals(p_SecuritySDPVersion)
+					|| key.equals(p_J2SECACertsPassword)) {
 				ResourceUtil.checkHCStackTrace();
 			}
 		}
@@ -676,6 +677,10 @@ public class PropertiesManager {
 	public static final void removeSet(final String key) {
 		remove(PropertiesSet.buildSetKey(key));
 	}
+	
+	public static boolean isAcceptCertsOnlyFromJ2SECACerts() {
+		return isTrue(p_isAcceptCertsOnlyFromJ2SECACerts, true);
+	}
 
 	public static final void remove(final String key) {
 		if (key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)) {
@@ -684,7 +689,8 @@ public class PropertiesManager {
 			CCoreUtil.checkAccess();
 
 			if (key.equals(p_NewCertIsNotTransed) || key.equals(p_EnableTransNewCertKeyNow) || key.equals(p_HideIDForErrCert)
-					|| key.equals(p_isRememberDevCertPassword)) {
+					|| key.equals(p_isRememberDevCertPassword) || key.equals(p_J2SECACertsPassword)
+					|| key.equals(p_isAcceptCertsOnlyFromJ2SECACerts)) {
 				ResourceUtil.checkHCStackTrace();
 			}
 		}

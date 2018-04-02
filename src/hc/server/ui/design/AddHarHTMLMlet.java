@@ -268,7 +268,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				// 支持har和had下载
 				final String lowerCaseURL = url.toLowerCase();
 				if (lowerCaseURL.indexOf("http") != 0) {
-					throw new Exception("it must be download file");
+					throw new Exception(ResourceUtil.get(coreSS, 9283));//9283=网址必须以 http 或 https 开头。
 				}
 				if (lowerCaseURL.endsWith(Designer.HAR_EXT)) {
 					strharurl = url;
@@ -280,17 +280,14 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					}
 					strharurl = had.getProperty(HCjad.HAD_HAR_URL, HCjad.convertToExtHar(url));
 				} else {
-					throw new Exception("it must be har or had file.");
+					throw new Exception(ResourceUtil.get(coreSS, 9284));//9284=无效网址，必须是 har 或 had 文件。
 				}
 				PropertiesManager.addDelFile(fileHar);
 
 				final String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
 				final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 1, ResourceUtil.getUserAgentForHAD());
 				if (succ == false) {
-					final String httpErr = ResourceUtil.get(coreSS, 9269);// connection
-																			// error
-																			// or
-																			// timeout
+					final String httpErr = ResourceUtil.get(coreSS, 9269);// connection error or timeout
 					throw new Exception(httpErr);
 				}
 

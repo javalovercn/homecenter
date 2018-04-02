@@ -1,17 +1,5 @@
 package hc.server.ui.design.code;
 
-import hc.core.HCTimer;
-import hc.core.L;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.core.util.RepeatManager;
-import hc.server.DefaultManager;
-import hc.server.ui.design.hpj.HCTextPane;
-import hc.server.ui.design.hpj.ScriptEditPanel;
-import hc.util.ClassUtil;
-import hc.util.ResourceUtil;
-import hc.util.StringBuilderCacher;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -38,6 +26,17 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+
+import hc.core.HCTimer;
+import hc.core.L;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.server.DefaultManager;
+import hc.server.ui.design.hpj.HCTextPane;
+import hc.server.ui.design.hpj.ScriptEditPanel;
+import hc.util.ClassUtil;
+import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
 
 public class CodeWindow {
 	public static final int MAX_HEIGHT = scaleWindowSizeByFontSize(230);
@@ -75,7 +74,16 @@ public class CodeWindow {
 	private final JFrame classFrame = new JFrame();
 	private final DocLayoutLimit layoutLimit = new DocLayoutLimit();
 	private final JScrollPane scrollPanel = new JScrollPane(codeList);
-	private final DocTipTimer autoDocPopTip = new DocTipTimer("", 350, false);
+	private final int delayDocTipMS = 300;
+	private final DocTipTimer autoDocPopTip = new DocTipTimer("", delayDocTipMS, false);
+	private final HCTimer noCodeListDelayCloseDocTipTimer = new HCTimer("NoCodeDelayDismissDocTip", delayDocTipMS + HCTimer.HC_INTERNAL_MS, false) {
+		@Override
+		public void doBiz() {
+			docHelper.setInvisible();//不能关闭CodeList，因为用户可能只是输错方法名
+			setEnable(false);
+		}
+	};
+
 	public final DocHelper docHelper;
 	public final CodeInvokeCounter codeInvokeCounter = new CodeInvokeCounter();
 	public final CSSHelper cssHelper = new CSSHelper();
@@ -172,7 +180,7 @@ public class CodeWindow {
 					final int selectedIndex = codeList.getSelectedIndex();
 					actionOnItem(selectedIndex);
 				} else if (keyCode == KeyEvent.VK_BACK_SPACE) {
-					noCodeListManager.reset();
+					noCodeListDelayCloseDocTipTimer.isEnable();
 					if (preCodeCharsLen > 0) {
 						preCodeCharsLen--;
 						preCodeLower = String.valueOf(preCodeChars, 0, preCodeCharsLen);
@@ -317,7 +325,7 @@ public class CodeWindow {
 		if (L.isInWorkshop) {
 			ClassUtil.printCurrentThreadStack("[CodeTip] CodeWindow.hide()");
 		}
-		noCodeListManager.reset();
+		noCodeListDelayCloseDocTipTimer.setEnable(false);
 		codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(false);
 		synchronized (classFrame) {
 			if (classFrame.isVisible() || docHelper.isShowing()) {
@@ -341,6 +349,7 @@ public class CodeWindow {
 			classFrame.dispose();
 			docHelper.release();
 			HCTimer.remove(autoDocPopTip);
+			noCodeListDelayCloseDocTipTimer.remove();
 		}
 	}
 
@@ -366,16 +375,6 @@ public class CodeWindow {
 	private final char[] preCodeChars = new char[2048];
 	private int preCodeCharsLen;
 	private int movingScriptIdx, oriScriptIdx;
-	private final RepeatManager noCodeListManager = new RepeatManager() {
-		@Override
-		public boolean repeatAction() {
-			final boolean isReset = (System.currentTimeMillis() - getLastMS() >= 500);
-			if (isReset) {
-				hide();
-			}
-			return isReset;
-		}
-	};
 
 	private final void refilter() {
 		fillPreCode(fullList, classData, preCodeLower);
@@ -393,9 +392,9 @@ public class CodeWindow {
 		});
 
 		if (classData.size() == 0) {
-			noCodeListManager.occur();
+			autoDocPopTip.setEnable(false);
+			noCodeListDelayCloseDocTipTimer.setEnable(true);
 			codeList.clearSelection();
-			docHelper.setInvisible();
 		} else {
 			codeList.setSelectedIndex(0);
 		}
@@ -492,7 +491,7 @@ public class CodeWindow {
 
 	public final void toFront(final int preCodeType, final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent,
 			final int x, final int y, final ArrayList<CodeItem> list, final String preCode, final int scriptIdx, final int fontHeight) {
-		noCodeListManager.reset();
+		noCodeListDelayCloseDocTipTimer.isEnable();
 		this.preCodeType = preCodeType;
 
 		isWillOrAlreadyToFront = true;

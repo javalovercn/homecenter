@@ -271,13 +271,19 @@ public class J2SEServerURLAction implements IHCURLAction {
 					ServerUIAPIAgent.notifyClientSessionQRResult(j2seCoreSS.clientSession, result);
 					return true;
 				} else if (para1 != null && para1.equals(HCURL.DATA_PARA_PROC_ADD_HAR_URL)) {
-					j2seCoreSS.notifyCanvasMenuResponse();// 置于startAddHTMLHarUI之后，mouse
-															// busy界面不能刷新
-					final String urlHexStr = url.getValueofPara(HCURL.DATA_PARA_PROC_ADD_HAR_URL);
-					final byte[] bs = ByteUtil.toBytesFromHexStr(urlHexStr);
-					final String urlStr = StringUtil.bytesToString(bs, 0, bs.length);
+					j2seCoreSS.notifyCanvasMenuResponse();// 置于startAddHTMLHarUI之后，mouse busy界面不能刷新
+					
+					ContextManager.getThreadPool().run(new Runnable() {// 可能较长时间，
+						@Override
+						public void run() {
+							final String urlHexStr = url.getValueofPara(HCURL.DATA_PARA_PROC_ADD_HAR_URL);
+							final byte[] bs = ByteUtil.toBytesFromHexStr(urlHexStr);
+							final String urlStr = StringUtil.bytesToString(bs, 0, bs.length);
 
-					AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, urlStr, true);
+							AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, urlStr, true);
+						}
+					});
+					
 					return true;
 				} else if (HCURL.DATA_PARA_VOICE_COMMANDS.equals(para1)) {
 					final String voiceText = VoiceParameter.format(url.getValueofPara(HCURL.DATA_PARA_VOICE_COMMANDS));

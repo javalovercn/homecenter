@@ -109,7 +109,7 @@ public class TrayMenuUtil {
 	final static ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	private static JMenuItem transNewCertKey, hideIDForErrCert;
 	static ImageIcon dl_certkey, disable_dl_certkey;
-	static Image hc_Enable, hc_Disable, hc_mobi;
+	static Image hc_Enable, hc_Disable, hc_mobi_lineon;
 	static PlatformTrayIcon ti;
 	final static String transOnTip = ResourceUtil.get(9063);
 	final static String transOffTip = ResourceUtil.get(9064);
@@ -121,7 +121,7 @@ public class TrayMenuUtil {
 		disableMessageMS = System.currentTimeMillis() + HCTimer.ONE_SECOND * 10;
 	}
 
-	public static JPopupMenu popupTi = new JPopupMenu();// 弹出菜单
+	public static JPopupMenu popupTi = null;// 弹出菜单
 
 	public static long lastCheckMS = System.currentTimeMillis();
 
@@ -397,89 +397,54 @@ public class TrayMenuUtil {
 
 		ResourceUtil.refreshHideCheckBox(hideCheck, hideIDForErrCert);
 	}
-
+	
 	/**
 	 * 
-	 * @param b
+	 * @param isTrayEnable
 	 * @return false : 保留旧的高阶状态
 	 */
-	static boolean setTrayEnable(final boolean b) {
+	static void setTrayEnable(final boolean b) {
 		if (L.isInWorkshop) {
 			LogManager.log("TrayEnable:" + b);
 		}
 
-		if (b) {
-			if (ti != null) {
-				final Image oldImg = ti.getImage();
+		refreshTrayEnable();
+	}
+	
+	static boolean isDisplayedReadyForClient = false;
+	
+	private static void refreshTrayEnable() {
+		if (ti != null) {
+			// 检查是否还有keepConnection
+			if (SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_SERVER_SELF)) {
+				ti.setIconToolTip(buildMobileConnectionTip());
+				ti.setImage(hc_mobi_lineon);
+				return;
+			}
 
-				if (oldImg == hc_mobi) {
-					if (L.isInWorkshop) {
-						LogManager.log("old Image is hc_mobi.");
-					}
-
-					// 检查是否还有keepConnection
-					if (SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_SERVER_SELF)) {
-						ti.setIconToolTip(buildMobileConnectionTip());
-						return false;
-					}
-				}
-
+			if (SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_READY_TO_LINE_ON)
+					|| SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_READY_MTU)) {
 				ti.setImage(hc_Enable);
 				ti.setIconToolTip(buildLineOnTrayTip());
-				if (JRubyInstaller.isJRubyInstalled()) {//以免初次安装时，先于JRuby安装完的提示
+				if (isDisplayedReadyForClient == false && JRubyInstaller.isJRubyInstalled()) {//以免初次安装时，先于JRuby安装完的提示
+					isDisplayedReadyForClient = true;
 					displayMessage(ResourceUtil.getInfoI18N(), ResourceUtil.get(9008), IConstant.INFO, null, 0);//Line On, Ready for client
 				}
-				return true;
+				return;
 			}
-		} else {
-			if (ti != null) {
-				final Image oldImg = ti.getImage();
 
-				if (oldImg == hc_mobi) {
-					L.V = L.WShop ? false : LogManager.log("old Image is hc_mobi.");
-
-					// 检查是否还有keepConnection
-					if (SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_SERVER_SELF)) {
-						ti.setIconToolTip(buildMobileConnectionTip());
-						return false;
-					}
-
-					if (SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_READY_TO_LINE_ON)) {
-						ti.setImage(hc_Enable);
-						ti.setIconToolTip(buildLineOnTrayTip());
-						return false;
-					}
-				}
-
-				if (oldImg == hc_Enable) {
-					L.V = L.WShop ? false : LogManager.log("old Image is hc_enable.");
-
-					// 检查是否有联root
-					if (SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_READY_TO_LINE_ON)
-							|| SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_READY_MTU)) {
-						ti.setIconToolTip(buildLineOnTrayTip());
-						return false;
-					}
-
-					if (ExitManager.isStartingExitSystem() == false) {
-						displayMessage(ResourceUtil.getInfoI18N(), ResourceUtil.get(9009), IConstant.INFO, null, 0);
-					}
-				}
-
-				ti.setImage(hc_Disable);
-				ti.setIconToolTip(ResourceUtil.getProductName());
-				return true;
+			if (false && ExitManager.isStartingExitSystem() == false) {
+				displayMessage(ResourceUtil.getInfoI18N(), ResourceUtil.get(9009), IConstant.INFO, null, 0);//9009=Initializing...
 			}
+
+			ti.setImage(hc_Disable);
+			ti.setIconToolTip(ResourceUtil.getProductName());
+			return;
 		}
-
-		return false;
 	}
 
 	public static void notifyMobileLineOn() {
-		if (ti != null) {// isDemoServer时，为null
-			ti.setIconToolTip(TrayMenuUtil.buildMobileConnectionTip());
-			ti.setImage(hc_mobi);
-		}
+		refreshTrayEnable();
 	}
 
 	private static void buildCertMenu(final JPopupMenu popupMenu) {
@@ -1611,49 +1576,63 @@ public class TrayMenuUtil {
 
 	public static final void doBefore() {
 		ToolTipManager.sharedInstance().setDismissDelay(1000 * 1000);
-		showTray();
-
-		ServerUIUtil.restartResponsorServer(null, null);
-	}
-
-	public static void showTray() {
-		try {
-			disable_dl_certkey = new ImageIcon(ImageSrc.DISABLE_DL_CERTKEY_ICON);
-			dl_certkey = new ImageIcon(ImageSrc.DL_CERTKEY_ICON);
-
-			final ClassLoader appClassLoader = App.class.getClassLoader();
-			if (ResourceUtil.isMacOSX() || ResourceUtil.isAndroidServerPlatform()) {
-				hc_Enable = ImageIO.read(appClassLoader.getResource("hc/res/hc_48.png"));
-				hc_Disable = ImageIO.read(appClassLoader.getResource("hc/res/hc_dis_48.png"));
-				hc_mobi = ImageIO.read(appClassLoader.getResource("hc/res/hc_mobi_48.png"));
-			} else {
-				hc_Enable = ImageIO.read(appClassLoader.getResource("hc/res/hc_48.jpg"));
-				hc_Disable = ImageIO.read(appClassLoader.getResource("hc/res/hc_dis_48.jpg"));
-				hc_mobi = ImageIO.read(appClassLoader.getResource("hc/res/hc_mobi_48.jpg"));
-			}
-		} catch (final IOException e) {
-			ExceptionReporter.printStackTrace(e);
-		}
-
-		ResourceUtil.buildMenu();
-
+		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				ExitManager.startExitSystem();
 			}
 		});
+		
+		ResourceUtil.notifyTrayReady();
+		ResourceUtil.showTrayWithCheckReady(true);
 
-		final String msg = ResourceUtil.get(9009);// 初始化中...
-		displayMessage(ResourceUtil.getInfoI18N(), msg, IConstant.INFO, null, 0);
-		if (ti != null) {// isDemoServer时，为null
-			ti.setIconToolTip(msg);
+		ServerUIUtil.restartResponsorServer(null, null);
+	}
+
+	static boolean isShowTray = false;
+	
+	public static void showTray(final boolean isDispInitlizing) {
+		synchronized (TrayMenuUtil.class) {
+			if(isShowTray) {
+				return;
+			}
+			
+			isShowTray = true;
+		}
+		
+		try {
+			disable_dl_certkey = new ImageIcon(ImageSrc.DISABLE_DL_CERTKEY_ICON);
+			dl_certkey = new ImageIcon(ImageSrc.DL_CERTKEY_ICON);
+
+			final ClassLoader appClassLoader = App.class.getClassLoader();
+			if (ResourceUtil.isMacOSX() || ResourceUtil.isAndroidServerPlatform()) {
+				hc_Enable = ImageIO.read(appClassLoader.getResource("hc/res/hc_48.png"));//PNG
+				hc_Disable = ImageIO.read(appClassLoader.getResource("hc/res/hc_dis_48.png"));
+				hc_mobi_lineon = ImageIO.read(appClassLoader.getResource("hc/res/hc_mobi_48.png"));
+			} else {
+				hc_Enable = ImageIO.read(appClassLoader.getResource("hc/res/hc_48.jpg"));//JPG
+				hc_Disable = ImageIO.read(appClassLoader.getResource("hc/res/hc_dis_48.jpg"));
+				hc_mobi_lineon = ImageIO.read(appClassLoader.getResource("hc/res/hc_mobi_48.jpg"));
+			}
+		} catch (final IOException e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+
+		ResourceUtil.buildMenu();
+		refreshTrayEnable();
+		
+		if(isDispInitlizing) {
+			final String msg = ResourceUtil.get(9009);// 初始化中...
+			displayMessage(ResourceUtil.getInfoI18N(), msg, IConstant.INFO, null, 0);
+			if (ti != null) {// isDemoServer时，为null
+				ti.setIconToolTip(msg);
+			}
 		}
 	}
 
 	public static void displayMessage(final String caption, final String text, final int type, final Object imageData, final int timeOut) {
 		if (ResourceUtil.isNonUIServer()) {
-			LogManager.log("this is demo server, skip displayMessage.");
 			return;
 		}
 
@@ -1662,7 +1641,8 @@ public class TrayMenuUtil {
 		}
 
 		if (text.startsWith("<html>")) {
-			LogManager.errToLog("HTML tag can NOT be in TrayIcon displayMessage method.");
+			LogManager.errToLog("HTML tag can NOT be in TrayIcon displayMessage method. msg : " + text);
+			return;
 		}
 
 		MessageType mtype = null;

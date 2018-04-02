@@ -2739,7 +2739,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 						if (HPNode.MAP_FILE_JAR_TYPE.equals(fileType)) {
 							File tmp = null;
 							try {
-								tmp = File.createTempFile("export_jar_check", ".jar");
+								tmp = ResourceUtil.createTempFile("export_jar_check", ".jar");
 								final byte[] content = (byte[]) map.get(key);
 								final ByteArrayInputStream bis = new ByteArrayInputStream(content);
 								ResourceUtil.saveToFile(bis, tmp);
@@ -2747,7 +2747,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 								final float jreVersion = ResourceUtil.getMaxJREVersionFromCompileJar(tmp);// 0表示纯资源包
 								if (jreVersion > Float.valueOf(exportJREVersion)) {
 									final String msg = "export JRE/JDK version is [" + exportJREVersion + "], but jar [" + fileName
-											+ "] is compiled in [" + jreVersion + "]!";
+											+ "] is compiled in version [" + ResourceUtil.getJavaVersionFromFloat(jreVersion) + "]!";
 									App.showErrorMessageDialog(instance, msg, ResourceUtil.getErrorI18N());
 									return;
 								}
@@ -2793,7 +2793,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				if (isSigned) {
 					op = "<STRONG>save</STRONG>" + (isSigned ? " and <STRONG>sign</STRONG>" : "");
 				} else {
-					op = "save";
+					op = "save (<STRONG>NOT</STRONG> signed)";
 				}
 				showHCMessage("<html>" + op + " project to [" + fileExits.getName() + hadDesc + "].</html>", "Success save as", self, true,
 						saveAsButton);

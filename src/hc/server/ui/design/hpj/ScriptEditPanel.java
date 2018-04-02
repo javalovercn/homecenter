@@ -110,6 +110,7 @@ import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.IDArrayGroup;
 import hc.server.util.ListAction;
 import hc.util.ClassUtil;
+import hc.util.JSUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
@@ -1877,6 +1878,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				final int oldCaretPos = jtaScript.getCaretPosition();
 				final int oldLineNo = getLineOfOffsetWithoutException(jtaDocment, oldCaretPos);
 
+				final String textBeforeInsert = ResourceUtil.getTxtFromClipboard();
+				if(JSUtil.isJavaScriptPaste(textBeforeInsert)) {
+					ResourceUtil.sendToClipboard(JSUtil.formatInsertJS(textBeforeInsert));
+				}
 				super.paste();
 
 				final int newCaretPos = jtaScript.getCaretPosition();
@@ -2313,11 +2318,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		final StringBuilder sb = new StringBuilder(24);
 		boolean isDoneEnter = false;
 		boolean isMovSelfBack = false;
-
+		boolean isColorNextLine = true;
 		final int InsertPosition = jtaScript.getCaretPosition();
 		final int startLineNo = getLineOfOffset(doc, InsertPosition);
 		int line = startLineNo;
-		sb.append("\n");
+		sb.append('\n');
 
 		// 复制上行的缩进到新行中
 		boolean inputSelfBackEnd = false;
@@ -2326,10 +2331,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			final int positionLine = line;
 			while (line >= 0) {
 				final int startIdx = getLineStartOffset(doc, line);
+				final int endIdx = getLineEndOffset(doc, line);
 
 				// 获得缩进串
-				final String lineStr = doc.getText(startIdx, InsertPosition - startIdx);// -1去掉\n
-				final char[] chars = lineStr.toCharArray();
+				final String lineStr = doc.getText(startIdx, endIdx - startIdx);// -1去掉\n
+				final char[] lineChars = lineStr.toCharArray();
+				final int insertIdxOfLine = InsertPosition - startIdx;
+				final char[] chars = lineStr.substring(0, insertIdxOfLine).toCharArray();//before Enter
 
 				if (chars.length == 0) {
 					line--;
@@ -2366,6 +2374,22 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					// }
 				}
 
+				final char boundChar = ResourceUtil.searchStringBoundChar(lineChars, insertIdxOfLine);
+				if(boundChar != 0) {//在字符串内进行回行
+					sb.setLength(0);
+					sb.append(boundChar).append(" + ").append('\n');
+					// 复制上行的缩进
+					sb.append(String.valueOf(chars, 0, charIdxRemovedTab)).append(boundChar);
+					final int newPosi = InsertPosition + sb.length();
+					setUndoText(sb.toString(), newPosi);
+					isDoneEnter = true;
+					jtaStyledDocment.setCharacterAttributes(InsertPosition, 1, STR_LIGHTER, false);
+					jtaStyledDocment.setCharacterAttributes(InsertPosition + 2, 1, DEFAULT_LIGHTER, false);
+					jtaStyledDocment.setCharacterAttributes(newPosi - 1, 1, STR_LIGHTER, false);
+					isColorNextLine = false;
+					return;
+				}
+				
 				final String trim_str = new String(chars, charIdxRemovedTab, strTrimIdx - charIdxRemovedTab);
 				if (trim_str.length() == 0 || trim_str.startsWith("#")) {
 					// 复制上行的缩进
@@ -2453,16 +2477,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				boolean isNextIndentAlready = false;
 				boolean hasEnd = false;
 				boolean hasNewLineBeforeEnd = false;
-				boolean hasEndInOldNextRowButNeedNewLine = false;// def
-																	// search(field,
-																	// genre:
-																	// nil,
-																	// duration:
-																	// 120) V p
-																	// [field,
-																	// genre,
-																	// duration
-																	// ]\nend
+				boolean hasEndInOldNextRowButNeedNewLine = false;//def search(field, genre: nil, duration: 120) V p [field, genre, duration ]\nend
 				char[] afterNewEnterChars = noChar;
 				boolean hasEndInOldNextRowButNeedNewLineCase2 = false;
 				if (withEndInd > 0) {
@@ -2579,18 +2594,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			}
 		} finally {
 			// 注释后的部分被回车，分配到下一行，需要进行行color刷新
-			try {
-				final int nextLineNo = startLineNo + 1;
-				final int nextStartIdx = getLineStartOffset(jtaDocment, nextLineNo);
-				final int currLineLen = getLineEndOffset(jtaDocment, nextLineNo) - nextStartIdx;
-				if (currLineLen > 1) {// ==1 means \n only
-					final String currLineText = jtaDocment.getText(nextStartIdx, currLineLen);
-					initBlock(currLineText, nextStartIdx, false, false);
+			if(isColorNextLine) {
+				try {
+					final int nextLineNo = startLineNo + 1;
+					final int nextStartIdx = getLineStartOffset(jtaDocment, nextLineNo);
+					final int currLineLen = getLineEndOffset(jtaDocment, nextLineNo) - nextStartIdx;
+					if (currLineLen > 1) {// ==1 means \n only
+						final String currLineText = jtaDocment.getText(nextStartIdx, currLineLen);
+						initBlock(currLineText, nextStartIdx, false, false);
+					}
+				} catch (final Throwable e) {
 				}
-			} catch (final Throwable e) {
 			}
+			SwingUtilities.invokeLater(submitModifyRunnable);
 		}
-		SwingUtilities.invokeLater(submitModifyRunnable);
 	}
 
 	private final void setUndoText(final String txt, final int newPos) {

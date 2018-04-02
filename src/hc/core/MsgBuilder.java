@@ -240,7 +240,7 @@ public class MsgBuilder {
 		}
 	}
 
-	public static final int sendSlowMaxUnackPackageNum = 25;
+	public static final int sendSlowMaxUnackPackageNum = 100;
 
 	/**
 	 * UDP数组结构区

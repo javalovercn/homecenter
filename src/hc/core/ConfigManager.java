@@ -61,8 +61,8 @@ public class ConfigManager {
 	public static final String UI_DISMISS_ALERT = "hc.ui.dismissAlert";
 	public static final String UI_DISMISS_DIALOG = "hc.ui.dismissDialog";
 	public static final String UI_PLUG_DIALOG = "hc.ui.plugDialog";// 仅装载，显示由UI_SHOW_DIALOG事件来完成
-	public static final String UI_SHOW_DIALOG = "hc.ui.showDialog";// 显示
-																	// UI_PLUG_DIALOG已装载的View
+	public static final String UI_SHOW_DIALOG = "hc.ui.showDialog";// 显示 UI_PLUG_DIALOG已装载的View
+	public static final String UI_IS_NON_UI_SERVER = "hc.ui.isNonUIServer";
 	public static final String UI_HIDE_DIALOG = "hc.ui.hideDialog";
 	public static final String UI_RESHOW_DIALOG = "hc.ui.reshowDialog";
 	public static final String UI_IS_BACKGROUND = "hc.ui.isBackground";

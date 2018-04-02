@@ -94,11 +94,11 @@ public class LinkProjectStore extends StoreableHashMap {
 		return false;
 	}
 
-	public void setChangedBeforeUpgrade(final boolean changed) {
+	public final void setChangedBeforeUpgrade(final boolean changed) {
 		put(FIELD_IS_CHANGED_BEFORE_UPGRADE, changed ? IConstant.TRUE : IConstant.FALSE);
 	}
 
-	public boolean isDoneBind() {
+	public final boolean isDoneBind() {
 		if (getValueDefault(FIELD_DONE_BIND, IConstant.TRUE).equals(IConstant.TRUE)) {
 			return true;
 		}
@@ -110,11 +110,11 @@ public class LinkProjectStore extends StoreableHashMap {
 	 * 
 	 * @param done
 	 */
-	public void setDoneBind(final boolean done) {
+	public final void setDoneBind(final boolean done) {
 		put(FIELD_DONE_BIND, done ? IConstant.TRUE : IConstant.FALSE);
 	}
 
-	public String getMenuName() {
+	public final String getMenuName() {
 		return getValueDefault(FIELD_MENU_NAME, "Menu");
 	}
 
@@ -196,21 +196,21 @@ public class LinkProjectStore extends StoreableHashMap {
 	 * 
 	 * @param mName
 	 */
-	public void setMenuName(final String mName) {
+	public final void setMenuName(final String mName) {
 		put(FIELD_MENU_NAME, mName);
 	}
 
-	public String getDownloadingErr() {
+	public final String getDownloadingErr() {
 		return getValueDefault(FIELD_DOWNLOADING_ERR, "");
 	}
 
-	public void resetDownloading() {
+	public final void resetDownloading() {
 		setDownloadingErr("");
 		setDownloadingPosition(0);
 		setDownloadingVersion(DEFAULT_UNKOWN_VER);
 	}
 
-	public void setDevBindMap(final String[] bind_id, final RealDeviceInfo[] real, final int length) {
+	public final void setDevBindMap(final String[] bind_id, final RealDeviceInfo[] real, final int length) {
 		final StringBuffer sb = new StringBuffer();
 
 		for (int i = 0; i < length; i++) {
@@ -241,7 +241,7 @@ public class LinkProjectStore extends StoreableHashMap {
 		put(FIELD_BIND_DEV_MAP, sb.toString());
 	}
 
-	public void setConvBindMap(final String[] bind_id, final ConverterInfo[] cbi, final int length) {
+	public final void setConvBindMap(final String[] bind_id, final ConverterInfo[] cbi, final int length) {
 		final StringBuffer sb = new StringBuffer();
 
 		for (int i = 0; i < length; i++) {
@@ -267,7 +267,7 @@ public class LinkProjectStore extends StoreableHashMap {
 		put(FIELD_BIND_CONV_MAP, sb.toString());
 	}
 
-	public void clearBindMap() {
+	public final void clearBindMap() {
 		remove(FIELD_BIND_DEV_MAP);
 		remove(FIELD_BIND_CONV_MAP);
 	}
@@ -277,7 +277,7 @@ public class LinkProjectStore extends StoreableHashMap {
 	 * 
 	 * @return the array of {str_bind_id[], RealDeviceInfo[]}。如果没有，则返回null
 	 */
-	public Object[] getDevBindMap() {
+	public final Object[] getDevBindMap() {
 		final String serail = getValueDefault(FIELD_BIND_DEV_MAP, null);
 		if (serail == null) {
 			return null;
@@ -328,7 +328,7 @@ public class LinkProjectStore extends StoreableHashMap {
 	 * 
 	 * @return the array of {str_bind_id[], ConverterInfo[]}。如果没有，则返回null
 	 */
-	public Object[] getConvBindMap() {
+	public final Object[] getConvBindMap() {
 		final String serail = getValueDefault(FIELD_BIND_CONV_MAP, null);
 		if (serail == null) {
 			return null;
@@ -372,23 +372,23 @@ public class LinkProjectStore extends StoreableHashMap {
 		return out;
 	}
 
-	public void setDownloadingErr(final String err) {
+	public final void setDownloadingErr(final String err) {
 		put(FIELD_DOWNLOADING_ERR, err);
 	}
 
-	public int getDownloadingPosition() {
+	public final int getDownloadingPosition() {
 		return Integer.parseInt(getValueDefault(FIELD_DOWNLOADING_POSITION, "0"));
 	}
 
-	public void setDownloadingPosition(final int position) {
+	public final void setDownloadingPosition(final int position) {
 		put(FIELD_DOWNLOADING_POSITION, String.valueOf(position));
 	}
 
-	public String getDownloadingVer() {
+	public final String getDownloadingVer() {
 		return getValueDefault(FIELD_DOWNLOADING_VERSION, DEFAULT_UNKOWN_VER);
 	}
 
-	public void setDownloadingVersion(final String version) {
+	public final void setDownloadingVersion(final String version) {
 		put(FIELD_DOWNLOADING_VERSION, version);
 	}
 
@@ -397,23 +397,23 @@ public class LinkProjectStore extends StoreableHashMap {
 	 * 
 	 * @return
 	 */
-	public String getVersion() {
+	public final String getVersion() {
 		return getValueDefault(FIELD_VERSION, DEFAULT_UNKOWN_VER);
 	}
 
-	public void setVersion(final String version) {
+	public final void setVersion(final String version) {
 		put(FIELD_VERSION, version);
 	}
 
-	public String getHarParentDir() {
+	public final String getHarParentDir() {
 		return getValueDefault(FIELD_HAR_FILE_PARENT, LinkProjectManager.CURRENT_DIR);
 	}
 
-	public void setHarParentDir(final String parentDir) {
+	public final void setHarParentDir(final String parentDir) {
 		put(FIELD_HAR_FILE_PARENT, parentDir);
 	}
 
-	public String getDeployTmpDir() {
+	public final String getDeployTmpDir() {
 		return getValueDefault(FIELD_DEPLOY_TMP_DIR, NO_DEPLOY_TMP_DIR);
 	}
 
@@ -422,67 +422,67 @@ public class LinkProjectStore extends StoreableHashMap {
 	 * 
 	 * @param dirName
 	 */
-	public void setDeployTmpDir(final String dirName) {
+	public final void setDeployTmpDir(final String dirName) {
 		put(FIELD_DEPLOY_TMP_DIR, dirName);
 	}
 
-	public String getHarFile() {
+	public final String getHarFile() {
 		return getValueDefault(FIELD_HAR_FILE, "");
 	}
 
-	public void setHarFile(final String harFile) {
+	public final void setHarFile(final String harFile) {
 		put(FIELD_HAR_FILE, harFile);
 	}
 
-	public String getProjectUpgradeURL() {
+	public final String getProjectUpgradeURL() {
 		return getValueDefault(FIELD_PROJ_UPGRADE_URL, "");
 	}
 
-	public void setProjectUpgradeURL(final String url) {
+	public final void setProjectUpgradeURL(final String url) {
 		put(FIELD_PROJ_UPGRADE_URL, url);
 	}
 
-	public String getProjectID() {
+	public final String getProjectID() {
 		return getValueDefault(FIELD_PROJ_ID, "");
 	}
 
-	public void setProjectID(final String id) {
+	public final void setProjectID(final String id) {
 		put(FIELD_PROJ_ID, id);
 	}
 
-	public String getProjectRemark() {
+	public final String getProjectRemark() {
 		return getValueDefault(FIELD_PROJ_REMARK, "");
 	}
 
-	public void setProjectRemark(final String remark) {
+	public final void setProjectRemark(final String remark) {
 		put(FIELD_PROJ_REMARK, remark);
 	}
 
-	public String getLinkName() {
+	public final String getLinkName() {
 		return getValueDefault(FIELD_PROJ_LINK_NAME, "");
 	}
 
-	public void setLinkName(final String name) {
+	public final void setLinkName(final String name) {
 		put(FIELD_PROJ_LINK_NAME, name);
 	}
 
-	public boolean isRoot() {
+	public final boolean isRoot() {
 		return isTrue(FIELD_PROJ_IS_ROOT);
 	}
 
-	public void setRoot(final boolean main) {
+	public final void setRoot(final boolean main) {
 		put(FIELD_PROJ_IS_ROOT, (main ? IConstant.TRUE : IConstant.FALSE));
 	}
 
-	public boolean isActive() {
+	public final boolean isActive() {
 		return isTrue(FIELD_PROJ_IS_ACTIVE);
 	}
 
-	public void setActive(final boolean active) {
+	public final void setActive(final boolean active) {
 		put(FIELD_PROJ_IS_ACTIVE, (active ? IConstant.TRUE : IConstant.FALSE));
 	}
 
-	// public String getLinkScriptName() {
+	// public final String getLinkScriptName() {
 	// String link_Name = getLinkName();
 	// if(link_Name.length() == 0){
 	// link_Name = getMenuName();
@@ -490,7 +490,7 @@ public class LinkProjectStore extends StoreableHashMap {
 	// return link_Name;
 	// }
 
-	public void copyFrom(final Map<String, Object> map, final boolean isForceUpdatePermission) {
+	public final void copyFrom(final Map<String, Object> map, final boolean isForceUpdatePermission) {
 		setVersion((String) map.get(HCjar.PROJ_VER));
 		setProjectUpgradeURL((String) map.get(HCjar.PROJ_UPGRADE_URL));
 		setMenuName(HCjar.getMenuName(map, 0));

@@ -200,7 +200,7 @@ public class J2SERootBuilder extends RootBuilder {
 		} else if (rootBizNo == ROOT_PRINT_STACK_WITH_FULL_CAUSE) {
 			final StringBuilder sb = StringBuilderCacher.getFree();
 			ClassUtil.buildOneStackWithCause((Throwable) para, sb, false, false);
-			LogManager.log(sb.toString());
+			LogManager.errToLog(sb.toString());
 			StringBuilderCacher.cycle(sb);
 		} else if (rootBizNo == ROOT_GET_LAST_ROOT_CFG) {
 			return PropertiesManager.getValue(PropertiesManager.p_lastRootCfg, RootServerConnector.OFFLINE_ROOT_CFG);// OFFLINE_ROOT_CFG可能为null

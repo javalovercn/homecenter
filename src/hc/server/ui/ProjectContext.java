@@ -3361,9 +3361,10 @@ public class ProjectContext {
 	/**
 	 * three format locales : <br>
 	 * 1. language ("en", "fr", "ro", "ru", etc.) <br>
-	 * 2. language-region ("en-US", "es-419", etc.)<br>
+	 * 2. language-region ("en-US", "es-419", "zh-CN", etc.)<br>
 	 * 3. language-region ("zh-Hans-CN", "zh-Hant-CN", etc.)<br>
-	 * <br>
+	 * <BR><STRONG>Important : </STRONG><br>in Chinese mainland, it normally returns "zh-Hans-CN" in iPhone, NOT "zh-CN" in Android client.
+	 * <br><br>
 	 * Know more :<BR>
 	 * 1. to find the best match from an I18N map, see {@link #matchLocale(String, Map)}.<BR>
 	 * 2. user maybe change client language and country/region.<BR>
@@ -3374,6 +3375,7 @@ public class ProjectContext {
 	 * 
 	 * @return in session level, return mobile locale; <BR>
 	 *         in project level, returns the locale for all sessions or 'en-US'.
+	 * @see #matchLocale(String, Map)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */

@@ -29,14 +29,11 @@ public class SafeDataManager {
 	public static final String HC_THIRDS_JAR = "hc_thirds.jar";
 	public static final String STUB_DEX_JAR = "stub.dex.jar";
 
-	public static final String USER_DATA = "user_data";
-	public static final String USER_DATA_SAFE = USER_DATA + "_safe";
-
 	final static String[] excluds = { ".dex", ".png", ".ico", ".log", ".txt", ".har", ".harbak", ".hc", ".pem", ".command", ".bat", ".sh",
 			".pfx", "starter.properties", ResourceUtil.EXT_JAR, ResourceUtil.EXT_APK };
-	final static String[] excludsDir = { USER_DATA_SAFE, "dex_optimized", StoreDirManager.LOGS_DIR_NAME };// dex_optimized为android Server下目录
+	final static String[] excludsDir = { StoreDirManager.TEMP_DIR_NAME, StoreDirManager.USER_DATA_SAFE, "dex_optimized", StoreDirManager.LOGS_DIR_NAME };// dex_optimized为android Server下目录
 
-	static final File SAFE_DATA_DIR = new File(ResourceUtil.getBaseDir(), USER_DATA_SAFE);
+	static final File SAFE_DATA_DIR = new File(ResourceUtil.getBaseDir(), StoreDirManager.USER_DATA_SAFE);
 
 	final static File backTempDir = new File(SAFE_DATA_DIR, BACKUP_SUB_TEMP);
 	final static File backStoreDir = new File(SAFE_DATA_DIR, BACKUP_SUB_STORE);
@@ -373,9 +370,9 @@ public class SafeDataManager {
 					synchronized (lock) {
 						// backup project only
 						final File projectSrc = new File(StoreDirManager.getUserDataBaseDir(projectID));
-						final File backProjTemp = new File(new File(backTempDir, SafeDataManager.USER_DATA),
+						final File backProjTemp = new File(new File(backTempDir, StoreDirManager.USER_DATA),
 								HttpUtil.encodeFileName(projectID));
-						final File backProjStore = new File(new File(backStoreDir, SafeDataManager.USER_DATA),
+						final File backProjStore = new File(new File(backStoreDir, StoreDirManager.USER_DATA),
 								HttpUtil.encodeFileName(projectID));
 
 						backProjTemp.mkdirs();

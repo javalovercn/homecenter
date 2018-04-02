@@ -1,30 +1,5 @@
 package hc.server;
 
-import hc.App;
-import hc.core.ContextManager;
-import hc.core.IConstant;
-import hc.core.IContext;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.StringUtil;
-import hc.core.util.ThreadPriorityManager;
-import hc.res.ImageSrc;
-import hc.server.data.KeyComperPanel;
-import hc.server.localnet.ReceiveDeployServer;
-import hc.server.ui.ClientDesc;
-import hc.server.ui.J2SESessionManager;
-import hc.server.ui.NumberFormatTextField;
-import hc.server.ui.ServerUIUtil;
-import hc.server.ui.design.Designer;
-import hc.server.ui.design.code.CodeHelper;
-import hc.server.ui.design.hpj.ScriptEditPanel;
-import hc.server.util.ExceptionViewer;
-import hc.server.util.ai.AIPersistentManager;
-import hc.util.BaseResponsor;
-import hc.util.HttpUtil;
-import hc.util.PropertiesManager;
-import hc.util.PropertiesSet;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -74,13 +49,38 @@ import javax.swing.event.TableModelListener;
 import javax.swing.plaf.basic.BasicLookAndFeel;
 import javax.swing.table.AbstractTableModel;
 
+import hc.App;
+import hc.core.ContextManager;
+import hc.core.IConstant;
+import hc.core.IContext;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.StringUtil;
+import hc.core.util.ThreadPriorityManager;
+import hc.res.ImageSrc;
+import hc.server.data.KeyComperPanel;
+import hc.server.localnet.ReceiveDeployServer;
+import hc.server.ui.ClientDesc;
+import hc.server.ui.J2SESessionManager;
+import hc.server.ui.NumberFormatTextField;
+import hc.server.ui.ServerUIUtil;
+import hc.server.ui.design.Designer;
+import hc.server.ui.design.code.CodeHelper;
+import hc.server.ui.design.hpj.ScriptEditPanel;
+import hc.server.util.ExceptionViewer;
+import hc.server.util.ai.AIPersistentManager;
+import hc.util.BaseResponsor;
+import hc.util.HttpUtil;
+import hc.util.PropertiesManager;
+import hc.util.PropertiesSet;
+import hc.util.ResourceUtil;
+
 public class ConfigPane extends SingleJFrame {
 	public static final int OPTION_APPLY_BEFORE_SAVE = 1;
 	public static final int OPTION_OK_BEFORE_SAVE = 2;
 	public static final int OPTION_CANCEL = 3;
 	public static final int OPTION_OK_SAVE_DONE = 4;
 
-	final String third_lib_title = (String) ResourceUtil.get(9046);
+	final String third_lib_title = ResourceUtil.get(9046);
 	Vector<ThirdLibValue> deledLibs = new Vector<ThirdLibValue>();
 	boolean addLib = false;
 	boolean isMovedLibIdx = false;
@@ -121,7 +121,7 @@ public class ConfigPane extends SingleJFrame {
 			fontSize.setColumns(5);
 			fontSize.setText(cvSize.getOldValue());
 
-			final JCheckBox useSysFont = new JCheckBox((String) ResourceUtil.get(9057));
+			final JCheckBox useSysFont = new JCheckBox(ResourceUtil.get(9057));
 
 			new ConfigValue(PropertiesManager.C_FONT_NAME, oldName, group) {
 				@Override
@@ -148,9 +148,9 @@ public class ConfigPane extends SingleJFrame {
 
 			final JPanel flowPane = new JPanel();
 			flowPane.setLayout(new FlowLayout(FlowLayout.LEADING, hgap, vgap));
-			flowPane.add(new JLabel((String) ResourceUtil.get(9037)));
+			flowPane.add(new JLabel(ResourceUtil.get(9037)));
 			flowPane.add(fontNames);
-			flowPane.add(new JLabel((String) ResourceUtil.get(9038)));
+			flowPane.add(new JLabel(ResourceUtil.get(9038)));
 			flowPane.add(fontSize);
 
 			final JPanel fontTotalPanel = new JPanel(new BorderLayout());
@@ -218,11 +218,11 @@ public class ConfigPane extends SingleJFrame {
 				final JPanel skinPanel = new JPanel();
 				skinPanel.setBorder(new TitledBorder(""));
 				skinPanel.setLayout(new FlowLayout(FlowLayout.LEADING, hgap, vgap));
-				skinPanel.add(new JLabel((String) ResourceUtil.get(9042)));
+				skinPanel.add(new JLabel(ResourceUtil.get(9042)));
 				skinPanel.add(skins);
 
 				{
-					final JButton addSkin = new JButton((String) ResourceUtil.get(9043));
+					final JButton addSkin = new JButton(ResourceUtil.get(9043));
 					skinPanel.add(addSkin);
 					final String dependMsg = "<BR>if it depends on a core jar, please import the core jar first in tab of <STRONG>"
 							+ third_lib_title + "</STRONG>.";
@@ -320,10 +320,10 @@ public class ConfigPane extends SingleJFrame {
 
 	public ConfigPane() {
 		this.group = new ConfigValueGroup(this);
-		final String OK_BTN_TXT = (String) ResourceUtil.get(IContext.OK);
+		final String OK_BTN_TXT = ResourceUtil.get(IContext.OK);
 
 		setIconImage(App.SYS_LOGO);
-		setTitle((String) ResourceUtil.get(9040));
+		setTitle(ResourceUtil.get(9040));
 
 		final JFrame self = this;
 
@@ -399,10 +399,10 @@ public class ConfigPane extends SingleJFrame {
 				}
 			};
 
-			final JCheckBox enableLoggerOn = new JCheckBox((String) ResourceUtil.get(9206));
-			final JCheckBox enableMSBLog = new JCheckBox((String) ResourceUtil.get(8014));
-			final JCheckBox enableReceiveDeployFromLocal = new JCheckBox((String) ResourceUtil.get(9249));
-			final JCheckBox enableMSBDialog = new JCheckBox((String) ResourceUtil.get(8015));
+			final JCheckBox enableLoggerOn = new JCheckBox(ResourceUtil.get(9206));
+			final JCheckBox enableMSBLog = new JCheckBox(ResourceUtil.get(8014));
+			final JCheckBox enableReceiveDeployFromLocal = new JCheckBox(ResourceUtil.get(9249));
+			final JCheckBox enableMSBDialog = new JCheckBox(ResourceUtil.get(8015));
 			final JCheckBox enableReportException = App.buildReportExceptionCheckBox(false);
 
 			wordShift.addKeyListener(keyListener);
@@ -506,13 +506,10 @@ public class ConfigPane extends SingleJFrame {
 				};
 			} // end word key
 
-			enableReceiveDeployFromLocal.setToolTipText("<html>" + (String) ResourceUtil.get(9251) + "</html>");
-			enableLoggerOn.setToolTipText("<html>log all information, event, and exception. If unselected, print to console for debug."
-					+ "<BR>it will take effect after restart this server.</html>");
-			enableMSBLog.setToolTipText("<html>log MSB messages between Robot, Converter and Device."
-					+ "<br>it is very useful to debug modules in HAR project." + "</html>");
-			enableMSBDialog
-					.setToolTipText("When MSBException/HCSecurityException is thrown, system pop up Exception-Browse window automaticly.");
+			enableReceiveDeployFromLocal.setToolTipText(ResourceUtil.wrapHTMLTag(9251));
+			enableLoggerOn.setToolTipText(ResourceUtil.wrapHTMLTag(9287));//9287=log all information, event, and exception. If unselected, print to console for debug.<BR>it will take effect after restart this application.
+			enableMSBLog.setToolTipText(ResourceUtil.wrapHTMLTag(9288));//9288=log MSB messages between Robot, Converter and Device.<br>it is very useful to debug modules in HAR project.
+			enableMSBDialog.setToolTipText(ResourceUtil.get(9289));//9289=When MSBException/HCSecurityException is thrown, system pop up Exception-Browse window automaticly.
 
 			final String isOldLogger = PropertiesManager.getValue(PropertiesManager.p_IsLoggerOn, IConstant.TRUE);
 			final String isOldMSBLog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBLog, IConstant.FALSE);
@@ -618,7 +615,7 @@ public class ConfigPane extends SingleJFrame {
 				if (ResourceUtil.isEnableDesigner()) {
 					panel.add(new JSeparator(SwingConstants.HORIZONTAL));
 
-					final String tip = "set shortcut keys for word completion of Designer.";
+					final String tip = "set shortcut keys for word completion of code editor.";
 
 					wordShift.setToolTipText(tip);
 
@@ -639,7 +636,7 @@ public class ConfigPane extends SingleJFrame {
 
 					final JPanel docFontSize = new JPanel(new FlowLayout(FlowLayout.LEADING));
 					final JLabel label = new JLabel("API docs font size :");
-					label.setToolTipText("the font size of API docs in designer.");
+					label.setToolTipText("the font size of API docs in code editor.");
 
 					final NumberFormatTextField sizeField = new NumberFormatTextField(DefaultManager.DEFAULT_DOC_FONT_SIZE_INPUT);
 					sizeField.setColumns(4);
@@ -674,8 +671,8 @@ public class ConfigPane extends SingleJFrame {
 
 				{
 					if (ResourceUtil.isAndroidServerPlatform()) {// Android环境下，开机启动
-						final JCheckBox cbAutoStart = new JCheckBox((String) ResourceUtil.get(6001));
-						cbAutoStart.setToolTipText("<html>" + (String) ResourceUtil.get(9195) + "</html>");
+						final JCheckBox cbAutoStart = new JCheckBox(ResourceUtil.get(6001));
+						cbAutoStart.setToolTipText("<html>" + ResourceUtil.get(9195) + "</html>");
 						final String isAutoStart = PropertiesManager.getValue(PropertiesManager.p_autoStart, IConstant.FALSE);
 						cbAutoStart.setSelected(IConstant.TRUE.equals(isAutoStart));
 						new ConfigValue(PropertiesManager.p_autoStart, isAutoStart, group) {
@@ -705,8 +702,8 @@ public class ConfigPane extends SingleJFrame {
 				}
 
 				{
-					final JCheckBox cbEnableClientAddHAR = new JCheckBox((String) ResourceUtil.get(9243));
-					cbEnableClientAddHAR.setToolTipText("<html>" + (String) ResourceUtil.get(9156) + "</html>");
+					final JCheckBox cbEnableClientAddHAR = new JCheckBox(ResourceUtil.get(9243));
+					cbEnableClientAddHAR.setToolTipText("<html>" + ResourceUtil.get(9156) + "</html>");
 					final String isAcceptHARLicense = PropertiesManager.getValue(PropertiesManager.p_isEnableClientAddHAR, IConstant.TRUE);
 					cbEnableClientAddHAR.setSelected(ResourceUtil.isEnableClientAddHAR());
 					new ConfigValue(PropertiesManager.p_isEnableClientAddHAR, isAcceptHARLicense, group) {
@@ -730,7 +727,7 @@ public class ConfigPane extends SingleJFrame {
 				}
 
 				{
-					final JCheckBox cbEnableHCAI = new JCheckBox((String) ResourceUtil.get(9253));// enable
+					final JCheckBox cbEnableHCAI = new JCheckBox(ResourceUtil.get(9253));// enable
 																									// HCAI
 																									// (HomeCenter
 																									// AI)
@@ -740,7 +737,7 @@ public class ConfigPane extends SingleJFrame {
 																									// command
 																									// and
 																									// automation.
-					cbEnableHCAI.setToolTipText((String) ResourceUtil.get(9254));// it
+					cbEnableHCAI.setToolTipText(ResourceUtil.get(9254));// it
 																					// is
 																					// different
 																					// from
@@ -774,7 +771,7 @@ public class ConfigPane extends SingleJFrame {
 				}
 
 				{
-					final JCheckBox cbAcceptAllHARLicense = new JCheckBox((String) ResourceUtil.get(9241));
+					final JCheckBox cbAcceptAllHARLicense = new JCheckBox(ResourceUtil.get(9241));
 					// cbAcceptAllHARLicense.setToolTipText("<html>" +
 					// (String)ResourceUtil.get(0) + "</html>");
 					final String isAcceptHARLicense = PropertiesManager.getValue(PropertiesManager.p_isAcceptAllHARLicenses,
@@ -800,11 +797,11 @@ public class ConfigPane extends SingleJFrame {
 				}
 
 				{
-					final JLabel intervalSecondsNextStartLabel = new JLabel((String) ResourceUtil.get(9175) + " : ");
+					final JLabel intervalSecondsNextStartLabel = new JLabel(ResourceUtil.get(9175) + " : ");
 					final NumberFormatTextField intervalSecondsNextStartField = new NumberFormatTextField(
 							DefaultManager.INTERVAL_SECONDS_FOR_NEXT_STARTUP);
 					intervalSecondsNextStartField.setColumns(5);
-					final String tooltip = "<html>" + (String) ResourceUtil.get(9176) + "</html>";
+					final String tooltip = "<html>" + ResourceUtil.get(9176) + "</html>";
 					intervalSecondsNextStartLabel.setToolTipText(tooltip);
 
 					final String oldIntervalSeconds = String.valueOf(ResourceUtil.getIntervalSecondsForNextStartup());
@@ -834,7 +831,7 @@ public class ConfigPane extends SingleJFrame {
 
 				{
 					final String split = "{split}";
-					final String preload = (String) ResourceUtil.get(9177);
+					final String preload = ResourceUtil.get(9177);
 					final int splitIdx = preload.indexOf(split);
 					final String p1 = preload.substring(0, splitIdx);
 					final String p2 = preload.substring(splitIdx + split.length());
@@ -843,7 +840,7 @@ public class ConfigPane extends SingleJFrame {
 					final JLabel back = new JLabel(p2);
 					final NumberFormatTextField seconds = new NumberFormatTextField(true, DefaultManager.PRELOAD_AFTER_STARTUP_FOR_INPUT);
 					seconds.setColumns(5);
-					final String tooltip = "<html>" + (String) ResourceUtil.get(9178) + "</html>";
+					final String tooltip = "<html>" + ResourceUtil.get(9178) + "</html>";
 					preloadAfterStartup.setToolTipText(tooltip);
 
 					final String oldIntervalSeconds = String.valueOf(ResourceUtil.getSecondsForPreloadJRuby());
@@ -880,7 +877,7 @@ public class ConfigPane extends SingleJFrame {
 		{
 			securityPane.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
 
-			final String tooltip = (String) ResourceUtil.get(9174);
+			final String tooltip = ResourceUtil.get(9174);
 
 			final JPanel panel = new JPanel();
 			panel.setLayout(new FlowLayout(FlowLayout.LEADING, ClientDesc.hgap, ClientDesc.vgap));
@@ -895,6 +892,7 @@ public class ConfigPane extends SingleJFrame {
 			panel.add(new JLabel(" >= "));
 			label.setToolTipText(tooltip);
 			final NumberFormatTextField jtfMaxTimers = new NumberFormatTextField(DefaultManager.ERR_TRY_TIMES);
+			ResourceUtil.setDisableFieldHint(jtfMaxTimers);
 			jtfMaxTimers.setToolTipText(tooltip);
 			jtfMaxTimers.setText(String.valueOf(SystemLockManager.getConfigErrTry()));
 			jtfMaxTimers.setColumns(5);
@@ -905,6 +903,7 @@ public class ConfigPane extends SingleJFrame {
 			lockLabel.setToolTipText(tooltip);
 			panel.add(lockLabel);
 			final NumberFormatTextField jtfLockMinutes = new NumberFormatTextField(DefaultManager.LOCK_MINUTES);
+			ResourceUtil.setDisableFieldHint(jtfLockMinutes);
 			jtfLockMinutes.setToolTipText(tooltip);
 			jtfLockMinutes.setText(String.valueOf(SystemLockManager.getConfigLockMinutes()));
 			jtfLockMinutes.setColumns(5);
@@ -912,7 +911,7 @@ public class ConfigPane extends SingleJFrame {
 			final JLabel timeLabel = new JLabel(new ImageIcon(ResourceUtil.getImage(ResourceUtil.getResource("hc/res/timer_22.png"))));
 			timeLabel.setToolTipText(tooltip);
 			panel.add(timeLabel);
-			final JLabel minuteLabel = new JLabel((String) ResourceUtil.get(9047));
+			final JLabel minuteLabel = new JLabel(ResourceUtil.get(9047));
 			minuteLabel.setToolTipText(tooltip);
 			panel.add(minuteLabel);
 
@@ -985,18 +984,51 @@ public class ConfigPane extends SingleJFrame {
 					newOldValue = getNewValue();
 				}
 			};
-			final JPanel networkPane = new JPanel(new BorderLayout(0, vgap));
-			panel.setBorder(new TitledBorder((String) ResourceUtil.get(9045) + " : "));
-			networkPane.add(panel, BorderLayout.NORTH);
+			final JPanel listSecurityPanel = new JPanel();
+			listSecurityPanel.setBorder(new TitledBorder(ResourceUtil.get(9045) + " : "));//9045=Security
+			final BoxLayout boxLayout = new BoxLayout(listSecurityPanel, BoxLayout.Y_AXIS);
+			listSecurityPanel.setLayout(boxLayout);
+			listSecurityPanel.add(panel);
+
+			if(HttpUtil.hasJ2SECACerts()) {
+				final JCheckBox limitJ2SECA = new JCheckBox(ResourceUtil.get(9281));//9281=accept https of root certificates only issued by J2SE Root CA Program.
+				final boolean isAcceptOnly = PropertiesManager.isAcceptCertsOnlyFromJ2SECACerts();
+				limitJ2SECA.setSelected(isAcceptOnly);
+				
+				limitJ2SECA.setToolTipText(ResourceUtil.wrapHTMLTag(9282));//9282=if not checked, then accept all certificates, including self-signed.
+				
+				new ConfigValue(PropertiesManager.p_isAcceptCertsOnlyFromJ2SECACerts, IConstant.toString(isAcceptOnly), group) {
+					
+					@Override
+					public String getNewValue() {
+						return IConstant.toString(limitJ2SECA.isSelected());
+					}
+					
+					@Override
+					public void applyBiz(final int option) {
+						if (option == OPTION_OK_SAVE_DONE && limitJ2SECA.isSelected() != isAcceptOnly) {
+							HttpUtil.initSSLSocketFactory();
+						}
+					}
+				};
+				final JPanel newPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+				newPanel.add(limitJ2SECA);
+				
+				final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+				listSecurityPanel.add(separator);
+				
+				listSecurityPanel.add(newPanel);
+			}
+			
 			final JPanel borderPane = new JPanel(new BorderLayout());
-			borderPane.setBorder(new TitledBorder((String) ResourceUtil.get(9170) + " : "));
-			final JPanel descPane = ServerUIUtil.buildDescPanel((String) ResourceUtil.get(9171));
+			borderPane.setBorder(new TitledBorder(ResourceUtil.get(9170) + " : "));//9170=Network Interface of Direct Server
+			final JPanel descPane = ServerUIUtil.buildDescPanel(ResourceUtil.get(9171));
 			borderPane.add(descPane, BorderLayout.CENTER);
 			{
 				final JPanel networkPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 				networkPanel.add(network);
-				final JLabel port = new JLabel((String) ResourceUtil.get(9172) + " : ");
-				final String porttooltip = "<html>" + (String) ResourceUtil.get(9173) + "</html>";
+				final JLabel port = new JLabel(ResourceUtil.get(9172) + " : ");
+				final String porttooltip = "<html>" + ResourceUtil.get(9173) + "</html>";
 				port.setToolTipText(porttooltip);
 				networkPort.setToolTipText(porttooltip);
 				networkPanel.add(port);
@@ -1005,8 +1037,9 @@ public class ConfigPane extends SingleJFrame {
 
 				borderPane.add(networkPanel, BorderLayout.NORTH);
 			}
-			networkPane.add(borderPane, BorderLayout.CENTER);
-			securityPane.add(networkPane, BorderLayout.NORTH);
+			
+			securityPane.add(listSecurityPanel, BorderLayout.NORTH);
+			securityPane.add(borderPane, BorderLayout.CENTER);
 		}
 
 		{
@@ -1015,19 +1048,20 @@ public class ConfigPane extends SingleJFrame {
 			final int MAX_MENUITEM = 30;
 			final Vector<Object[]> libs = new Vector<Object[]>();
 
-			final JButton upBut = new JButton((String) ResourceUtil.get(9019), new ImageIcon(ImageSrc.UP_SMALL_ICON));
-			final JButton downBut = new JButton((String) ResourceUtil.get(9020), new ImageIcon(ImageSrc.DOWN_SMALL_ICON));
-			final JButton removeBut = new JButton((String) ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
-			final JButton importBut = new JButton((String) ResourceUtil.get(9016), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
+			final JButton upBut = new JButton(ResourceUtil.get(9019), new ImageIcon(ImageSrc.UP_SMALL_ICON));
+			final JButton downBut = new JButton(ResourceUtil.get(9020), new ImageIcon(ImageSrc.DOWN_SMALL_ICON));
+			final JButton removeBut = new JButton(ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
+			final JButton importBut = new JButton(ResourceUtil.get(9016), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
 
-			importBut.setToolTipText("the imported jar will works after click '" + OK_BTN_TXT + "' button.");
-			removeBut.setToolTipText("the removed jar is still working before click '" + OK_BTN_TXT
-					+ "' button. Restart HomeCenter Server is NOT required!");
+			final String importTip = StringUtil.replace(ResourceUtil.get(9290), "{ok}", OK_BTN_TXT);//9290=the imported jar will works after click '{ok}' button.
+			importBut.setToolTipText(importTip);
+			final String removeTip = StringUtil.replace(ResourceUtil.get(9291), "{ok}", OK_BTN_TXT);//9291=the removed jar is still working before click '{ok}' button. Restart this application is NOT required!
+			removeBut.setToolTipText(removeTip);
 			// upBut.setToolTipText("you need to restart HomeCenter server to
 			// make it effect.");
 			downBut.setToolTipText(upBut.getToolTipText());
 
-			final Object[] colNames = { (String) ResourceUtil.get(9046) };
+			final Object[] colNames = { ResourceUtil.get(9046) };
 			final AbstractTableModel tableModel = new AbstractTableModel() {
 				@Override
 				public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
@@ -1176,7 +1210,7 @@ public class ConfigPane extends SingleJFrame {
 			final JScrollPane scrollpane = new JScrollPane(tablePanel.table);
 			scrollpane.setPreferredSize(new Dimension(600, 100));
 
-			final JPanel descPane = ServerUIUtil.buildDescPanel((String) ResourceUtil.get(9266));
+			final JPanel descPane = ServerUIUtil.buildDescPanel(ResourceUtil.get(9266));
 
 			thirdLibsPane.add(scrollpane, BorderLayout.CENTER);
 			thirdLibsPane.add(buttonsList, BorderLayout.NORTH);
@@ -1186,11 +1220,11 @@ public class ConfigPane extends SingleJFrame {
 		final JTabbedPane centerPanel = new JTabbedPane();
 
 		if (ResourceUtil.isJ2SELimitFunction()) {
-			centerPanel.add((String) ResourceUtil.get(9039), buildAppearancePane(self));
+			centerPanel.add(ResourceUtil.get(9039), buildAppearancePane(self));
 		}
-		centerPanel.add((String) ResourceUtil.get(9045), securityPane);
+		centerPanel.add(ResourceUtil.get(9045), securityPane);
 		centerPanel.add(third_lib_title, thirdLibsPane);
-		centerPanel.add((String) ResourceUtil.get(9112), otherPane);
+		centerPanel.add(ResourceUtil.get(9112), otherPane);
 		centerPanel.add("Developer", developerPane);
 
 		final JButton ok = new JButton(OK_BTN_TXT, new ImageIcon(ImageSrc.OK_ICON));
@@ -1199,7 +1233,7 @@ public class ConfigPane extends SingleJFrame {
 		add(centerPanel, BorderLayout.CENTER);
 
 		final JPanel bottonButtons = new JPanel();
-		final JButton cancel = new JButton((String) ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
+		final JButton cancel = new JButton(ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
 		cancel.addActionListener(new HCButtonEnabledActionListener(cancel, new Runnable() {
 			@Override
 			public void run() {
@@ -1237,7 +1271,7 @@ public class ConfigPane extends SingleJFrame {
 				});
 			}
 		}, threadPoolToken));
-		final JButton apply = new JButton((String) ResourceUtil.get(9041),
+		final JButton apply = new JButton(ResourceUtil.get(9041),
 				new ImageIcon(ResourceUtil.getImage(ResourceUtil.getResource("hc/res/test_22.png"))));
 		apply.addActionListener(new HCButtonEnabledActionListener(apply, new Runnable() {
 			@Override
@@ -1451,11 +1485,11 @@ public class ConfigPane extends SingleJFrame {
 
 	public static void rebuildConnection(final JFrame self) {
 		final JPanel panel = new JPanel(new BorderLayout());
-		final String msg = StringUtil.replace((String) ResourceUtil.get(9256), "{ok}", (String) ResourceUtil.get(IContext.OK));// setting is changed or
+		final String msg = StringUtil.replace(ResourceUtil.get(9256), "{ok}", ResourceUtil.get(IContext.OK));// setting is changed or
 																																// canceled, need
 																																// rebuild connection
 		panel.add(new JLabel(msg, App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING));
-		App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9255), true, null, null, new HCActionListener(new Runnable() {
+		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(9255), true, null, null, new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				HttpUtil.notifyStopServer(true, self);

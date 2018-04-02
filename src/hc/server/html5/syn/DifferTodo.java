@@ -1,32 +1,5 @@
 package hc.server.html5.syn;
 
-import hc.core.FastSender;
-import hc.core.IConstant;
-import hc.core.L;
-import hc.core.MsgBuilder;
-import hc.core.cache.CacheManager;
-import hc.core.util.ByteUtil;
-import hc.core.util.HCURL;
-import hc.core.util.LogManager;
-import hc.core.util.StringUtil;
-import hc.core.util.ThreadPriorityManager;
-import hc.server.msb.UserThreadResourceUtil;
-import hc.server.ui.HCByteArrayOutputStream;
-import hc.server.ui.HTMLMlet;
-import hc.server.ui.Mlet;
-import hc.server.ui.ProjectContext;
-import hc.server.ui.ScriptPanel;
-import hc.server.ui.ServerUIAPIAgent;
-import hc.server.ui.design.J2SESession;
-import hc.server.ui.design.ProjResponser;
-import hc.server.util.CacheComparator;
-import hc.server.util.ai.AIPersistentManager;
-import hc.util.HttpUtil;
-import hc.util.JSUtil;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-import hc.util.StringBuilderCacher;
-
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -64,6 +37,33 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
+
+import hc.core.FastSender;
+import hc.core.IConstant;
+import hc.core.L;
+import hc.core.MsgBuilder;
+import hc.core.cache.CacheManager;
+import hc.core.util.ByteUtil;
+import hc.core.util.HCURL;
+import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
+import hc.core.util.ThreadPriorityManager;
+import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.HCByteArrayOutputStream;
+import hc.server.ui.HTMLMlet;
+import hc.server.ui.Mlet;
+import hc.server.ui.ProjectContext;
+import hc.server.ui.ScriptPanel;
+import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.ProjResponser;
+import hc.server.util.CacheComparator;
+import hc.server.util.ai.AIPersistentManager;
+import hc.util.HttpUtil;
+import hc.util.JSUtil;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
 
 public class DifferTodo {
 	private static final byte[] WINDOW_HCJ2SE_SET_LTR_FALSE = ByteUtil.getBytes("window.hcj2se.setLTR(false);", IConstant.UTF_8);
@@ -344,6 +344,10 @@ public class DifferTodo {
 		if (isNoScriptPanelPermission()) {
 			LogManager.err(getBlockScriptMsg());
 			return;
+		}
+		
+		if (L.isInWorkshop) {
+			LogManager.log("loadScriptForScriptPanel : " + js);
 		}
 
 		js = yinHaoPattern.matcher(js).replaceAll(yinHaoEncode);

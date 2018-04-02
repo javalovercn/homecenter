@@ -64,12 +64,9 @@
 			var jsOnClick = 'javascript:window.hcserver.clickCheckbox(\'' + CONS.HC_PRE + hashID + '\');';
 			newdiv.setAttribute('onclick', jsOnClick);
 
-			/*newdiv.setAttribute('class','JCheckbox');*/
-			
 			var newCheckbox = document.createElement('input');
 			newCheckbox.setAttribute('id',CONS.HC_CMP + hashID);
 			newCheckbox.setAttribute('type','checkbox');
-			/* newCheckbox.setAttribute('onclick', jsOnClick);*/
 
 			newdiv.appendChild(newCheckbox);
 
@@ -90,13 +87,10 @@
 			var jsOnClick = 'javascript:window.hcserver.clickRadioButton(\'' + CONS.HC_PRE + hashID + '\');';
 			newdiv.setAttribute('onclick', jsOnClick);
 			
-			/*newdiv.setAttribute('class','JRadioButton');*/
-			
 			var newRadioButton = document.createElement('input');
 			newRadioButton.setAttribute('id',CONS.HC_CMP + hashID);
 			newRadioButton.setAttribute('type','radio');
 			newRadioButton.setAttribute('name',CONS.HC_CMP + groupHashID);/*name='radiobutton'则为一组，以实现单选*/
-			/* newRadioButton.setAttribute('onclick', jsOnClick);*/
 			
 			newdiv.appendChild(newRadioButton);
 
@@ -123,10 +117,8 @@
 						compNode.appendChild(img);
 					}
 				}else{
-					/*jLable*/
 					var divNode = document.getElementById(CONS.HC_DIV + hashID);
 
-					/*JLabel置于外，JButton置于内*/
 					if(divNode.firstChild){
 						divNode.insertBefore(img, divNode.firstChild);
 					}else{
@@ -182,8 +174,6 @@
 		addTextField: function(containerHashID, index, hashID, isPassword, tip){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
-			/*newdiv.setAttribute('class','JTextField');*/
-			
 			var newTextField = document.createElement('input');
 			var typeValue = 'text';
 			if(isPassword==1){
@@ -208,8 +198,6 @@
 		addTextArea: function(containerHashID, index, hashID, tip){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
-			/*newdiv.setAttribute('class','JTextField');*/
-			
 			var newTextArea = document.createElement('textarea');
 			newTextArea.setAttribute('id',CONS.HC_CMP + hashID);
 			newTextArea.setAttribute('wrap', 'soft');
@@ -282,7 +270,7 @@
 		changeComboBoxModel: function(hashID, selectionValues, selectedIdx){
 			var oldSelect = document.getElementById(CONS.HC_CMP + hashID);
 
-			oldSelect.options.length=0;/*删除全部旧的*/
+			oldSelect.options.length=0;/*remove all old*/
 
 			this.appendComboBoxOption(oldSelect, selectionValues);
 
@@ -317,16 +305,11 @@
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 			var j2se = this;
 
-			/*newdiv.setAttribute('class','JPanel');*/
 			newdiv.addEventListener('mouseup', function(e){
 				if(!e) e=window.event;
 				if(e.target != newdiv){
 					return;
 				}
-				/* var scroll=getScrollOffsets();*/
-				/* elementToDrag.style.left=(e.offsetX+scroll.x-deltaX)+'px';*/
-				/* elementToDrag.style.top=(e.offsetY+scroll.y-deltaY)+'px';*/
-				/* e.stopPropagation();*/
 				window.hcserver.mouseReleased(CONS.HC_PRE + hashID, e.offsetX, e.offsetY);
 				}, false);
 			newdiv.addEventListener('mousedown', function(e){
@@ -355,7 +338,6 @@
 					if(e.target != newdiv){
 						return;
 					}
-					/* console.log('mouseClick id : ' + hashID + ', x : ' + e.offsetX + ', y : ' + e.offsetY);*/
 					window.hcserver.mouseClicked(CONS.HC_PRE + hashID, e.offsetX, e.offsetY);
 				}, false);
 			newdiv.addEventListener('touchmove', function(e){
@@ -363,9 +345,6 @@
 					if(e.target != newdiv){
 						return;
 					}
-					/* e.preventDefault();*/
-					/* console.log('touchmove id : ' + hashID + ', getDivTop : ' + j2se.getDivTop(newdiv) + ', y : ' + e.touches[0].clientX);*/
-					/* console.log('touchmove id : ' + hashID + ', x : ' + (e.touches[0].clientX - j2se.getDivLeft(newdiv)) + ', y : ' + e.touches[0].clientX);*/
 					window.hcserver.mouseDragged(CONS.HC_PRE + hashID, 
 						e.touches[0].clientX - j2se.getDivLeft(newdiv), 
 						e.touches[0].clientY - j2se.getDivTop(newdiv));/*注意：offsetX是undefined*/
@@ -374,7 +353,6 @@
 
 		getScrollOffsets: function(w){
 			w=w|| window;
-			/* if(w.pageXOffset!=null)*/
 			return {x:w.pageXOffset,y:w.pageYOffset};
 		},
 
@@ -587,7 +565,6 @@
 
 		setTextAreaText: function(hashID, text){
 			var eleID = document.getElementById(CONS.HC_CMP + hashID);
-			/*eleID.value = text;*/
 			eleID.innerText = text;
 			eleID.textContent = text;
 		},
@@ -644,7 +621,7 @@
 					var childNode = tipdiv.childNodes[i];
 					tipdiv.removeChild(childNode);
 				} 
-			}catch(ex){/*synchronize clearCurrentDisplayTip*/
+			}catch(ex){
 			}
 		},
 
@@ -671,7 +648,6 @@
 						tempLabel.innerText = tipMsg;
 						tempLabel.textContent = tipMsg;
 
-
 						tempLabel.setAttribute('style', labelStyle + 'left:' + (offLeft + n) + 'px;top:' + (offLeft + m) + 'px;' +
 							'color:' + colorRGB);
 
@@ -683,14 +659,11 @@
 			firstLabel.setAttribute('style', labelStyle + 'left:' + (level - 1) + 'px;top:' + (level - 1) + 'px;color:' + fontRGBColor + ';');
 			tipdiv.appendChild(firstLabel);
 
-			/* var div_0 = document.getElementById(CONS.HC_DIV + 0);*/
 			var screenWidth = parseInt(this.getDiv('loading').style.width);
 			tipdiv.style.left = screenWidth + 'px';
 			this.setComponentVisible(CONS.HC_TIP_DIV, true);
 			var visibleWidth = firstLabel.offsetWidth;
-			/*console.log('screenWidth : ' + screenWidth + ', label width : ' + visibleWidth);*/
 			tipdiv.style.left = (screenWidth - visibleWidth - level) + 'px';
-			/* tipdiv.style.left = (parseInt(div_0.style.width) - visibleWidth) + 'px';*/
 
 			setTimeout('window.hcj2se.moveTip(1)', 100);
 		}

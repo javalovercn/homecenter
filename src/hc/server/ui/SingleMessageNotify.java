@@ -1,11 +1,5 @@
 package hc.server.ui;
 
-import hc.App;
-import hc.core.IContext;
-import hc.res.ImageSrc;
-import hc.server.HCActionListener;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
@@ -17,6 +11,12 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+
+import hc.App;
+import hc.core.IContext;
+import hc.res.ImageSrc;
+import hc.server.HCActionListener;
+import hc.util.ResourceUtil;
 
 public class SingleMessageNotify {
 	public static final String TYPE_ERROR_CONNECTION = "ErrCon";
@@ -44,6 +44,9 @@ public class SingleMessageNotify {
 	 * @param icon
 	 */
 	public static final void showOnce(final String type, final String msg, final String title, final int disposeMS, final Icon icon) {
+		if(ResourceUtil.isNonUIServer()) {
+			return;
+		}
 		synchronized (SingleMessageNotify.class) {
 			if (SingleMessageNotify.isShowMessage(type) == false) {
 				new SingleMessageNotify(type, msg, title, disposeMS, icon);
@@ -90,7 +93,7 @@ public class SingleMessageNotify {
 				closeDialog(type);
 			}
 		}, App.getThreadPoolToken());
-		final JButton okButton = new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
+		final JButton okButton = new JButton(ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 		final JDialog dialog = (JDialog) App.showCenterPanelMain(panel, 0, 0, title, false, okButton, null, quitAction, quitAction, null,
 				false, false, null, false, false);
 		typeDialogs.put(type, dialog);
@@ -114,7 +117,7 @@ public class SingleMessageNotify {
 							closeDialog(type);
 							break;
 						}
-						okButton.setText((String) ResourceUtil.get(IContext.OK) + " ["
+						okButton.setText(ResourceUtil.get(IContext.OK) + " ["
 								+ (int) ((startMS + disposeMS - System.currentTimeMillis()) / 1000) + "]");
 					}
 				}

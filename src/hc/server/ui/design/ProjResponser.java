@@ -1204,6 +1204,8 @@ public class ProjResponser {
 		final CacheComparator bodyCacheComp = new CacheComparator(projID, softUID, urlID, projIDbs, softUidBS, urlIDbs) {
 			@Override
 			public void sendData(final Object[] paras) {
+				ServerUIAPIAgent.sendOneMovingMsg(coreSS, ResourceUtil.get(coreSS, 9293));//9293=reloading, please wait a moment.
+				
 				final byte[] bodyBS = (byte[]) paras[0];
 
 				HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_BODY_TO_MOBI, bodyBS, 0, bodyBS.length);

@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -464,7 +465,8 @@ public class JRubyInstaller {
 				}
 			});
 
-			progressWindow = App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), false, null, null, listener, listener, parent,
+			final JButton closeButton = App.buildDefaultCloseButton();
+			progressWindow = App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), false, closeButton, null, listener, listener, parent,
 					true, true, null, false, false);
 		} else {
 			progressWindow.toFront();

@@ -11,17 +11,14 @@ public class PlatformManager {
 		if (ResourceUtil.isAndroidServerPlatform()) {
 			serviceClassName = "hc.android.AndroidPlatformService";
 		} else {
-			serviceClassName = "hc.server.j2se.J2SEPlatformService";// 该类名又被引用HCLimitSecurityManager
-																	// checkPermission
+			serviceClassName = "hc.server.j2se.J2SEPlatformService";// 该类名又被引用HCLimitSecurityManager checkPermission
 		}
 
-		final Class c = ResourceUtil.loadClass(serviceClassName, true);
-		if (c != null) {
-			try {
-				return (PlatformService) c.newInstance();
-			} catch (final Throwable e) {
-				ExceptionReporter.printStackTrace(e);
-			}
+		try {
+			final Class c = PlatformManager.class.getClassLoader().loadClass(serviceClassName);
+			return (PlatformService) c.newInstance();
+		} catch (final Throwable e) {
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}

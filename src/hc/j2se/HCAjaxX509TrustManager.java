@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.KeyStore;
-import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
@@ -18,7 +17,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 import hc.core.RootServerConnector;
 import hc.core.util.LogManager;
@@ -158,16 +156,6 @@ public class HCAjaxX509TrustManager {
 		return null;
 	}
 
-	public static void initSSLSocketFactory() {
-		HttpsURLConnection.setDefaultSSLSocketFactory(buildSSLSocketFactory(new TrustAllManager()));
-		HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-			@Override
-			public boolean verify(final String hostname, final SSLSession session) {
-				return true;
-			}
-		});
-	}
-
 	public static void setAjaxSSLSocketFactory(final URL url, final URLConnection conn) {
 		if (conn instanceof HttpsURLConnection) {
 			if (url.getPort() == RootServerConnector.PORT_44X && url.getProtocol().equals("https")) {//getProtocal会转为小写
@@ -179,25 +167,6 @@ public class HCAjaxX509TrustManager {
 				}
 			}
 		}
-	}
-
-}
-
-class TrustAllManager implements TrustManager, X509TrustManager {
-	@Override
-	public void checkClientTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
-		//		LogManager.log("TrustAllManager checkClientTrusted");
-	}
-
-	@Override
-	public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
-		//		LogManager.log("TrustAllManager checkServerTrusted");
-	}
-
-	@Override
-	public X509Certificate[] getAcceptedIssuers() {
-		//		LogManager.log("TrustAllManager getAcceptedIssuers");
-		return null;
 	}
 
 }

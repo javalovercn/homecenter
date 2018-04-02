@@ -407,19 +407,14 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	private static Boolean isLoggerOn;
-
-	static final boolean isLoggerOn() {
-		if (isLoggerOn == null) {
-			isLoggerOn = (Boolean) runAndWaitInSysThread(new ReturnableRunnable() {
-				@Override
-				public Object run() throws Throwable {
-					return ResourceUtil.isLoggerOn();
-				}
-			});
-		}
-		return isLoggerOn;
-	}
+	static final boolean isLoggerOn() {//不能 cache
+		return (Boolean) runAndWaitInSysThread(new ReturnableRunnable() {//注意：不能cache，因为用户可能option
+			@Override
+			public Object run() throws Throwable {
+				return ResourceUtil.isLoggerOn();
+			}
+		});
+	};
 
 	public final static void setProjectContext(final Mlet mlet, final ProjectContext ctx) {
 		mlet.__context = ctx;

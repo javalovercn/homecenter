@@ -1,5 +1,48 @@
 package hc.util;
 
+import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
@@ -20,37 +63,6 @@ import hc.core.util.URLEncoder;
 import hc.j2se.HCAjaxX509TrustManager;
 import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
-
-import java.awt.BorderLayout;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 public class HttpUtil {
 	public static final String UNALLOWED_DOMAIN = "unallowed.domain";
@@ -954,6 +966,53 @@ public class HttpUtil {
 		return false;
 	}
 
+	public static void initSSLSocketFactory() {
+		HttpsURLConnection.setDefaultSSLSocketFactory(HCAjaxX509TrustManager.buildSSLSocketFactory(new TrustAllOrJ2SEOnlyManager()));
+		HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+			@Override
+			public boolean verify(final String hostname, final SSLSession session) {
+				return true;
+			}
+		});
+	}
+	
+
+	private static Path getJ2SECACertsPath() {
+		return Paths.get(System.getProperty("java.home"), "lib", "security", "cacerts");
+	}
+	
+	public static boolean hasJ2SECACerts() {
+		try {
+			final Path p = getJ2SECACertsPath();
+			return p.toFile().exists();
+		}catch (final Throwable e) {
+		}
+		return false;
+	}
+	
+	static X509TrustManager[] getJ2SECACertsKeyStore() {
+		try {
+			final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+	        final Path ksPath = getJ2SECACertsPath();
+	        keyStore.load(Files.newInputStream(ksPath), PropertiesManager.getValue(PropertiesManager.p_J2SECACertsPassword, "changeit").toCharArray());
+	        final TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+	        tmf.init(keyStore);
+	        
+	        final Vector<X509TrustManager> v = new Vector<X509TrustManager>();
+	        for (final TrustManager tm : tmf.getTrustManagers()) {
+	            if (tm instanceof X509TrustManager) {
+	                v.add((X509TrustManager) tm);
+	            }
+	        }
+	        final X509TrustManager[] result = new X509TrustManager[v.size()];
+	        v.toArray(result);
+	        return result;
+		}catch (final Throwable e) {
+			e.printStackTrace();//有可能更改密码，导致错误
+		}
+		return null;
+	}
+	
 	public static final String encodeFileName(final String fileName) {// 注意：本方法被getPrivateFile引用，请勿改动
 		return fileName;
 	}
@@ -1037,4 +1096,86 @@ public class HttpUtil {
 			}
 		}
 	}
+}
+
+class TrustAllOrJ2SEOnlyManager implements TrustManager, X509TrustManager {
+	final boolean isAcceptJ2SECAOnly = HttpUtil.hasJ2SECACerts()
+			&& PropertiesManager.isAcceptCertsOnlyFromJ2SECACerts();
+	final X509TrustManager[] initManagersMaybeNull = getX509TrustManager(isAcceptJ2SECAOnly);
+	String errMessage;
+	
+	private final X509TrustManager[] getX509TrustManager(final boolean isAccept) {
+		if(isAccept == false) {
+			return null;
+		}
+		return HttpUtil.getJ2SECACertsKeyStore();
+	}
+	
+	@Override
+	public void checkClientTrusted(final X509Certificate[] arg0, final String arg1) throws CertificateException {
+//		L.V = L.WShop ? false : LogManager.log("TrustAllOrJ2SEOnlyManager checkClientTrusted");
+		if(isAcceptJ2SECAOnly) {
+			CertificateException t = null;
+			for (int i = 0; i < initManagersMaybeNull.length; i++) {
+				final X509TrustManager tm = initManagersMaybeNull[i];
+				try {
+					tm.checkClientTrusted(arg0, arg1);
+					return;
+				}catch (final CertificateException e) {
+					if(t == null) {
+						t = e;
+					}
+				}
+			}
+			if(errMessage == null){
+				errMessage = getErrMsg();
+			}
+			LogManager.err(errMessage);
+			throw t;
+		}
+	}
+
+	private final String getErrMsg() {
+		final String j2seCerts = ResourceUtil.get(9281);
+		final String closeHttps = ResourceUtil.get(9285);//9285=close HTTPS connection, because of option [{J2SECerts}].
+		return StringUtil.replace(closeHttps, "{J2SECerts}", j2seCerts);
+	}
+
+	@Override
+	public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+//		L.V = L.WShop ? false : LogManager.log("TrustAllOrJ2SEOnlyManager checkServerTrusted");
+		if(isAcceptJ2SECAOnly) {
+			CertificateException t = null;
+			for (int i = 0; i < initManagersMaybeNull.length; i++) {
+				final X509TrustManager tm = initManagersMaybeNull[i];
+				try {
+					tm.checkServerTrusted(chain, authType);
+					return;
+				}catch (final CertificateException e) {
+					if(t == null) {
+						t = e;
+					}
+				}
+			}
+			if(errMessage == null){
+				errMessage = getErrMsg();
+			}
+			LogManager.err(errMessage);
+			throw t;
+		}
+	}
+
+	@Override
+	public X509Certificate[] getAcceptedIssuers() {
+//		L.V = L.WShop ? false : LogManager.log("TrustAllOrJ2SEOnlyManager getAcceptedIssuers");
+		if(isAcceptJ2SECAOnly) {
+			final CertificateException t = null;
+			for (int i = 0; i < initManagersMaybeNull.length; i++) {
+				final X509TrustManager tm = initManagersMaybeNull[i];
+				return tm.getAcceptedIssuers();
+			}
+		}
+		return null;
+	}
+
 }

@@ -357,7 +357,7 @@ public class StringUtil {
 
 	/**
 	 * 如果ver1(1.2.11)高于ver2(1.2.1.3)，则返回true;
-	 * 
+	 * "10.0" == "10"
 	 * @param ver1
 	 * @param ver2
 	 * @return

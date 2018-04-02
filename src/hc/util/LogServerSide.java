@@ -1,19 +1,5 @@
 package hc.util;
 
-import hc.App;
-import hc.core.HCConnection;
-import hc.core.HCTimer;
-import hc.core.IConstant;
-import hc.core.util.CCoreUtil;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.ILog;
-import hc.core.util.LogManager;
-import hc.core.util.StringBufferCacher;
-import hc.res.ImageSrc;
-import hc.server.TrayMenuUtil;
-import hc.server.data.StoreDirManager;
-import hc.server.util.ServerCUtil;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -27,6 +13,20 @@ import java.io.PrintStream;
 import java.util.Calendar;
 
 import javax.swing.JPanel;
+
+import hc.App;
+import hc.core.HCConnection;
+import hc.core.HCTimer;
+import hc.core.IConstant;
+import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.ILog;
+import hc.core.util.LogManager;
+import hc.core.util.StringBufferCacher;
+import hc.res.ImageSrc;
+import hc.server.TrayMenuUtil;
+import hc.server.data.StoreDirManager;
+import hc.server.util.ServerCUtil;
 
 /**
  * log到文件或console。它被AndroidLogServerSide继承
@@ -83,7 +83,9 @@ public class LogServerSide implements ILog {
 	}
 
 	public final synchronized void buildOutStream() {
-		if (LogManager.INI_DEBUG_ON || (IConstant.isRegister() == false)) {
+		final boolean isLog = ResourceUtil.isLoggerOn();
+		if (isLog == false || LogManager.INI_DEBUG_ON || PropertiesManager.isSimu() || (IConstant.isRegister() == false)) {
+			//to console
 		} else {
 			if (osw != null) {
 				return;

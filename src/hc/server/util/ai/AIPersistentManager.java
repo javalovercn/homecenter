@@ -374,10 +374,9 @@ public class AIPersistentManager {
 	final static HCConditionWatcher delayExecutor = new HCConditionWatcher("AIPersistent", ThreadPriorityManager.AI_BACKGROUND);
 
 	public static void waitForAllDone() {
-		delayExecutor.waitForAllDone();
-		delayExecutor.notifyAllDoneAfterShutdown();
+		delayExecutor.waitForAllDone();//注意：不能执行delayExecutor.notifyAllDoneAfterShutdown
 	}
-
+	
 	public static void processFormData(final FormData data) {
 		delayExecutor.addWatcher(new AIExecBiz() {
 			@Override
@@ -511,9 +510,9 @@ public class AIPersistentManager {
 		});
 	}
 
-	private static void buildFlowRecord(final Component comp, final String labelLocale, final String screenID, final String locKey,
-			final ProjectContext ctx, final String cmd, String text, final int labelSrc) {
-		final AIPersistentManager mgr = getManagerByProjectIDInDelay(ctx.getProjectID());
+	private static void buildFlowRecord(final String labelLocale, final String screenID, final String locKey,
+			final String projectID, final String cmd, String text, final int labelSrc) {
+		final AIPersistentManager mgr = getManagerByProjectIDInDelay(projectID);
 		if (mgr.xmlSM.isReachMax(cmd, locKey, screenID)) {
 			return;
 		}
@@ -857,7 +856,13 @@ public class AIPersistentManager {
 
 		// buildStruct(comp, screenID, locKey, ctx);
 		final String locale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
-		buildFlowRecord(comp, locale, screenID, locKey, ctx, cmd, text, labelSrc);
+		
+		delayExecutor.addWatcher(new AIExecBiz() {
+			@Override
+			public void doBiz() {//注意：必须系统线程，否则数据存储的临时目录不可写。
+				buildFlowRecord(locale, screenID, locKey, ctx.getProjectID(), cmd, text, labelSrc);
+			}
+		});
 	}
 
 	private final void compact() {

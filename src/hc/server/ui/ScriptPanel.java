@@ -1,18 +1,21 @@
 package hc.server.ui;
 
-import hc.core.util.JSCore;
-import hc.core.util.LogManager;
-import hc.server.util.ai.AIPersistentManager;
-
+import java.util.HashMap;
 import java.util.Vector;
 
 import javax.swing.JPanel;
 
+import hc.core.util.JSCore;
+import hc.core.util.LogManager;
+import hc.server.util.ai.AIPersistentManager;
+import hc.util.JSUtil;
+import hc.util.StringBuilderCacher;
+
 /**
- * <code>ScriptPanel</code> is JComponent to load JavaScript and execute JavaScript on mobile
+ * <code>ScriptPanel</code> is JComponent to load JavaScript and execute JavaScript for mobile
  * client. <BR>
  * <BR>
- * <code>ScriptPanel</code> can be used in <code>HTMLMlet</code> and <code>Dialog</code>. <BR>
+ * <code>ScriptPanel</code> can be used in {@link HTMLMlet} and {@link Dialog}. <BR>
  * <BR>
  * <STRONG>Important</STRONG> : <BR>
  * permission of <code>ScriptPanel</code> is required for project.
@@ -168,12 +171,12 @@ public class ScriptPanel extends JPanel {
 
 	/**
 	 * load script for current <code>ScriptPanel</code>. <BR>
-	 * it is full script, HTML (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be
+	 * "<code>&lt;script type='text/javascript'&gt;</code>" can NOT be
 	 * included. <BR>
 	 * <BR>
 	 * <STRONG>Warning</STRONG> : <BR>
-	 * 1. <code>window.onload</code> will NOT be triggered, please invoke it by
-	 * {@link #executeScript(String)}<BR>
+	 * 1. <code>window.onload</code> will NOT be triggered, please invoke function by
+	 * {@link #executeScript(String)} after load.<BR>
 	 * 2. all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'. <BR>
 	 * <BR>
 	 * <STRONG>Important</STRONG> : <BR>
@@ -197,12 +200,12 @@ public class ScriptPanel extends JPanel {
 
 	/**
 	 * load script for current <code>ScriptPanel</code>. <BR>
-	 * it is full script, HTML (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be
+	 * "<code>&lt;script type='text/javascript'&gt;</code>" can NOT be
 	 * included. <BR>
 	 * <BR>
 	 * <STRONG>Warning</STRONG> : <BR>
-	 * 1. <code>window.onload</code> will NOT be triggered, please invoke it by
-	 * {@link #executeScript(String)}<BR>
+	 * 1. <code>window.onload</code> will NOT be triggered, please invoke function by
+	 * {@link #executeScript(String)} after load.<BR>
 	 * 2. all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
 	 * 
 	 * @param script
@@ -217,8 +220,7 @@ public class ScriptPanel extends JPanel {
 
 		synchronized (lock) {
 			if (sizeHeightForXML != null) {
-				sizeHeightForXML.loadScriptImplForScriptPanel(mlet, script, enableCache);// loadScript(mlet,
-																							// script);
+				sizeHeightForXML.loadScriptImplForScriptPanel(mlet, script, enableCache);
 			} else {
 				if (loadedScriptToDeliver == null) {
 					loadedScriptToDeliver = new Vector<CacheString>();
@@ -333,6 +335,304 @@ public class ScriptPanel extends JPanel {
 			AIPersistentManager.processDiffNotify(false, null, this, context, AIPersistentManager.EXEC_SCRIPT,
 					AIPersistentManager.EMPTY_DIFF_TEXT);
 		}
+	}
+	
+	/**
+	 * remove a DOM element by <code>id</code>.
+	 * @param id
+	 */
+	public void removeForDOM(final String id) {
+		executeScript("var delDiv = document.getElementById('" + id + "');delDiv.parentNode.removeChild(delDiv);");
+	}
+	
+//	public void jsAddButton(final String parentID, final String id) {
+//		executeScript("var parent = document.getElementById('" + parentID + "');"
+//				+ "var jsOnClick = \"javascript:window.hcserver.click('" + id + "');\";"
+//				+ "newdiv.setAttribute('onclick', jsOnClick);"
+//				+ "var newButton = document.createElement('button');"
+//				+ "newButton.setAttribute('id','" + id + "');"
+//				+ "newButton.setAttribute('type','button');"
+//				+ "parent.appendChild(newButton);");
+//	}
+	
+	/**
+	 * set <code>style</code> and/or <code>class</code> for a DOM element.
+	 * @param id
+	 * @param styles if null then keep old value.
+	 * @param claz if null then keep old value.
+	 */
+	public void setStyleForDOM(final String id, final String styles, final String claz) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");
+		if(claz == null){				
+		}else{
+			sb.append("div.setAttribute('class', '").append(claz).append("');");
+		}
+		if(styles == null){
+		}else{
+			sb.append("div.style.cssText = \"").append(styles).append("\";");
+		}
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set <code>left</code> and <code>top</code> of a DOM element.
+	 * @param id
+	 * @param left the left in pixel.
+	 * @param top the top in pixel.
+	 * @see #setSizeForDOM(String, int, int)
+	 * @see #setPositionForDOM(String, String)
+	 */
+	public void setLocationForDOM(final String id, final int left, final int top) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");	
+		sb.append("div.style.left = '").append(left).append("px';");
+		sb.append("div.style.top = '").append(top).append("px';");
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set <code>width</code> and <code>height</code> of a DOM element.
+	 * @param id
+	 * @param width the width in pixel.
+	 * @param height the height in pixel.
+	 * @see #setLocationForDOM(String, int, int)
+	 * @see #setPositionForDOM(String, String)
+	 */
+	public void setSizeForDOM(final String id, final int width, final int height) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");	
+		sb.append("div.style.width = '").append(width).append("px';");
+		sb.append("div.style.height = '").append(height).append("px';");
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set attribute <code>disabled</code> of a DOM element.
+	 * @param id
+	 * @param enable
+	 */
+	public void setEnableForDOM(final String id, final boolean enable) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");	
+		if(enable) {
+			sb.append("div.disabled = false;");
+		}else {
+			sb.append("div.disabled = true;");
+		}
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	HashMap<String, String> areaCurrentValue;
+	
+	/**
+	 * set text of a DOM textarea.
+	 * @param id
+	 * @param text
+	 * @see #appendAreaTextForDOM(String, String)
+	 */
+	public void setAreaTextForDOM(final String id, String text) {
+		text = formatText(text);
+		
+		synchronized (lock) {
+			if(areaCurrentValue == null) {
+				areaCurrentValue = new HashMap<String, String>(4);
+			}
+			areaCurrentValue.put(id, text);
+		}
+		setInnerTextForDOM(id, text);
+	}
+	
+	private final String formatText(String text) {
+		text = JSUtil.replaceShuanYinHao(text);
+		text = JSUtil.replaceNewLine(text);
+		return text;
+	}
+	
+	/**
+	 * append text to a DOM textarea.
+	 * @param id
+	 * @param text
+	 * @see #setAreaTextForDOM(String, String)
+	 */
+	public void appendAreaTextForDOM(final String id, String text) {
+		synchronized (lock) {
+			if(areaCurrentValue == null) {
+				areaCurrentValue = new HashMap<String, String>(4);
+			}
+			final String oldValue = areaCurrentValue.get(id);
+			if(oldValue != null) {
+				text = oldValue + text;
+			}
+			areaCurrentValue.put(id, text);
+		}
+		
+		setInnerTextForDOM(id, text);
+	}
+	
+	/**
+	 * set text (value) of a DOM button.
+	 */
+	public void setButtonTextForDOM(final String id, String text) {
+		text = formatText(text);
+		
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");	
+		sb.append("div.value = \"").append(text).append("\";");
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set inner text (text content) of a DOM element.
+	 * @param id
+	 * @param text
+	 */
+	public void setInnerTextForDOM(final String id, String text) {
+		text = formatText(text);
+		
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");	
+		sb.append("div.innerText = \"").append(text).append("\";");
+		sb.append("div.textContent = \"").append(text).append("\";");
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set value of a DOM <code>progress</code>.
+	 * @param id
+	 * @param value
+	 */
+	public void setProgressValueForDOM(final String id, final int value) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var progress = document.getElementById('").append(id).append("');");	
+		sb.append("progress.value = ").append(value).append(";");
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set <code>visibility</code> of a DOM element style to <code>visible</code> or <code>hidden</code>.
+	 * @param id
+	 * @param visible
+	 */
+	public void setVisibleForDOM(final String id, final boolean visible) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");	
+		if(visible) {
+			sb.append("div.style.visibility='visible';");
+		}else {
+			sb.append("div.style.visibility='hidden';");
+		}
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set attribute <code>readonly</code> or not for a DOM element.
+	 * @param id
+	 * @param editable
+	 */
+	public void setEditableForDOM(final String id, final boolean editable) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var field = document.getElementById('").append(id).append("');");	
+		if(editable) {
+			sb.append("field.removeAttribute('readonly');");
+		}else {
+			sb.append("field.setAttribute('readonly', 'readonly');");
+		}
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set attribute value of a DOM element.
+	 * @param id
+	 * @param attr the attribute to change.
+	 * @param value the new value of attribute.
+	 * @see #removeAttributeForDOM(String, String)
+	 */
+	public void setAttributeForDOM(final String id, final String attr, final String value) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");	
+		sb.append("div.setAttribute(\"").append(attr).append("\", \"").append(value).append("\");");
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * remove attribute of a DOM element.
+	 * @param id
+	 * @param attr the attribute to remove.
+	 * @see #setAttributeForDOM(String, String, String)
+	 */
+	public void removeAttributeForDOM(final String id, final String attr) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");	
+		sb.append("div.removeAttribute(\"").append(attr).append("\");");
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set text (value) of a DOM <code>input</code>.
+	 * @param id
+	 * @param text
+	 */
+	public void setFieldTextForDOM(final String id, String text) {
+		text = formatText(text);
+		
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var field = document.getElementById('").append(id).append("');");	
+		sb.append("field.value=\"").append(text).append("\";");
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	/**
+	 * set new value to a DOM element <code>style.position</code>.
+	 * @param id
+	 * @param value one of <code>static</code>, <code>relative</code>, <code>absolute</code>, <code>fixed</code>.
+	 * @see #setLocationForDOM(String, int, int)
+	 * @see #setSizeForDOM(String, int, int)
+	 */
+	public void setPositionForDOM(final String id, final String value) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("var div = document.getElementById('").append(id).append("');");	
+		sb.append("div.style.position=\"").append(value).append("\";");
+		
+		executeScript(sb.toString());
+		StringBuilderCacher.cycle(sb);
 	}
 
 	/**

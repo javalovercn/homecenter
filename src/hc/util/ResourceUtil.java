@@ -75,6 +75,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
@@ -85,6 +86,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.undo.UndoableEdit;
 
 import hc.App;
+import hc.core.ConfigManager;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.HCTimer;
@@ -93,6 +95,7 @@ import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
+import hc.core.util.BooleanValue;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
@@ -136,9 +139,9 @@ public class ResourceUtil {
 
 	public static final String JAVA_VENDOR = System.getProperty("java.vm.vendor", "Unknown");
 
-	private static String[] JAVA_VERSION = { "1.2", "1.3", "1.4", "5", "6", "7", "8", "9" };
-	private static float[] JRE_VERSION = { 1.2F, 1.3F, 1.4F, 1.5F, 1.6F, 1.7F, 1.8F, 9.0F };
-	private static int[] CAFE_CODE = { 46, 47, 48, 49, 50, 51, 52, 53 };
+	private static String[] JAVA_VERSION = { "1.2", "1.3", "1.4", "5", "6", "7", "8", "9", "10" };
+	private static float[] JRE_VERSION = { 1.2F, 1.3F, 1.4F, 1.5F, 1.6F, 1.7F, 1.8F, 9F, 10F };
+	private static int[] CAFE_CODE = { 46, 47, 48, 49, 50, 51, 52, 53, 54 };
 	private static final int JAVA_CLASS_MAGIC = 0xCAFEBABE;
 
 	/**
@@ -176,6 +179,32 @@ public class ResourceUtil {
 	public static final boolean isIbmJvm() {
 		return containsIgnoreCase(JAVA_VENDOR, "IBM");
 	}
+	
+	final static BooleanValue isShowTrayReady = new BooleanValue(false);
+	
+	public static void notifyTrayReady() {
+		isShowTrayReady.value = true;
+		synchronized (isShowTrayReady) {
+			isShowTrayReady.notify();
+		}
+	}
+	
+	public static void showTrayWithCheckReady(final boolean isDispInitlizing) {
+		if (ResourceUtil.isNonUIServer()) {
+			return;
+		}
+		
+		synchronized (isShowTrayReady) {
+			if(isShowTrayReady.value == false) {
+				try {
+					isShowTrayReady.wait();
+				} catch (final InterruptedException e) {
+				}
+			}
+		}
+
+		TrayMenuUtil.showTray(isDispInitlizing);
+	}
 
 	private static Integer screenDeviceScale;
 
@@ -209,7 +238,54 @@ public class ResourceUtil {
 
 		return screenDeviceScale;
 	}
-
+	
+	public static char searchStringBoundChar(final char[] chars, final int idx) {
+		char stringChar = 0;
+		for (int i = 0; i < idx; i++) {
+			final char c = chars[i];
+			if(c == '#') {
+				break;
+			}
+			
+			if(c == '"' || c == '\'') {
+				if(i > 0) {
+					if(chars[i - 1] == '\\') {
+						continue;
+					}
+				}
+				if(stringChar != 0) {
+					if(stringChar != c) {
+						continue;
+					}else {
+						stringChar = 0;
+						continue;
+					}
+				}else {
+					stringChar = c;
+				}
+			}
+		}
+		
+		return stringChar;
+	}
+	
+	public static boolean isInString(final char[] chars, final int startIdx) {
+		return searchStringBoundChar(chars, startIdx) != 0;
+	}
+	
+	public static final boolean isWordSpliter(final char[] chars, final int idx) {
+		if(idx >=0 && idx < chars.length) {
+			final char c = chars[idx];
+			if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_') {
+				return false;
+			}else {
+				return true;
+			}
+		}else {
+			return true;
+		}
+	}
+	
 	public final static boolean isSameContent(final InputStream is1, final InputStream is2) {
 		final byte[] src1BS = new byte[2048];
 		final byte[] src2BS = new byte[src1BS.length];//注意：请勿使用cache byte
@@ -255,18 +331,28 @@ public class ResourceUtil {
 		}
 		return out;
 	}
+	
+	public static String getJavaVersionFromFloat(final float version) {
+		for (int i = 0; i < JRE_VERSION.length; i++) {
+			if(JRE_VERSION[i] == version) {
+				return JAVA_VERSION[i];
+			}
+		}
+		
+		return null;
+	}
 
 	public static String[] getAllJREVersion() {
 		final int size = JRE_VERSION.length;
 		final String[] out = new String[size];
 		for (int i = 0; i < size; i++) {
-			out[i] = String.valueOf(JRE_VERSION[i]);
+			out[i] = JAVA_VERSION[i];
 		}
 		return out;
 	}
 
 	/**
-	 * 0 means unknow or pure resource jar file.
+	 * 0 means unknown or pure resource jar file.
 	 * 
 	 * @param file
 	 * @return
@@ -631,10 +717,26 @@ public class ResourceUtil {
 	}
 
 	private static Boolean isNonUIServer;// 有些线程没有权限
+	
+	/**
+	 * Android服务器有可能从后台无UI模式切换到前台UI模式
+	 */
+	public static void changeToUIServer() {
+		CCoreUtil.checkAccess();
+		isNonUIServer = Boolean.FALSE;
+		System.setProperty(ConfigManager.UI_IS_NON_UI_SERVER, IConstant.toString(isNonUIServer));//for debug report
+	}
+	
+	public static void changeToNonUIServer() {
+		CCoreUtil.checkAccess();
+		isNonUIServer = Boolean.TRUE;
+		System.setProperty(ConfigManager.UI_IS_NON_UI_SERVER, IConstant.toString(isNonUIServer));//for debug report
+	}
 
 	public static boolean isNonUIServer() {
 		if (isNonUIServer == null) {
 			isNonUIServer = PropertiesManager.isTrue(PropertiesManager.p_isNonUIServer, false);
+			System.setProperty(ConfigManager.UI_IS_NON_UI_SERVER, IConstant.toString(isNonUIServer));//for debug report
 		}
 		return isNonUIServer;
 	}
@@ -812,13 +914,11 @@ public class ResourceUtil {
 	 * @return
 	 */
 	public static final long getFileCreateTime(final File file) {
-		final Path filePath = file.toPath();
-
-		BasicFileAttributes attributes = null;
 		try {
-			attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+			final Path filePath = file.toPath();
+			final BasicFileAttributes attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
 			return attributes.creationTime().to(TimeUnit.MILLISECONDS);
-		} catch (final IOException e) {// 某些android不需要输出
+		} catch (final Throwable e) {// 某些android不需要输出
 		}
 		return 0;
 	}
@@ -1327,7 +1427,21 @@ public class ResourceUtil {
 		}
 		return null;
 	}
-
+	
+	public static String wrapHTMLTag(final String tip) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		sb.append("<html>").append(tip).append("</html>");
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		
+		return out;
+	}
+	
+	public static String wrapHTMLTag(final int resID) {
+		return wrapHTMLTag(get(resID));
+	}
+	
 	private static final HashMap<Integer, I18NStoreableHashMapWithModifyFlag> i18nMap = new HashMap<Integer, I18NStoreableHashMapWithModifyFlag>(
 			4);
 
@@ -1399,6 +1513,10 @@ public class ResourceUtil {
 
 	public static InputStream getResourceAsStream(final String fileName) {
 		return cldr.getResourceAsStream(fileName);
+	}
+	
+	public static void setDisableFieldHint(final JTextField field) {
+		PlatformManager.getService().doExtBiz(PlatformService.BIZ_DISABLE_TEXTFIELD_HINT, field);
 	}
 
 	public static BufferedImage getImage(final URL url) {
@@ -1736,6 +1854,23 @@ public class ResourceUtil {
 
 		return bimage;
 	}
+	
+	/**
+	 * 
+	 * @param prefix
+	 * @param suffix may be null, in which case the suffix ".tmp" will be used
+	 * @return
+	 */
+	public static final File createTempFile(final String prefix, final String suffix) {
+		try {
+			return File.createTempFile(prefix, suffix, StoreDirManager.TEMP_DIR);
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private static final int RANDOM_DIR_MAX = 99999999;
 
 	/**
 	 * 注意：与HCAndroidStarter同步
@@ -1748,7 +1883,7 @@ public class ResourceUtil {
 	 */
 	public static String createRandomFileNameWithExt(final File parent, final String ext) {
 		while (true) {
-			final int r = random.nextInt(99999999);
+			final int r = random.nextInt(RANDOM_DIR_MAX);//注意：请勿修改此算法，它与ResourceUtil.isRandomNumDir保持一致
 			final String str_r = String.valueOf(r) + ext;
 			File file_r;
 			if (parent == null) {
@@ -1761,6 +1896,14 @@ public class ResourceUtil {
 				return str_r;
 			}
 		}
+	}
+	
+	public static boolean isRandomNumDir(final File dir) {
+		try {
+			return Integer.parseInt(dir.getName()) < RANDOM_DIR_MAX;
+		}catch (final Throwable e) {
+		}
+		return false;
 	}
 
 	/**
@@ -2089,6 +2232,10 @@ public class ResourceUtil {
 	public static String getInfoI18N() {
 		return get(IConstant.INFO);
 	}
+	
+	public static String getHintI18N() {
+		return get(IConstant.HINT);
+	}
 
 	public static String getWarnI18N() {
 		return get(IConstant.WARN);
@@ -2110,6 +2257,10 @@ public class ResourceUtil {
 		return get(1033);
 	}
 
+	public static String getHintI18N(final J2SESession coreSS) {
+		return get(coreSS, IConstant.HINT);
+	}
+	
 	public static String getInfoI18N(final J2SESession coreSS) {
 		return get(coreSS, IConstant.INFO);
 	}

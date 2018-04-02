@@ -104,7 +104,6 @@ import hc.core.util.Stack;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.core.util.ThreadPriorityManager;
-import hc.j2se.HCAjaxX509TrustManager;
 import hc.res.ImageSrc;
 import hc.server.AppThreadPool;
 import hc.server.ConfigPane;
@@ -301,14 +300,6 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 		boolean isSimuFromArgs = false;
 
-		// forece init, because {NativeLibLoader.loadLibraries()};
-		try {
-			new JTextArea("").append("");
-			new MouseEvent(new JLabel(""), 0, 0, 0, 0, 0, 0, false, 0);
-		} catch (final Throwable e) {
-			ExceptionReporter.printStackTrace(e);
-		}
-
 		// new File(ResourceUtil.getBaseDir(),
 		// SafeDataManager.lockme);//由于starter已提供，故停用
 		// // 创建锁文件
@@ -385,7 +376,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 		}
 		IConstant.propertiesFileName = "hc_config.properties";
-		if (ResourceUtil.isLoggerOn() == false) {
+		if (ResourceUtil.isLoggerOn() == false || isSimuFromArgs) {
 			LogManager.INI_DEBUG_ON = true;
 		}
 
@@ -410,8 +401,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		}
 
 		final boolean isSimu = PropertiesManager.isSimu();
-		if (isSimu || PropertiesManager.isTrue(PropertiesManager.p_IsDevLogOn, false)) {// 注意：须在上行setValue(PropertiesManager.p_IsSimu,
-																						// IConstant.TRUE);之后
+		if (isSimu) {// 注意：须在上行setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);之后
 			L.setInWorkshop(true);
 
 			if (isSimu) {
@@ -419,7 +409,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 
 			final Thread t = new Thread("printAllThreadStack") {
-				final long sleepMS = Long.valueOf(PropertiesManager.getValue(PropertiesManager.p_DebugStackMS, "20000"));
+				final long sleepMS = Long.valueOf(PropertiesManager.getValue(PropertiesManager.p_DebugStackMS, "60000"));
 
 				@Override
 				public void run() {
@@ -438,6 +428,14 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			t.start();
 		}
 
+		// forece init, because {NativeLibLoader.loadLibraries()};
+		try {
+			new JTextArea("").append("");
+			new MouseEvent(new JLabel(""), 0, 0, 0, 0, 0, 0, false, 0);
+		} catch (final Throwable e) {
+			e.printStackTrace();
+		}
+		
 		// 依赖isInWorkshop
 		PropertiesManager.removeSet(PropertiesManager.S_DELED_DEPLOYED_PROJS);
 		PropertiesManager.emptyDelDir();
@@ -542,7 +540,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		ExceptionViewer.init();
 		ExceptionViewer.notifyPopup(PropertiesManager.isTrue(PropertiesManager.p_isEnableMSBExceptionDialog));
 
-		HCAjaxX509TrustManager.initSSLSocketFactory();
+		HttpUtil.initSSLSocketFactory();
 
 		UserThreadResourceUtil.doNothing();
 
@@ -795,11 +793,10 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	}
 
 	private static void setServerLog() {
-		final String log = PropertiesManager.getValue(PropertiesManager.p_Log);
-		if (log == null || log.equals(IConstant.TRUE)) {
-			LogManager.setLog(PlatformManager.getService().getLog());// log到文件或console
-		} else {
+		if(PropertiesManager.isTrue(PropertiesManager.p_IsForceNoLogger, false)) {
 			LogManager.setLog(new NoLogForRoot());
+		}else {
+			LogManager.setLog(PlatformManager.getService().getLog());// log到文件或console
 		}
 	}
 
@@ -2625,6 +2622,20 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 							LinkMenuManager.startDesigner(true);
 						}
 					}, getThreadPoolToken()), null, null, false, true, null, false, false);
+				}
+			});
+		}else {
+			//提示下载桌面版
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					final JPanel panel = new JPanel(new BorderLayout());
+					final String forDeveloping = ResourceUtil.get(9286);//9286=For programming development features, please download desktop versions such as Windows, Mac or Linux.
+					panel.add(new JLabel("<html>" + forDeveloping + "</html>", getSysIcon(SYS_INFO_ICON),
+							SwingConstants.LEADING), BorderLayout.CENTER);
+
+					final HCActionListener okAction = null;
+					showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), false, null, null, okAction, null, null, false, true, null, false, false);
 				}
 			});
 		}

@@ -1,13 +1,5 @@
 package hc.server;
 
-import hc.App;
-import hc.core.ContextManager;
-import hc.core.util.CCoreUtil;
-import hc.core.util.ExceptionReporter;
-import hc.server.util.HCJDialog;
-import hc.server.util.HCJFrame;
-import hc.util.UILang;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -23,6 +15,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EtchedBorder;
+
+import hc.App;
+import hc.core.ContextManager;
+import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
+import hc.server.util.HCJDialog;
+import hc.server.util.HCJFrame;
+import hc.util.ResourceUtil;
+import hc.util.UILang;
 
 public class ProcessingWindowManager {
 	private static Window processing;
@@ -88,6 +89,10 @@ public class ProcessingWindowManager {
 	 *            回转对象，长度为1。如果传入为null，表示不需要返回Window实例
 	 */
 	public static void showCenterMessageOnTop(final Frame parent, final boolean isModal, final String msg, final Window[] back) {
+		if(ResourceUtil.isNonUIServer()) {
+			return;
+		}
+		
 		final JPanel panel = new JPanel(new BorderLayout());
 		panel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 		panel.add(new JLabel(msg, App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
@@ -96,6 +101,10 @@ public class ProcessingWindowManager {
 	}
 
 	public static void showCenterMessageOnTop(final Frame parent, final boolean isModal, final JPanel panel, final Window[] back) {
+		if(ResourceUtil.isNonUIServer()) {
+			return;
+		}
+		
 		final Window waiting;
 		final Container contentPane;
 
@@ -174,7 +183,16 @@ public class ProcessingWindowManager {
 		}
 	}
 
+	/**
+	 * 注意：无UI服务模式下，返回null
+	 * @param msg
+	 * @return
+	 */
 	public static Window showCenterMessage(final String msg) {
+		if(ResourceUtil.isNonUIServer()) {
+			return null;
+		}
+		
 		final Window[] back = { null };
 		showCenterMessageOnTop(null, false, msg, back);
 		return back[0];

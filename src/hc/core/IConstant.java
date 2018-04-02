@@ -142,6 +142,7 @@ public abstract class IConstant {
 	public static final int INFO = 3;
 	public static final int ALARM = 4;
 	public static final int CONFIRMATION = 5;
+	public static final int HINT = 6;
 
 	public abstract int getInt(String p);
 
