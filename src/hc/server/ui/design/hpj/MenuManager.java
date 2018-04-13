@@ -253,7 +253,7 @@ public class MenuManager {
 							final float jreVersion = ResourceUtil.getMaxJREVersionFromCompileJar(addJarFile);// 0表示纯资源包
 							final float currJRE = App.getJREVer();
 							if (jreVersion > currJRE) {
-								final String lowerVersion = "current JRE/JDK version is [" + ResourceUtil.getJavaVersionFromFloat(currJRE) + "], but jar is compiled in version [" + ResourceUtil.getJavaVersionFromFloat(jreVersion) + "]!";
+								final String lowerVersion = "current JRE/JDK version is [" + ResourceUtil.getJavaVersionFromFloatJRE(currJRE) + "], but jar is compiled in version [" + ResourceUtil.getJavaVersionFromFloatJRE(jreVersion) + "]!";
 								App.showErrorMessageDialog(designer,
 										ResourceUtil.wrapHTMLTag(lowerVersion + "<BR><BR>please shutdown this application, upgrade JRE/JDK and add again."),
 										ResourceUtil.getErrorI18N());

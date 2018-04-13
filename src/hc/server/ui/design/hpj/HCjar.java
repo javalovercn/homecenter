@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -333,7 +334,6 @@ public class HCjar {
 	}
 
 	public static final void toHar(final Map<String, Object> map, final File jarfile) {
-
 		final Properties p = new Properties();
 
 		if (jarfile.exists()) {
@@ -342,6 +342,16 @@ public class HCjar {
 
 		JarOutputStream jaros = null;
 		try {
+			final Iterator<Entry<String, Object>> itEntry = map.entrySet().iterator();
+			while(itEntry.hasNext()) {
+				final Entry<String, Object> next = itEntry.next();
+				final Object entry = next.getValue();
+				if(entry instanceof String || entry instanceof byte[]) {
+				}else {
+					throw new Error("error value type [" + entry.getClass().getName() + "] for key [" + next.getKey() + "]!");
+				}
+			}
+			
 			jaros = buildJarOutputStream(jarfile);
 
 			// 去掉非String型的value
@@ -368,8 +378,9 @@ public class HCjar {
 			p.store(jaros, "");
 			jaros.closeEntry();
 
-		} catch (final Exception e) {
+		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
+			App.showErrorMessageDialog(null, "fail to saveas HAR : " + e.getMessage(), ResourceUtil.getErrorI18N());
 		} finally {
 			try {
 				jaros.close();

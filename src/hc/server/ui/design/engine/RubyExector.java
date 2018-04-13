@@ -2,6 +2,7 @@ package hc.server.ui.design.engine;
 
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -15,7 +16,6 @@ import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringBufferCacher;
 import hc.core.util.StringUtil;
-import hc.core.util.StringValue;
 import hc.server.CallContext;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
@@ -27,9 +27,38 @@ import hc.util.ThreadConfig;
 
 public class RubyExector {
 	public static final String JAVA_MAO_MAO = "Java::";
-	private static final String IMPORT = "import ";
+	public static final String IMPORT = "import ";
 	private static final Pattern IMPORT_PATTERN = Pattern.compile("^\\s*(import(\\s+))([a-zA-Z0-9:_\\.]+)\\s*(#.*?)?$", Pattern.MULTILINE);
-
+	private static final Pattern REQUIRE_PATTERN = Pattern.compile("^\\s*(require(\\s+))['\\\"]{1}([a-zA-Z0-9_\\.]+)['\\\"]{1}\\s*(#.*?)?$", Pattern.MULTILINE);
+	private static final int IMPORT_CLASS_GROUP_IDX = 3;
+	
+	/**
+	 * 返回java.Thread或hc.ProjectContext一种形式，注：不带Java::
+	 * @param script
+	 * @return
+	 */
+	public static void getImportedClassesFromScript(final String script, final HashSet<String> imports){
+		final Matcher matcher = IMPORT_PATTERN.matcher(script);
+		while (matcher.find()) {
+			final String clazName = matcher.group(IMPORT_CLASS_GROUP_IDX);
+			imports.add(StringUtil.checkAndRemovePrefix(clazName, JAVA_MAO_MAO));
+		}
+	}
+	
+	public static boolean hasInsertedRequireLib(final String script, final String libName, final int beforeCurrEditIdx) {
+		final Matcher matcher = REQUIRE_PATTERN.matcher(script);
+		while (matcher.find()) {
+			if(matcher.start() > beforeCurrEditIdx) {
+				return false;
+			}
+			final String clazName = matcher.group(3);
+			if(libName.equals(clazName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * 将java.lang.String转为JavaLangString
 	 * 
@@ -86,7 +115,7 @@ public class RubyExector {
 				if (imports == null) {
 					imports = new ScriptPositionList();
 				}
-				final ScriptPosition p = imports.addPosition(false, matcher.start(1), matcher.end(3), matcher.group(3), true);
+				final ScriptPosition p = imports.addPosition(false, matcher.start(1), matcher.end(IMPORT_CLASS_GROUP_IDX), matcher.group(IMPORT_CLASS_GROUP_IDX), true);
 				final String constantName = toJavaConstant(p);
 				p.extItem2 = constantName;
 			}
@@ -247,7 +276,7 @@ public class RubyExector {
 	}
 
 	public static final Object runAndWaitInProjectOrSessionPoolWithRepErr(final J2SESession coreSS, final CallContext runCtx,
-			final StringValue script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context,
+			final ScriptValue script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context,
 			final Class requireReturnClass) {
 		Object out = null;
 		try {
@@ -273,7 +302,7 @@ public class RubyExector {
 	}
 
 	public static final Object runAndWaitInProjectOrSessionPool(final J2SESession coreSS, final CallContext callCtx,
-			final StringValue script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
+			final ScriptValue script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
 		// RubyExector.parse(callCtx, script, scriptName, hcje, true);
 
 		if (callCtx.isError) {
@@ -303,7 +332,7 @@ public class RubyExector {
 		}
 	}
 
-	public static synchronized final void parse(final CallContext callCtx, final StringValue sv, final String scriptName,
+	public static synchronized final void parse(final CallContext callCtx, final ScriptValue sv, final String scriptName,
 			final HCJRubyEngine hcje, final boolean isReportException) {
 		try {
 			hcje.parse(sv, scriptName);
@@ -335,7 +364,7 @@ public class RubyExector {
 	 * @param hcje
 	 * @return
 	 */
-	public static final Object runAndWaitOnEngine(final CallContext callCtx, final StringValue sv, final String scriptName, final Map map,
+	public static final Object runAndWaitOnEngine(final CallContext callCtx, final ScriptValue sv, final String scriptName, final Map map,
 			final HCJRubyEngine hcje) {
 		try {
 			return runAndWaitOnEngine(sv, scriptName, map, hcje);
@@ -369,7 +398,7 @@ public class RubyExector {
 		}
 	}
 
-	public static Object runAndWaitOnEngine(final StringValue sv, final String scriptName, final Map map, final HCJRubyEngine hcje)
+	public static Object runAndWaitOnEngine(final ScriptValue sv, final String scriptName, final Map map, final HCJRubyEngine hcje)
 			throws Throwable {
 		if (map == null) {
 		} else {
@@ -426,7 +455,7 @@ public class RubyExector {
 			LogManager.log("ready initActive project : [" + hcje.projectIDMaybeBeginWithIDE + "] in JRuby.");
 		}
 		final String scriptName = null;
-		runAndWaitOnEngine(null, new StringValue(script), scriptName, null, hcje);
+		runAndWaitOnEngine(null, new ScriptValue(script), scriptName, null, hcje);
 	}
 
 	private static final void notifyMobileErrorScript(final J2SESession coreSS, final ProjectContext ctx, final String title) {

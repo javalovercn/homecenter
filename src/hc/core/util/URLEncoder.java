@@ -71,13 +71,13 @@ public class URLEncoder {
 					out.append('%');
 					char ch = forDigit((ba[j] >> 4) & 0xF, 16);
 					if (isLetter(ch)) {
-						ch -= caseDiff;
+						ch -= StringUtil.DISTANCE_CHAR_A;
 					}
 					out.append(ch);
 
 					ch = forDigit((ba[j] & 0xF), 16);
 					if (isLetter(ch)) {
-						ch -= caseDiff;
+						ch -= StringUtil.DISTANCE_CHAR_A;
 					}
 					out.append(ch);
 				}
@@ -97,7 +97,6 @@ public class URLEncoder {
 
 	private static boolean[] dontNeedEncoding;
 	private final static String defaultEncName = IConstant.UTF_8;
-	static final int caseDiff = ('a' - 'A');
 	static {
 		dontNeedEncoding = new boolean[256];
 

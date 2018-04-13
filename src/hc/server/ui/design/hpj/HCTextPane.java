@@ -1,13 +1,13 @@
 package hc.server.ui.design.hpj;
 
-import hc.server.ui.design.SearchDialog;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-
 import java.awt.Color;
 
 import javax.swing.Action;
 import javax.swing.JTextPane;
+
+import hc.server.ui.design.SearchDialog;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
 
 public abstract class HCTextPane extends JTextPane {
 	public long selectedWordsMS;
@@ -44,4 +44,6 @@ public abstract class HCTextPane extends JTextPane {
 	}
 
 	public abstract void refreshCurrLineAfterKey(final int line);
+	
+	public abstract void notifyUpdateScript();
 }

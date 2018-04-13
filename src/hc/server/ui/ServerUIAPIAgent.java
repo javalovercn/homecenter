@@ -28,7 +28,6 @@ import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.Stack;
 import hc.core.util.StringUtil;
-import hc.core.util.StringValue;
 import hc.core.util.UIUtil;
 import hc.server.CallContext;
 import hc.server.MultiUsingManager;
@@ -43,6 +42,7 @@ import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
 import hc.server.ui.design.SystemDialog;
+import hc.server.ui.design.engine.ScriptValue;
 import hc.server.util.Assistant;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.ServerAPIAgent;
@@ -261,7 +261,7 @@ public class ServerUIAPIAgent {
 		return item.i18nName;
 	}
 
-	public final static StringValue getMobiMenuItem_Listener(final MenuItem item) {
+	public final static ScriptValue getMobiMenuItem_Listener(final MenuItem item) {
 		return item.itemListener;
 	}
 

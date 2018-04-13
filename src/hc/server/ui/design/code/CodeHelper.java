@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
@@ -88,9 +89,9 @@ import org.jrubyparser.parser.ParserConfiguration;
 import hc.App;
 import hc.core.HCTimer;
 import hc.core.L;
+import hc.core.util.BooleanValue;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
-import hc.core.util.StringValue;
 import hc.server.CallContext;
 import hc.server.PlatformManager;
 import hc.server.data.KeyComperPanel;
@@ -99,6 +100,7 @@ import hc.server.ui.Mlet;
 import hc.server.ui.SimuMobile;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
+import hc.server.ui.design.engine.ScriptValue;
 import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.HPNode;
 import hc.server.ui.design.hpj.HPShareJar;
@@ -170,7 +172,7 @@ public class CodeHelper {
 	private static final JRubyClassDesc rubyArrayJCD = buildJRubyClassDesc(RubyHelper.JRUBY_ARRAY_CLASS, true);
 	static boolean isDisplayOverrideMethodAndDoc = false;
 
-	private final NodeLibClassesAndResMap nodeLibClassesAndResMap = new NodeLibClassesAndResMap();
+	final NodeLibClassesAndResMap nodeLibClassesAndResMap = new NodeLibClassesAndResMap();
 
 	final HashMap<String, ArrayList<CodeItem>> classCacheMethodAndPropForClass = new HashMap<String, ArrayList<CodeItem>>();
 	final HashMap<String, ArrayList<CodeItem>> classCacheMethodAndPropForInstance = new HashMap<String, ArrayList<CodeItem>>();
@@ -179,7 +181,7 @@ public class CodeHelper {
 	public final CodeWindow window;
 	private final ArrayList<CodeItem> autoTipOut = new ArrayList<CodeItem>();
 	public final ArrayList<CodeItem> outAndCycle = new ArrayList<CodeItem>();
-
+	public final BooleanValue isLoadedThirdLibsForDoc = new BooleanValue();
 	public int wordCompletionModifyMaskCode;
 	public int wordCompletionModifyCode;
 	public int wordCompletionCode;
@@ -197,7 +199,7 @@ public class CodeHelper {
 	public final void resetAll() {
 		window.codeInvokeCounter.reset();
 		window.docHelper.resetCache();
-		synchronized (classCacheMethodAndPropForProject) {
+		synchronized (buildClassLock) {
 			PlatformManager.getService().resetClassPool();
 			classCacheMethodAndPropForClass.clear();
 			classCacheMethodAndPropForInstance.clear();
@@ -206,7 +208,9 @@ public class CodeHelper {
 	}
 
 	public final void reset() {
-		synchronized (classCacheMethodAndPropForProject) {
+		nodeLibClassesAndResMap.reset();
+		
+		synchronized (buildClassLock) {
 			PlatformManager.getService().resetClassPool();
 
 			final int size = classCacheMethodAndPropForProject.size();
@@ -264,7 +268,7 @@ public class CodeHelper {
 			}
 
 			final CodeItem item = CodeItem.getFree();
-			item.fieldOrMethodOrClassName = getMethodNameFromRubyMethod(codeMethod);
+			item.fieldOrMethodOrFullClassName = getMethodNameFromRubyMethod(codeMethod);
 			item.code = codeMethod;// 一般方法直接输出，静态方法加.class.转换
 			{
 				final String codeForDoc = rubyMethodItem.methodOrFieldForDoc;
@@ -274,7 +278,7 @@ public class CodeHelper {
 			}
 			item.fmClass = clazDoc.claz.getName();
 			item.codeDisplay = codeMethod + (returnType == null ? "" : (" : " + returnType)) + " - " + clazDoc.displayClassName;
-			item.codeLowMatch = codeMethod.toLowerCase();
+			item.codeMatch = codeMethod;
 			item.isRubyClass = true;
 
 			item.isPublic = rubyMethodItem.isPublic;
@@ -411,14 +415,14 @@ public class CodeHelper {
 					// }
 
 					final CodeItem item = CodeItem.getFree();
-					item.fieldOrMethodOrClassName = codeField;
+					item.fieldOrMethodOrFullClassName = codeField;
 					item.code = codeFieldForInput;
 					item.codeForDoc = codeField;// item.code;
 												// 后者可能含有class.getProjectContext()，导致不能打开Doc
 					item.fmClass = classFullName;
 					item.codeDisplay = codeField + " : " + ReturnType.getGenericReturnTypeDesc(field.getGenericType()) + " - "
 							+ simpleClassName;
-					item.codeLowMatch = codeField.toLowerCase();
+					item.codeMatch = codeField;
 					item.isPublic = isPublic;
 					item.modifiers = modifiers;
 					item.isForMaoHaoOnly = isStatic;// 不能如方法改为false，因为import
@@ -486,13 +490,13 @@ public class CodeHelper {
 					}
 
 					final CodeItem item = CodeItem.getFree();
-					item.fieldOrMethodOrClassName = method.getName();
+					item.fieldOrMethodOrFullClassName = method.getName();
 					item.code = codeMethodForInput;// 一般方法直接输出，静态方法加.class.转换
 					item.codeForDoc = codeMethodForDoc;
 					item.fmClass = classFullName;
 					item.codeDisplay = codeMethodForDisplay + " : " + ReturnType.getGenericReturnTypeDesc(method.getGenericReturnType())
 							+ " - " + simpleClassName;
-					item.codeLowMatch = codeMethod.toLowerCase();
+					item.codeMatch = codeMethod;
 
 					item.isPublic = isPublic;
 					item.modifiers = modifiers;
@@ -551,11 +555,11 @@ public class CodeHelper {
 			final String simpleClassName = c.getSimpleName();
 			if (size == 0) {
 				final CodeItem item = CodeItem.getFree();
-				item.fieldOrMethodOrClassName = JRUBY_NEW;
+				item.fieldOrMethodOrFullClassName = JRUBY_NEW;
 				item.code = JRUBY_NEW + "()";
 				item.codeForDoc = item.code;
 				item.codeDisplay = item.code + " - " + simpleClassName;
-				item.codeLowMatch = item.code.toLowerCase();
+				item.codeMatch = JRUBY_NEW;
 
 				item.isPublic = true;
 				item.isForMaoHaoOnly = false;
@@ -582,11 +586,11 @@ public class CodeHelper {
 					}
 
 					final CodeItem item = CodeItem.getFree();
-					item.fieldOrMethodOrClassName = JRUBY_NEW;
+					item.fieldOrMethodOrFullClassName = JRUBY_NEW;
 					item.code = JRUBY_NEW + (paraStr.length() == 0 ? "()" : "(" + paraStr + ")");
 					item.codeForDoc = item.code;
 					item.codeDisplay = item.code + " - " + simpleClassName;
-					item.codeLowMatch = item.code.toLowerCase();
+					item.codeMatch = JRUBY_NEW;
 
 					item.isPublic = true;
 					item.isForMaoHaoOnly = false;
@@ -611,13 +615,13 @@ public class CodeHelper {
 
 	private static CodeItem addStructFields(final ArrayList<CodeItem> list, final String methodName, final String resultType) {
 		final CodeItem item = CodeItem.getFree();
-		item.fieldOrMethodOrClassName = methodName;
+		item.fieldOrMethodOrFullClassName = methodName;
 		item.code = methodName;
 
 		item.codeForDoc = item.code;
 		item.fmClass = CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_STRUCT;
 		item.codeDisplay = item.code + " : " + resultType;
-		item.codeLowMatch = item.code.toLowerCase();
+		item.codeMatch = methodName;
 		item.isPublic = true;
 		item.isForMaoHaoOnly = false;
 		item.type = CodeItem.TYPE_FIELD;
@@ -630,7 +634,7 @@ public class CodeHelper {
 	private static CodeItem addToMethodOrField(final Class claz, final int type, final ArrayList<CodeItem> list, final String methodName,
 			final String resultType, final String baseClassName) {
 		final CodeItem item = CodeItem.getFree();
-		item.fieldOrMethodOrClassName = methodName;
+		item.fieldOrMethodOrFullClassName = methodName;
 		// if(type == CodeItem.TYPE_METHOD){
 		// item.code = methodName + "()";
 		// }else{
@@ -639,7 +643,7 @@ public class CodeHelper {
 		item.codeForDoc = item.code;
 		item.fmClass = claz.getName();
 		item.codeDisplay = item.code + " : " + resultType + " - " + baseClassName;
-		item.codeLowMatch = item.code.toLowerCase();
+		item.codeMatch = methodName;
 		item.isPublic = true;
 		item.isForMaoHaoOnly = false;
 		item.type = type;
@@ -649,8 +653,8 @@ public class CodeHelper {
 		return item;
 	}
 
-	private final static CodeItem[] buildMethodAndField(final Class c, final boolean isForClass,
-			final HashMap<String, ArrayList<CodeItem>> set, final CodeHelper codeHelper) {
+	private final static void buildMethodAndField(final Class c, final boolean isForClass,
+			final HashMap<String, ArrayList<CodeItem>> set, final CodeHelper codeHelper, final boolean isInnerClass) {
 		final ArrayList<CodeItem> list = new ArrayList<CodeItem>();
 
 		if (c != null) {
@@ -672,12 +676,15 @@ public class CodeHelper {
 		// }
 		// }
 
-		final Object[] objs = list.toArray();
-		final CodeItem[] out = new CodeItem[objs.length];
-		System.arraycopy(objs, 0, out, 0, objs.length);
-		Arrays.sort(out);
-
-		return out;
+		
+		final int size = list.size();
+		for (int i = 0; i < size; i++) {
+			final CodeItem codeItem = list.get(i);
+			codeItem.initForSimilar();
+			if(isInnerClass) {
+				codeItem.isInnerClass = true;
+			}
+		}
 	}
 
 	// Method-related hooks
@@ -757,9 +764,9 @@ public class CodeHelper {
 		item.code = sb.toString();
 		StringBuilderCacher.cycle(sb);
 		item.codeForDoc = item.code;
-		item.fieldOrMethodOrClassName = methodName;
+		item.fieldOrMethodOrFullClassName = methodName;
 		item.codeDisplay = item.code + " - " + className;
-		item.codeLowMatch = item.code.toLowerCase();
+		item.codeMatch = methodName;//item.code;
 		item.fmClass = IterNodeClass;
 
 		item.modifiers = Modifier.PUBLIC | Modifier.FINAL;// 假定如此，以不能让其被def
@@ -842,6 +849,24 @@ public class CodeHelper {
 			appendToOut(methods, needPublic, out, needNewMethod, false);
 		}
 	}
+	
+	private final Object buildClassLock = new Object();
+	
+	private final ArrayList<CodeItem> getMethodOrFieldsSync(final String className, final Class backgroundOrPreVar,
+			final HashMap<String, ArrayList<CodeItem>> set){
+		synchronized (buildClassLock) {
+			ArrayList<CodeItem> methods = set.get(className);
+			if (methods == null) {
+				buildForClass(this, buildJRubyClassDesc(backgroundOrPreVar, false));
+				methods = set.get(className);
+			}
+			return methods;
+		}
+	}
+	
+	public final void initClass(final String className, final Class backgroundOrPreVar) {
+		getMethodOrFieldsSync(className, backgroundOrPreVar, classCacheMethodAndPropForInstance);
+	}
 
 	private final ArrayList<CodeItem> getMethodAndField(final boolean needNewMethod, final JRubyClassDesc jdc, final boolean needPublic,
 			final ArrayList<CodeItem> out, final HashMap<String, ArrayList<CodeItem>> set, final boolean isForClass, final boolean isAppend,
@@ -854,11 +879,7 @@ public class CodeHelper {
 			final Class backgroundOrPreVar = jdc.getClassForDoc();
 			final String className = backgroundOrPreVar.getName();
 
-			ArrayList<CodeItem> methods = set.get(className);
-			if (methods == null) {
-				buildForClass(this, buildJRubyClassDesc(backgroundOrPreVar, false));
-				methods = set.get(className);
-			}
+			final ArrayList<CodeItem> methods = getMethodOrFieldsSync(className, backgroundOrPreVar, set);
 
 			appendToOut(methods, needPublic, out, needNewMethod && (jdc.hasExtChain() ? false : true), dontAppendIfSameMethodName);
 		}
@@ -976,7 +997,7 @@ public class CodeHelper {
 					continue;
 				}
 			}
-			if (needNewMethod == false && JRUBY_NEW.equals(tryMethod.fieldOrMethodOrClassName)) {// defined
+			if (needNewMethod == false && JRUBY_NEW.equals(tryMethod.fieldOrMethodOrFullClassName)) {// defined
 																									// JRuby
 																									// class
 																									// is
@@ -999,7 +1020,7 @@ public class CodeHelper {
 				// item.copyFrom(tryMethod);
 				// out.add(item);
 
-				if (dontAppendIfSameMethodName && CodeItem.containsSameFieldMethodName(out, tryMethod.fieldOrMethodOrClassName)) {
+				if (dontAppendIfSameMethodName && CodeItem.containsSameFieldMethodName(out, tryMethod.fieldOrMethodOrFullClassName)) {
 					continue;
 				}
 
@@ -1016,8 +1037,8 @@ public class CodeHelper {
 
 	public static void buildForClass(final CodeHelper codeHelper, final Class claz) {
 		// 注意：以下两行，次序不能变动，因docHelper.processDoc依赖最后一个
-		buildMethodAndField(claz, true, codeHelper.classCacheMethodAndPropForClass, codeHelper);
-		buildMethodAndField(claz, false, codeHelper.classCacheMethodAndPropForInstance, codeHelper);
+		buildMethodAndField(claz, true, codeHelper.classCacheMethodAndPropForClass, codeHelper, false);
+		buildMethodAndField(claz, false, codeHelper.classCacheMethodAndPropForInstance, codeHelper, false);
 	}
 
 	private final void appendDef(final int reqAccessLevelOrAbove, final CallNode innerNode, final boolean isForClass,
@@ -1084,13 +1105,13 @@ public class CodeHelper {
 					final String name = constNode.getName();
 					if (CodeItem.contains(list, name) == false) {
 						final CodeItem item = CodeItem.getFree();
-						item.fieldOrMethodOrClassName = name;
+						item.fieldOrMethodOrFullClassName = name;
 						item.code = name;
 						item.codeForDoc = item.code;
 						final Class classOfConst = getClassFromLiteral(searchValueNodeFromAssignableNode(constNode));
 						item.fmClass = classOfConst.getName();// Object.class.getName();
 						item.codeDisplay = item.code + " : " + classOfConst.getSimpleName() + " - " + className;
-						item.codeLowMatch = item.code.toLowerCase();
+						item.codeMatch = name;
 						item.isPublic = true;
 						item.isDefed = true;
 						item.isForMaoHaoOnly = true;
@@ -1152,7 +1173,7 @@ public class CodeHelper {
 			final Node cmdNode = blockNode.get(i).childNodes().get(0);
 			if (cmdNode instanceof FCallNode) {
 				final FCallNode fCallNode = (FCallNode) cmdNode;
-				if (fCallNode.getName().equals("require")) {
+				if (fCallNode.getName().equals(PRE_REQUIRE)) {
 					final Node args = fCallNode.getArgs();
 					final Node firstArg = args.childNodes().get(0);
 					if (firstArg instanceof StrNode) {
@@ -1233,15 +1254,14 @@ public class CodeHelper {
 
 		for (int i = 0; i < size; i++) {
 			final String pkg = set[i];
-			final int pathIdx = pkg.indexOf("/");
-			if (pathIdx == 0) {
+			if (ResourceUtil.isResPath(pkg)) {
 				if (isResourceOnly) {
 					final CodeItem item = CodeItem.getFree();
 					item.type = CodeItem.TYPE_RESOURCES;
 					item.code = pkg;
 					item.codeForDoc = item.code;
 					item.codeDisplay = pkg;
-					item.codeLowMatch = pkg.toLowerCase();
+					item.codeMatch = pkg;
 					out.add(item);
 				}
 			} else if (isResourceOnly == false) {
@@ -1262,11 +1282,11 @@ public class CodeHelper {
 
 		final CodeItem item = CodeItem.getFree();
 		item.type = CodeItem.TYPE_CLASS;
-		item.fieldOrMethodOrClassName = pkg;
+		item.fieldOrMethodOrFullClassName = pkg;
 		item.code = isJavaLangSystem ? wrapJavaLangSystem : pkg;
 		item.codeForDoc = item.code;
 		item.codeDisplay = pkg;
-		item.codeLowMatch = pkg.toLowerCase();
+		item.codeMatch = pkg;
 		item.isFullPackageAndClassName = true;
 		item.fmClass = CodeItem.FM_CLASS_PACKAGE;
 		item.isRubyClass = RubyHelper.searchRubyClassByFullName(pkg) != null;
@@ -1312,10 +1332,7 @@ public class CodeHelper {
 		RubyHelper.codeHelper = this;
 		buildForClass(this, RubyHelper.JRUBY_KERNEL_CLASS);
 
-		final CodeItem[] out = buildMethodAndField(JRUBY_CLASS_FOR_BULDER, true, classCacheMethodAndPropForClass, this);
-		for (int i = 0; i < out.length; i++) {
-			out[i].isInnerClass = true;
-		}
+		buildMethodAndField(JRUBY_CLASS_FOR_BULDER, true, classCacheMethodAndPropForClass, this, true);
 
 		buildJRubyClassDesc(JRUBY_JAVA_CLASS_AGENT, false);
 	}
@@ -1521,7 +1538,7 @@ public class CodeHelper {
 			mouseExitHideDocForMouseMovTimer.setEnable(false);
 			mouseExitHideDocForMouseMovTimer.resetTimerCount();
 		}
-		if (window.scriptEditPanel != null) {
+		if (window.scriptEditPanel != null) {//有可能CSS先调用
 			window.scriptEditPanel.autoCodeTip.setEnable(false);
 		}
 	}
@@ -2459,11 +2476,11 @@ public class CodeHelper {
 			final CodeItem item = CodeItem.getFree();
 
 			item.type = CodeItem.TYPE_FIELD;
-			item.fieldOrMethodOrClassName = searchParaName;
+			item.fieldOrMethodOrFullClassName = searchParaName;
 			item.code = searchParaName;
 			item.codeForDoc = item.code;
 			item.codeDisplay = searchParaName;
-			item.codeLowMatch = searchParaName.toLowerCase();
+			item.codeMatch = searchParaName;
 			item.isPublic = isPublic;
 			out.add(item);
 		}
@@ -3215,7 +3232,7 @@ public class CodeHelper {
 	private static final JRubyClassDesc NIL_CLASS_DESC = buildJRubyClassDesc(Object.class, true);
 	private static final JRubyClassDesc BOOLEAN_CLASS_DESC = buildJRubyClassDesc(Boolean.class, true);
 
-	private static ReturnType findClassByName(final String className, final boolean isReportError) {
+	public static ReturnType findClassByName(final String className, final boolean isReportError) {
 		try {
 			return new ReturnType(getClassLoader().loadClass(className));
 		} catch (final ClassNotFoundException e) {
@@ -3598,7 +3615,7 @@ public class CodeHelper {
 
 	private final Node buildMiniNode(final String script, final ScriptEditPanel sep) {
 		callCtxNeverCycle.reset();
-		RubyExector.parse(callCtxNeverCycle, new StringValue(script), null, SimuMobile.getRunTestEngine(), false);
+		RubyExector.parse(callCtxNeverCycle, new ScriptValue(script), null, SimuMobile.getRunTestEngine(), false);
 
 		if (callCtxNeverCycle.isError == false) {
 			return parseScripts(script);
@@ -3695,7 +3712,7 @@ public class CodeHelper {
 		return false;
 	}
 
-	private final static String PRE_REQUIRE = "require";
+	public final static String PRE_REQUIRE = "require";
 
 	public final ArrayList<CodeItem> getReqAndImp(final ArrayList<CodeItem> out) {
 		clearArray(out);
@@ -3704,7 +3721,7 @@ public class CodeHelper {
 			item.code = PRE_IMPORT;
 			item.codeForDoc = item.code;
 			item.codeDisplay = PRE_IMPORT + " {a class of JVM}";
-			item.codeLowMatch = PRE_IMPORT.toLowerCase();
+			item.codeMatch = PRE_IMPORT;
 			item.type = CodeItem.TYPE_IMPORT;
 
 			out.add(item);
@@ -3713,14 +3730,14 @@ public class CodeHelper {
 			item.code = PRE_IMPORT_JAVA;
 			item.codeForDoc = item.code;
 			item.codeDisplay = PRE_IMPORT_JAVA + " {a class of API and third library}";
-			item.codeLowMatch = PRE_IMPORT_JAVA.toLowerCase();
+			item.codeMatch = PRE_IMPORT_JAVA;
 			item.type = CodeItem.TYPE_IMPORT;
 
 			out.add(item);
 		}
 
 		{
-			final String[] keyStrs = nodeLibClassesAndResMap.getNodeNames();
+			final String[] keyStrs = nodeLibClassesAndResMap.getLibNames();
 			Arrays.sort(keyStrs);
 
 			for (int i = 0; i < keyStrs.length; i++) {
@@ -3733,7 +3750,7 @@ public class CodeHelper {
 				item.code = PRE_REQUIRE + " '" + libName + "'";
 				item.codeForDoc = item.code;
 				item.codeDisplay = item.code;
-				item.codeLowMatch = item.codeDisplay.toLowerCase();
+				item.codeMatch = item.code;
 				item.type = CodeItem.TYPE_IMPORT;
 
 				out.add(item);
@@ -3754,7 +3771,7 @@ public class CodeHelper {
 	 *            input focus index at total script
 	 * @return
 	 */
-	public final boolean input(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, final int fontHeight,
+	public final boolean input(final HCTextPane textPane, final Document doc, final int fontHeight,
 			final boolean isForcePopup, final int scriptIdx, final boolean isForceResTip) throws Exception {
 		// 1：行首时，requ
 		// 2：行首时，impo
@@ -3770,11 +3787,11 @@ public class CodeHelper {
 		final int lineIdx = scriptIdx - editLineStartIdx;
 		final char[] lineChars = doc.getText(editLineStartIdx, lineIdx).toCharArray();
 
-		if (inputCSSClassOrPropInDesigner(0, lineChars, lineIdx, scriptIdx, sep, textPane, doc, fontHeight)) {
+		if (inputCSSClassOrPropInDesigner(0, lineChars, lineIdx, scriptIdx, textPane, doc, fontHeight)) {
 			return true;
 		}
 
-		synchronized (classCacheMethodAndPropForProject) {
+		synchronized (buildClassLock) {
 			initPreCode(lineChars, lineIdx, rowIdx);
 		}
 		if (isForcePopup == false && outAndCycle.size() == 0) {
@@ -3801,9 +3818,12 @@ public class CodeHelper {
 		final Point caretPointer = new Point(caretRect.x, caretRect.y);
 		final int input_x = win_loc.x + ((caretPointer == null) ? 0 : caretPointer.x);
 		final int input_y = win_loc.y + ((caretPointer == null) ? 0 : caretPointer.y);
-		window.toFront(preCodeType, codeClass, sep, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);// JRuby代码
+		window.toFront(preCodeType, codeClass, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);// JRuby代码
 		return true;
 	}
+	
+	public final BooleanValue isImportClassesDone = new BooleanValue();
+	public final HashSet<String> importClasses = new HashSet<String>(32);
 
 	private static boolean matchRes(final ArrayList<CodeItem> out, final String pre) {
 		if (out.size() == 0 || pre.length() == 0) {
@@ -4022,7 +4042,7 @@ public class CodeHelper {
 	}
 
 	private final boolean inputCSSClassOrPropInDesigner(final int preCodeType, final char[] lineChars, final int lineIdx,
-			final int scriptIdx, final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, final int fontHeight) {
+			final int scriptIdx, final HCTextPane textPane, final Document doc, final int fontHeight) {
 		final CSSIdx cssIdx = getCSSIdx(lineChars, lineIdx, lineChars.length);
 
 		if (cssIdx == null) {
@@ -4036,17 +4056,17 @@ public class CodeHelper {
 		}
 
 		try {
-			final Rectangle caretRect = sep.jtaScript.modelToView(scriptIdx - lineIdx + cssIdx.classIdx);
+			final Rectangle caretRect = window.scriptEditPanel.jtaScript.modelToView(scriptIdx - lineIdx + cssIdx.classIdx);
 			final Point caretPointer = new Point(caretRect.x, caretRect.y);
 			preCode = String.valueOf(lineChars, cssIdx.classIdx, lineIdx - cssIdx.classIdx);
 			clearArray(outAndCycle);
 
-			CodeItem.append(outAndCycle, sep.designer.cssClassesOfProjectLevel);
+			CodeItem.append(outAndCycle, window.scriptEditPanel.designer.cssClassesOfProjectLevel);
 
 			final Point win_loc = textPane.getLocationOnScreen();
 			final int input_x = win_loc.x + caretPointer.x;
 			final int input_y = win_loc.y + caretPointer.y;
-			window.toFront(preCodeType, null, sep, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);// CSS class
+			window.toFront(preCodeType, null, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);// CSS class
 			return true;
 		} catch (final Throwable e) {
 			e.printStackTrace();
@@ -4054,7 +4074,7 @@ public class CodeHelper {
 		return false;
 	}
 
-	public final boolean mouseMovOn(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, final int fontHeight,
+	public final boolean mouseMovOn(final HCTextPane textPane, final Document doc, final int fontHeight,
 			final boolean isForcePopup, final int scriptIdx) throws Exception {
 		if (L.isInWorkshop) {
 			LogManager.log("[CodeTip] start mouseMovOn from HCTimer.");
@@ -4099,7 +4119,7 @@ public class CodeHelper {
 			}
 		}
 
-		synchronized (classCacheMethodAndPropForProject) {
+		synchronized (buildClassLock) {
 			initPreCode(lineChars, columnIdx, rowIdx);
 		}
 		if (isForcePopup == false && outAndCycle.size() == 0) {
@@ -4184,6 +4204,7 @@ public class CodeHelper {
 		}
 
 		if (lastMousePreCode != null && lastMousePreCode.equals(preCode)) {
+			L.V = L.WShop ? false : LogManager.log("[CodeTip] same lastMousePreCode, skip auto mouse tip show!");
 			return false;
 		}
 		lastMousePreCode = preCode;
@@ -4195,9 +4216,11 @@ public class CodeHelper {
 
 		if (matchSize == 1) {
 			window.setMouseOverAutoTipLoc(input_x, input_y, fontHeight);
-			window.startAutoPopTip(autoTipOut.get(0), textPane, sep);
+			final CodeItem item = autoTipOut.get(0);
+//			window.startAutoPopTip(item, textPane, sep);
+			window.docHelper.popDocTipWindow(item, window.classFrame, window.layoutLimit);
 		} else {
-			window.toFront(preCodeType, codeClass, sep, textPane, input_x, input_y, autoTipOut, preCode, scriptIdx, fontHeight);
+			window.toFront(preCodeType, codeClass, textPane, input_x, input_y, autoTipOut, preCode, scriptIdx, fontHeight);
 		}
 		return true;
 	}
@@ -4269,7 +4292,7 @@ public class CodeHelper {
 			// ((caretPosition==null)?0:caretPosition.x);
 			// final int input_y = win_loc.y +
 			// ((caretPosition==null)?0:caretPosition.y);
-			window.toFront(preCodeType, Object.class, null, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);
+			window.toFront(preCodeType, Object.class, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);
 		} catch (final Throwable e) {
 			e.printStackTrace();
 		}
@@ -4290,7 +4313,7 @@ public class CodeHelper {
 			item.code = var;
 			item.codeForDoc = item.code;
 			item.codeDisplay = var;
-			item.codeLowMatch = var.toLowerCase();
+			item.codeMatch = var;
 			item.fmClass = CodeItem.FM_CLASS_CSS_VAR;
 
 			outAndCycle.add(item);
@@ -4300,7 +4323,7 @@ public class CodeHelper {
 
 		final int input_x = win_loc.x + ((caretPosition == null) ? 0 : caretPosition.x);
 		final int input_y = win_loc.y + ((caretPosition == null) ? 0 : caretPosition.y);
-		window.toFront(preCodeType, Object.class, null, textPane, input_x, input_y, outAndCycle, "", scriptIdx, fontHeight);
+		window.toFront(preCodeType, Object.class, textPane, input_x, input_y, outAndCycle, "", scriptIdx, fontHeight);
 	}
 
 	// /**
@@ -4359,10 +4382,10 @@ public class CodeHelper {
 					item.fmClass = CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_DYN_STATIC;
 					item.type = CodeItem.TYPE_FIELD;
 					item.code = (isInstance ? PRE_CLASS_INSTANCE_STR : "") + searchParaName;
-					item.fieldOrMethodOrClassName = item.code;
+					item.fieldOrMethodOrFullClassName = item.code;
 					item.codeForDoc = item.code;
 					item.codeDisplay = item.code;
-					item.codeLowMatch = item.code.toLowerCase();
+					item.codeMatch = item.code;
 					item.isPublic = false;
 					out.add(item);
 					varDefNode = ((AssignableNode) varDefNode).getValue();
@@ -4507,13 +4530,13 @@ public class CodeHelper {
 
 	private static CodeItem addToDefMethod(final ArrayList<CodeItem> list, final String methodName) {
 		final CodeItem item = CodeItem.getFree();
-		item.fieldOrMethodOrClassName = methodName;
+		item.fieldOrMethodOrFullClassName = methodName;
 		item.code = methodName;
 		item.codeForDoc = item.code;
 		item.fmClass = "def";
 		item.codeDisplay = item.code;// + " : " + resultType + " - " +
 										// baseClassName;
-		item.codeLowMatch = item.code.toLowerCase();
+		item.codeMatch = methodName;
 		item.isPublic = true;
 		item.isForMaoHaoOnly = false;
 		item.type = CodeItem.TYPE_METHOD;
@@ -4716,7 +4739,7 @@ public class CodeHelper {
 																				// end\n
 																				// 1.在类定义内，进行方法或属性访问
 																				// 2.访问变量
-	private final static int PRE_TYPE_BEFORE_INSTANCE = 5;// JLab myLa $my @my
+	public final static int PRE_TYPE_BEFORE_INSTANCE = 5;// JLab myLa $my @my
 	private final static int PRE_TYPE_AFTER_INSTANCE_OR_CLASS = 6;// JLable.
 																	// myLabel.
 																	// $myLabel.
@@ -4838,8 +4861,10 @@ public class CodeHelper {
 						final String name = firstPackageNode.getName();
 						final String nameLower = name.toLowerCase();
 						if (nameLower.startsWith(lowerPreCode) && (CodeItem.contains(out, name) == false)) {// 由于是从下向上，可能被添加了一次
-							final CodeItem item = buildClassItem(out, name, nameLower);
-							item.codeForDoc = buildFullClassNameFromReceiverNode(firstPackageNode);
+							final CodeItem item = buildClassItem(out, name);
+							final String fullClassName = buildFullClassNameFromReceiverNode(firstPackageNode);
+							item.codeForDoc = fullClassName;
+							item.codeDisplay = name + " - " + fullClassName;
 							continue;
 						}
 					}
@@ -4854,7 +4879,7 @@ public class CodeHelper {
 						item.code = name;
 						item.codeForDoc = item.code;
 						item.codeDisplay = name;
-						item.codeLowMatch = nameLower;
+						item.codeMatch = name;
 						item.type = CodeItem.TYPE_VARIABLE;
 						out.add(item);
 						continue;
@@ -4866,7 +4891,7 @@ public class CodeHelper {
 					final String name = getDefClassName(cNode);
 					final String nameLower = name.toLowerCase();
 					if (nameLower.startsWith(lowerPreCode) && (CodeItem.contains(out, name) == false)) {
-						buildClassItem(out, name, nameLower);
+						buildClassItem(out, name);
 						continue;
 					}
 				}
@@ -5020,7 +5045,7 @@ public class CodeHelper {
 				item.code = name;
 				item.codeForDoc = item.code;
 				item.codeDisplay = item.code;
-				item.codeLowMatch = nameLower;
+				item.codeMatch = name;
 				item.type = CodeItem.TYPE_VARIABLE;
 				out.add(item);
 			}
@@ -5044,7 +5069,7 @@ public class CodeHelper {
 				item.code = name;
 				item.codeForDoc = item.code;
 				item.codeDisplay = name;
-				item.codeLowMatch = nameLower;
+				item.codeMatch = name;
 				// if(isInDefnNode(one)){//方法定义内
 				// item.type = CodeItem.TYPE_VARIABLE;
 				// }else{
@@ -5072,7 +5097,7 @@ public class CodeHelper {
 				item.code = name;
 				item.codeForDoc = item.code;
 				item.codeDisplay = name;
-				item.codeLowMatch = nameLower;
+				item.codeMatch = name;
 				item.type = CodeItem.TYPE_VARIABLE;
 				out.add(item);
 			}
@@ -5088,13 +5113,13 @@ public class CodeHelper {
 		}
 	}
 
-	private final CodeItem buildClassItem(final ArrayList<CodeItem> out, final String name, final String nameLower) {
+	private final CodeItem buildClassItem(final ArrayList<CodeItem> out, final String name) {
 		final CodeItem item = CodeItem.getFree();
 		item.code = name;
 		item.codeForDoc = item.code;
 		item.codeDisplay = name;
-		item.fieldOrMethodOrClassName = name;
-		item.codeLowMatch = nameLower;
+		item.fieldOrMethodOrFullClassName = name;
+		item.codeMatch = name;
 		item.type = CodeItem.TYPE_CLASS;
 		out.add(item);
 
@@ -5117,8 +5142,8 @@ public class CodeHelper {
 		item.code = name;
 		item.codeForDoc = item.code;
 		item.codeDisplay = name;
-		item.fieldOrMethodOrClassName = name;
-		item.codeLowMatch = name.toLowerCase();
+		item.fieldOrMethodOrFullClassName = name;
+		item.codeMatch = name;
 		item.type = CodeItem.TYPE_VARIABLE;
 		out.add(item);
 
@@ -5134,8 +5159,8 @@ public class CodeHelper {
 		}
 		item.codeForDoc = item.code;
 		item.codeDisplay = name;
-		item.fieldOrMethodOrClassName = name;
-		item.codeLowMatch = name.toLowerCase();
+		item.fieldOrMethodOrFullClassName = name;
+		item.codeMatch = name;
 		item.type = type;
 		out.add(item);
 	}
@@ -5163,7 +5188,7 @@ public class CodeHelper {
 		final Node paraNode = searchParaCallingNodeByIdx(node, rowIdx);
 		getVariablesUpperForward(rowIdx, paraNode, preCode.toLowerCase(), out, type_var);
 
-		buildClassItem(out, JRUBY_CLASS_FOR_NEW, JRUBY_CLASS_FOR_NEW.toLowerCase());
+		buildClassItem(out, JRUBY_CLASS_FOR_NEW);
 
 		if (preCodeSplitIsDot == false && backgroundDefClassNode != null) {
 			final MethodDefNode method = isInMethodDefNode(codeContext.bottomNode);
@@ -5185,7 +5210,7 @@ public class CodeHelper {
 			if (CodeItem.contains(out, name)) {// 如果有import，则不收录Ruby的
 				continue;
 			}
-			final CodeItem item = buildClassItem(out, name, name.toLowerCase());
+			final CodeItem item = buildClassItem(out, name);
 			if (item != null) {
 				item.codeForDoc = RubyHelper.JRUBY_CLASS_MAP[i].getName();
 				item.isRubyClass = true;

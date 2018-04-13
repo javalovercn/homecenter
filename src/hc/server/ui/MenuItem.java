@@ -5,8 +5,8 @@ import java.util.Map;
 
 import hc.core.util.ByteUtil;
 import hc.core.util.HCURL;
-import hc.core.util.StringValue;
 import hc.core.util.UIUtil;
+import hc.server.ui.design.engine.ScriptValue;
 import hc.server.ui.design.hpj.HPNode;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
@@ -41,7 +41,7 @@ public class MenuItem {
 	String itemURLLower;
 	I18NStoreableHashMapWithModifyFlag i18nName;
 	String itemListenerOri;
-	final StringValue itemListener = new StringValue();
+	final ScriptValue itemListener = new ScriptValue();
 	String extendMap;
 
 	BufferedImage cacheOriImage;
@@ -121,6 +121,7 @@ public class MenuItem {
 	public void setScripts(final String scripts) {
 		itemListenerOri = scripts;
 		synchronized (itemListener) {
+			itemListener.isOptimized = false;
 			itemListener.value = scripts;
 		}
 	}

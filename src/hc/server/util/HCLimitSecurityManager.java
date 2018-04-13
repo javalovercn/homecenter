@@ -712,7 +712,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				if (clazz == System.class) {
 					LogManager.warning(
 							"memberAccess(reflection) on Class [java.lang.System] in JRuby script, it is recommended to use Class ["
-									+ JavaLangSystemAgent.class.getName() + "].");
+									+ JavaLangSystemAgent.class.getName() + "] instead.");
 				} else if (clazz == URLClassLoader.class) {
 					// 由于GET_CLASSLOADER_PERMISSION = new
 					// RuntimePermission("getClassLoader");
@@ -745,7 +745,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 							if (clazz == System.class) {
 								if (jreVersion < 1.7 && csc.isMemberAccessSystem() == false) {
 									throw new HCSecurityException("block memberAccess(reflection) on Class [" + name
-											+ "] in JRuby, please use methods in [" + JavaLangSystemAgent.class.getName() + "].");
+											+ "] in JRuby, please use methods in [" + JavaLangSystemAgent.class.getName() + "] instead.");
 								}
 							} else {
 								throw new HCSecurityException("block memberAccess(reflection) on Class [" + name

@@ -77,13 +77,13 @@ import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IWatcher;
 import hc.core.L;
+import hc.core.util.BooleanValue;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
-import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.FileSelector;
 import hc.server.HCActionListener;
@@ -244,9 +244,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	public static final int SUB_NODES_OF_ROOT_IN_NEW_PROJ = 1;
 
 	private boolean needRebuildTestJRuby = true;
-
-	public boolean isNeedLoadThirdLibForDoc;
-	public boolean isLoadedThirdLibsForDoc;
 
 	private final HCTimer refreshAliveServerInLocalNetwork = new HCTimer("", 60 * 1000, false) {
 		final Runnable run = new Runnable() {
@@ -1733,8 +1730,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				recordEditProjInfo(map);
 			}
 		} catch (final Throwable e) {
-			ThirdlibManager.copy(edit_har, new File(ResourceUtil.getBaseDir(), LinkProjectManager.EDIT_BAK_HAR));
 			ExceptionReporter.printStackTrace(e);
+			ThirdlibManager.copy(edit_har, new File(ResourceUtil.getBaseDir(), LinkProjectManager.EDIT_BAK_HAR));
 			App.showMessageDialog(null,
 					"<html>default har project is error, which is copied to <strong>" + LinkProjectManager.EDIT_BAK_HAR + "</strong>!"
 							+ "<BR>system will create default project.</html>",
@@ -1863,6 +1860,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 	private final void loadNodeFromMap(final Map<String, Object> map) {
 		codeHelper.reset();
+		
+		final BooleanValue isLoadedThirdLibsForDoc = codeHelper.isLoadedThirdLibsForDoc;
+		isLoadedThirdLibsForDoc.value = false;
 
 		durateMap(map, durationMap);
 
@@ -1899,49 +1899,24 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		updateCssClassOfProjectLevel(null);
 		Designer.expandTree(tree);
 
-		isNeedLoadThirdLibForDoc = false;
-		isLoadedThirdLibsForDoc = false;
-
-		final DefaultMutableTreeNode shareJarFolder = getShareJarFolder();
-		if (shareJarFolder.getChildCount() > 0) {
-			isNeedLoadThirdLibForDoc = true;
-			GlobalConditionWatcher.addWatcher(new IWatcher() {
-				final long startMS = System.currentTimeMillis();
-
-				@Override
-				public boolean watch() {
-					if (System.currentTimeMillis() - startMS > ThreadPriorityManager.UI_CODE_HELPER_DELAY_MS) {
-						final Enumeration enumeration = shareFolders[IDX_SHARE_JRUBY_FOLDER].children();
-						while (enumeration.hasMoreElements()) {
-							final DefaultMutableTreeNode node = (DefaultMutableTreeNode) enumeration.nextElement();
-							codeHelper.loadLibForTest((HPNode) node.getUserObject());
-						}
-
-						try {
-							codeHelper.initCodeHelper(shareJarFolder);
-						} catch (final Throwable e) {
-							ExceptionReporter.printStackTrace(e);
-						}
-						isLoadedThirdLibsForDoc = true;
-						return true;
-					}
-					return false;
-				}
-
-				@Override
-				public void setPara(final Object p) {
-				}
-
-				@Override
-				public boolean isCancelable() {
-					return false;
-				}
-
-				@Override
-				public void cancel() {
-				}
-			});
+		//注意：由于用户输入代码，自动require lib + import javaClass，所以不使用delay
+		final Enumeration enumeration = shareFolders[IDX_SHARE_JRUBY_FOLDER].children();
+		while (enumeration.hasMoreElements()) {
+			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) enumeration.nextElement();
+			codeHelper.loadLibForTest((HPNode) node.getUserObject());
 		}
+		//注意：由于用户输入代码，自动require lib + import javaClass，所以不使用delay
+		try {
+			codeHelper.initCodeHelper(getShareJarFolder());
+		} catch (final Throwable e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		
+		synchronized (isLoadedThirdLibsForDoc) {
+			isLoadedThirdLibsForDoc.value = true;
+			isLoadedThirdLibsForDoc.notifyAll();
+		}
+		
 	}
 
 	public final String updateCssClassOfProjectLevel(final Document docMaybeNull) {
@@ -1965,7 +1940,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			item.code = className;
 			item.codeForDoc = item.code;
 			item.codeDisplay = className;
-			item.codeLowMatch = className.toLowerCase();
 			item.isCSSClass = true;
 			item.userObject = element;
 			item.fmClass = CodeItem.FM_CLASS_CSS;
@@ -2645,18 +2619,18 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final int columnNum = isLast3VerNull ? 2 : 3;
 		final JPanel panel = new JPanel(new GridLayout(3, columnNum, ClientDesc.hgap, ClientDesc.vgap));
 		panel.add(new JLabel("JRE version : "));
-		final String[] reverseJREVersion = ResourceUtil.reverseStringArray(ResourceUtil.getAllJREVersion());// 高版本在前显示
-		final JComboBox<String> jre_field = new JComboBox(reverseJREVersion);
+		final String[] reverseJREVersion = ResourceUtil.reverseStringArray(ResourceUtil.getAllJavaVersion());// 高版本在前显示
+		final JComboBox<String> javaver_field = new JComboBox(reverseJREVersion);
 		final String newJREVer = (String) map.get(HCjar.JRE_VER);
-		jre_field.setSelectedItem(newJREVer);
-		panel.add(jre_field);
+		javaver_field.setSelectedItem(ResourceUtil.getJavaVersionFromStringJRE(newJREVer));
+		panel.add(javaver_field);
 		if (isLast3VerNull == false) {
 			final String lastJREVer = last3Ver[0];
-			final JButton btn = new JButton("keep [" + lastJREVer + "]");
+			final JButton btn = new JButton("keep [" + ResourceUtil.getJavaVersionFromStringJRE(lastJREVer) + "]");
 			btn.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(final ActionEvent e) {
-					jre_field.setSelectedItem(lastJREVer);
+					javaver_field.setSelectedItem(ResourceUtil.getJavaVersionFromStringJRE(lastJREVer));
 				}
 			});
 			if (newJREVer.equals(lastJREVer)) {
@@ -2728,7 +2702,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final ActionListener listener = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				final String exportJREVersion = (String) jre_field.getSelectedItem();
+				final float exptJREVersion = ResourceUtil.getJREFromJavaVersion((String) javaver_field.getSelectedItem());
 
 				final Iterator<String> keys = map.keySet().iterator();
 				while (keys.hasNext()) {
@@ -2745,9 +2719,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 								ResourceUtil.saveToFile(bis, tmp);
 
 								final float jreVersion = ResourceUtil.getMaxJREVersionFromCompileJar(tmp);// 0表示纯资源包
-								if (jreVersion > Float.valueOf(exportJREVersion)) {
-									final String msg = "export JRE/JDK version is [" + exportJREVersion + "], but jar [" + fileName
-											+ "] is compiled in version [" + ResourceUtil.getJavaVersionFromFloat(jreVersion) + "]!";
+								if (jreVersion > exptJREVersion) {
+									final String msg = "export JRE/JDK version is [" + exptJREVersion + "], but jar [" + fileName
+											+ "] is compiled in version [" + ResourceUtil.getJavaVersionFromFloatJRE(jreVersion) + "]!";
 									App.showErrorMessageDialog(instance, msg, ResourceUtil.getErrorI18N());
 									return;
 								}
@@ -2762,7 +2736,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					}
 				}
 
-				map.put(HCjar.JRE_VER, exportJREVersion);
+				map.put(HCjar.JRE_VER, String.valueOf(exptJREVersion));
 				map.put(HCjar.HOMECENTER_VER, hc_field.getText());
 				map.put(HCjar.JRUBY_VER, jruby_field.getText());
 

@@ -18,6 +18,8 @@ public class StringUtil {
 	private final static char[] PUNCTUATION = { ',', '.', '?', '!', ';', '，',
 			'。', '？', '！', '；' };
 
+	public static final char DISTANCE_CHAR_A = ('a' - 'A');
+	
 	/**
 	 * 0 means is valid.
 	 * 
@@ -37,6 +39,23 @@ public class StringUtil {
 			}
 		}
 		return 0;
+	}
+	
+	public static final String checkAndRemovePrefix(final String src, final String prefix) {
+		if(src.startsWith(prefix, 0)) {
+			return src.substring(prefix.length());
+		}else {
+			return src;
+		}
+	}
+	
+	public static final String[] doubleSize(final String[] items) {
+		final int oldSize = items.length;
+		final String[] out = new String[oldSize * 2];
+		for (int i = 0; i < oldSize; i++) {
+			out[i] = items[i];
+		}
+		return out;
 	}
 
 	public static final boolean isMoreThanPunctuation(final String words) {
@@ -235,6 +254,17 @@ public class StringUtil {
 		}
 		sb.append(item[minusOne]);
 		return sb.toString();
+	}
+	
+	public static char[] toLowerCase(final char[] chars) {
+		final int size = chars.length;
+		for (int i = 0; i < size; i++) {
+			final char c = chars[i];
+			if(c >= 'A' && c <= 'Z') {
+				chars[i] = (char)(c + DISTANCE_CHAR_A);
+			}
+		}
+		return chars;
 	}
 
 	/**
@@ -585,4 +615,5 @@ public class StringUtil {
 		}
 		return -1;
 	}
+
 }

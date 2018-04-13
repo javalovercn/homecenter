@@ -27,7 +27,7 @@ to implement the cross-platform UI for Android/iPhone, write with J2SE+CSS as [h
 4. focus business/UI with Java/J2SE technology.
 5. scan QRcode from mobile and download/load HAR (home archive) project on server, plug and play, not required to restart server.
 6. ScriptPanel is used to load and execute JavaScript on mobile client.
-7. code editor supports Java 8 API, Ruby 2.2.0 and CSS 2.2 (part) documents, hint of code and resource file(in user jar) will be auto completion.
+7. code editor supports Java 8 API, Ruby 2.2.0 and CSS 2.2 (part) documents, hint of code and resource file(in user jar) will be auto completion. (Note : code editor is not build-in Android server)
 8. built-in Lucene, Quartz and HSQLDB, see [API](https://homecenter.mobi/download/javadoc/index.html) for more.
 9. mobile voice command API drives IoT and your business.
 10. family members or work group not only share the same service account, but also differentiate services based on the member ID.

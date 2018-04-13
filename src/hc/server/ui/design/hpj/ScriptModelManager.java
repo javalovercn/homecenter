@@ -1,5 +1,12 @@
 package hc.server.ui.design.hpj;
 
+import java.lang.reflect.Field;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.text.Document;
+
 import hc.core.util.CNCtrlKey;
 import hc.core.util.CtrlKey;
 import hc.core.util.HCURL;
@@ -9,13 +16,6 @@ import hc.server.msb.Robot;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.Mlet;
-
-import java.lang.reflect.Field;
-import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.swing.text.Document;
 
 public class ScriptModelManager {
 	static final String SUPER = "super";
@@ -292,7 +292,7 @@ public class ScriptModelManager {
 	private static String buildScript(final String[] imports, final String instanceName, final String superClassName,
 			final String[] superCodes, final boolean[] isEmptyOrAbstract, final String[] methods, final Vector<String>[] codeExamples) {
 		final StringBuffer sb = new StringBuffer();
-		sb.append("#encoding:utf-8\n\n");
+		sb.append(ENCODING_UTF_8);
 		sb.append("#more JRuby, http://github.com/jruby/jruby/wiki\n\n");
 		if (imports != null) {
 			for (int i = 0; i < imports.length; i++) {

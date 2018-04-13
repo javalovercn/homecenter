@@ -1,7 +1,5 @@
 package hc.server.ui.design.hpj;
 
-import hc.util.ResourceUtil;
-
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -10,6 +8,8 @@ import java.awt.GridLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
+
+import hc.util.ResourceUtil;
 
 public class VerTextPanel extends JPanel {
 	VerTextField verTextField = new VerTextField();
@@ -20,7 +20,9 @@ public class VerTextPanel extends JPanel {
 
 		final JLabel verLabel = new JLabel(isLableStrong ? "<html><STRONG>Version</STRONG> : </html>" : "Version : ");
 		final JLabel tipLabel = new JLabel("<html>" + "1. version of the current " + nodeDesc + ".<BR>"
-				+ "2. valid char are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 and dot.</html>");
+				+ "2. valid char are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 and dot.<BR>"
+				+ "3. the lib will NEVER conflict with libs in other project, even if same lib name and class name."
+				+ "</html>");
 		verTextField.setColumns(20);
 
 		if (withSpaceDesc) {

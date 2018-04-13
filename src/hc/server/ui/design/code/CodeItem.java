@@ -1,7 +1,5 @@
 package hc.server.ui.design.code;
 
-import hc.core.util.IntValue;
-
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
 import java.lang.reflect.Modifier;
@@ -11,6 +9,9 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import javax.swing.event.ChangeListener;
+
+import hc.core.util.IntValue;
+import hc.core.util.StringUtil;
 
 public class CodeItem implements Comparable<CodeItem> {
 	// private final static Stack free = new Stack(1024);
@@ -42,7 +43,7 @@ public class CodeItem implements Comparable<CodeItem> {
 	// }
 
 	public CodeItem() {
-		reset(this);
+		this.reset();
 	}
 
 	@Override
@@ -50,6 +51,8 @@ public class CodeItem implements Comparable<CodeItem> {
 		String typeStr = "";
 		if (type == TYPE_CLASS) {
 			typeStr = "class";
+		}else if (type == TYPE_CLASS_IMPORT) {
+				typeStr = "class_import";
 		} else if (type == TYPE_RESOURCES) {
 			typeStr = "resources";
 		} else if (type == TYPE_METHOD) {
@@ -85,28 +88,200 @@ public class CodeItem implements Comparable<CodeItem> {
 	// free.push(item);
 	// }
 
-	private static void reset(final CodeItem item) {
-		item.type = 0;
-		item.isPublic = false;
-		item.modifiers = 0;
-		item.isForMaoHaoOnly = false;
-		item.isFullPackageAndClassName = false;
-		item.code = "";
-		item.codeForDoc = "";
-		item.fmClass = Object.class.getName();
-		item.codeDisplay = "";
-		item.codeLowMatch = "";
-		item.fieldOrMethodOrClassName = "";
-		item.anonymousClass = null;
-		item.isCSSProperty = false;
-		item.isCSSClass = false;
-		item.isRubyClass = false;
-		item.userObject = null;
-		item.isInnerClass = false;
-		item.isDefed = false;
-		item.overrideMethodLevel = 0;
-		item.overrideMethodItem = null;
-		item.invokeCounter = new IntValue();
+	private final void reset() {
+		type = 0;
+		isPublic = false;
+		modifiers = 0;
+		isForMaoHaoOnly = false;
+		isFullPackageAndClassName = false;
+		code = "";
+		codeForDoc = "";
+		fmClass = Object.class.getName();
+		codeDisplay = "";
+		fieldOrMethodOrFullClassName = "";
+		anonymousClass = null;
+		isCSSProperty = false;
+		isCSSClass = false;
+		isRubyClass = false;
+		userObject = null;
+		isInnerClass = false;
+		isDefed = false;
+		overrideMethodLevel = 0;
+		overrideMethodItem = null;
+		invokeCounter = new IntValue();
+		matchSimilarValue = 0;
+		codeMatch = null;
+		codeMatchLower = null;
+		codeLowMatchSubStrings = null;
+		thirdLibNameMaybeNull = null;
+	}
+	
+	/**
+	 * 完全匹配前缀
+	 * @param preCodeLower
+	 * @return
+	 */
+	public final boolean matchPreCode(final String preCodeLower) {
+		initCodeMatchAndLower();
+		
+		return codeMatchLower.indexOf(preCodeLower) >= 0;
+	}
+	
+	private final static char[][] subStringParts = new char[64][];
+	private static int subStringPartsSize;
+	
+	public static final int MATCH_MAX = Integer.MAX_VALUE;
+	public static final int MATCH_HALF = MATCH_MAX / 2;
+	private static final int SIMILAR_TYPE = CodeItem.TYPE_METHOD;
+	
+	public final void initForSimilar() {
+		initCodeMatchAndLower();
+		
+		if(type == SIMILAR_TYPE) {
+			initCodeLowMatchSubStrings();
+		}
+	}
+	
+	public final int similarity(final String preCodeLower, final char[] preCodeLowerChars, final int preCodeLowerCharsLen) {
+		matchSimilarValue = 0;
+		
+		if(preCodeLowerCharsLen == 0) {
+			matchSimilarValue = 1;
+			return matchSimilarValue;
+		}
+		
+		initCodeMatchAndLower();
+		
+		{
+			final int matchIdx = codeMatchLower.indexOf(preCodeLower, 0);
+			if(matchIdx == 0) {
+				matchSimilarValue = MATCH_MAX;
+				return matchSimilarValue;
+			}
+			if(matchIdx > 0) {//可以匹配如XX_MESSAGE
+				if(type == CodeItem.TYPE_FIELD 
+						|| type == CodeItem.TYPE_CLASS_IMPORT
+						|| type == CodeItem.TYPE_CSS) {
+					matchSimilarValue = MATCH_HALF;
+					return matchSimilarValue;
+				}
+			}
+		}
+
+		if(type != SIMILAR_TYPE) {//不做相似度匹配
+			matchSimilarValue = 0;
+			return matchSimilarValue;
+		}
+
+		initCodeLowMatchSubStrings();
+		
+		final int partNum = codeLowMatchSubStrings.length;
+		
+		for (int j = 0; j < preCodeLowerCharsLen; j++) {
+			for (int i = 0; i < partNum; i++) {
+				final char[] parts = codeLowMatchSubStrings[i];
+				
+				for (int k = 0; k < parts.length; k++) {
+					if(parts[k] == preCodeLowerChars[j + k]) {
+						matchSimilarValue++;
+					}else {
+						break;
+					}
+				}
+			}
+		}
+		
+		if(matchSimilarValue < 4 && matchSimilarValue < preCodeLowerCharsLen) {//滤掉如：addContainerListener jch => matchSimilarValue == 1
+			matchSimilarValue = 0;
+		}
+		return matchSimilarValue;
+	}
+
+	private final void initCodeLowMatchSubStrings() {
+		//以下进入相似度匹配
+		if(codeLowMatchSubStrings != null) {
+			return;
+		}
+		
+		synchronized (subStringParts) {
+			final char[] codeLowMatchChars = codeMatch.toCharArray();
+			subStringPartsSize = 0;
+			
+			int serialHighCharCount = 0;
+			boolean isLastCharHigh = true;
+			int nextCutIdx = 0;
+			for (int i = 0, len = codeLowMatchChars.length; i < len; i++) {
+				final char oneChar = codeLowMatchChars[i];
+				if(oneChar >= 'A' && oneChar <= 'Z') {
+					codeLowMatchChars[i] = (char)(oneChar + StringUtil.DISTANCE_CHAR_A);//转小写
+					if(isLastCharHigh == false) {
+						final int subPartsLen = i - nextCutIdx;
+						final char[] subParts = new char[subPartsLen];
+						for (int j = 0; j < subPartsLen; j++) {
+							subParts[j] = codeLowMatchChars[nextCutIdx + j];
+						}
+						subStringParts[subStringPartsSize++] = subParts;
+						serialHighCharCount = 1;
+					}else {
+						if(serialHighCharCount++ > 0) {
+							continue;
+						};
+					}
+					isLastCharHigh = true;
+					nextCutIdx = i;
+				}else {
+					if(isLastCharHigh == true) {
+						if(i == 0) {
+							isLastCharHigh = false;
+							continue;
+						}else {
+							if(serialHighCharCount > 1) {
+								final int subPartsLen = i - 1 - nextCutIdx;
+								final char[] subParts = new char[subPartsLen];
+								for (int j = 0; j < subPartsLen; j++) {
+									subParts[j] = codeLowMatchChars[nextCutIdx + j];
+								}
+								subStringParts[subStringPartsSize++] = subParts;
+								serialHighCharCount = 0;
+								nextCutIdx = i - 1;
+							}
+						}
+					}
+					isLastCharHigh = false;
+				}
+			}
+			
+			final int subPartsLen = codeLowMatchChars.length - nextCutIdx;
+			final char[] subParts = new char[subPartsLen];
+			for (int j = 0; j < subPartsLen; j++) {
+				subParts[j] = codeLowMatchChars[nextCutIdx + j];
+			}
+			subStringParts[subStringPartsSize++] = subParts;
+			
+			codeLowMatchSubStrings = new char[subStringPartsSize][];
+			for (int i = 0; i < subStringPartsSize; i++) {
+				codeLowMatchSubStrings[i] = subStringParts[i];
+			}
+		}
+	}
+
+	private final void initCodeMatchAndLower() {
+		if(codeMatch == null) {
+			if(fieldOrMethodOrFullClassName.length() > 0 && (type != CodeItem.TYPE_CLASS_IMPORT)) {
+				codeMatch = fieldOrMethodOrFullClassName;
+			}else {
+				final int idx = code.indexOf('(');
+				if(idx >= 0) {
+					codeMatch = code.substring(0, idx);
+				}else {
+					codeMatch = code;
+				}
+			}
+		}
+		
+		if(codeMatchLower == null) {
+			codeMatchLower = codeMatch.toLowerCase();
+		}
 	}
 
 	public final boolean isOverrideable() {
@@ -123,6 +298,8 @@ public class CodeItem implements Comparable<CodeItem> {
 	public final static int TYPE_RESOURCES = 7;
 	public final static int TYPE_CSS_VAR = 8;
 	public final static int TYPE_CSS = 9;
+	//注意：直接在代码中输入类名，自动添加import语句；不同于TYPE_IMPORT手动添加import语句
+	public final static int TYPE_CLASS_IMPORT = 10;
 
 	public final static Class[] AnonymousClass = { Runnable.class, ActionListener.class,
 			// FocusListener.class,
@@ -162,8 +339,8 @@ public class CodeItem implements Comparable<CodeItem> {
 	// codeForDoc = from.codeForDoc;
 	// fmClass = from.fmClass;
 	// codeDisplay = from.codeDisplay;
-	// codeLowMatch = from.codeLowMatch;
-	// fieldOrMethodOrClassName = from.fieldOrMethodOrClassName;
+	// codeMatch = from.codeLowMatch;
+	// fieldOrMethodOrFullClassName = from.fieldOrMethodOrClassName;
 	// isPublic = from.isPublic;
 	// modifiers = from.modifiers;
 	// anonymousClass = from.anonymousClass;
@@ -178,6 +355,7 @@ public class CodeItem implements Comparable<CodeItem> {
 	public static final String FM_CLASS_CSS_VAR = "fm_class_css_var";
 	public static final String FM_CLASS_CSS = "fm_class_css";
 	public static final String FM_CLASS_PACKAGE = "fm_class_package";
+	public static final String FM_CLASS_IMPORT = "fm_class_import_";
 
 	public int type;
 	public boolean isPublic;
@@ -186,10 +364,9 @@ public class CodeItem implements Comparable<CodeItem> {
 	public boolean isFullPackageAndClassName;
 	public String code;
 	public String codeForDoc;
-	public String fieldOrMethodOrClassName;
+	public String fieldOrMethodOrFullClassName;
 	public String fmClass;
 	public String codeDisplay;
-	public String codeLowMatch;
 	public Class anonymousClass;
 	public boolean isCSSProperty;
 	public boolean isCSSClass;
@@ -200,9 +377,19 @@ public class CodeItem implements Comparable<CodeItem> {
 	public int overrideMethodLevel;// 数字越大，居上(子类)
 	public CodeItem overrideMethodItem;
 	public IntValue invokeCounter = new IntValue();
+	public int matchSimilarValue;
+	public String codeMatch;
+	private String codeMatchLower;
+	public char[][] codeLowMatchSubStrings;
+	public String thirdLibNameMaybeNull;//null means J2SE or HC, not third lib
 
 	@Override
 	public final int compareTo(final CodeItem o) {// 注意：如果增加field，请同步到equals()
+		final double matchSimilarDiff = o.matchSimilarValue - this.matchSimilarValue;
+		if(matchSimilarDiff != 0) {
+			return (matchSimilarDiff>0?1:-1);
+		}
+		
 		if (fmClass == CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_STRUCT && o.fmClass != CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_STRUCT) {
 			return -1;// 优先显示JRuby Struct枚举属性
 		}
@@ -237,7 +424,7 @@ public class CodeItem implements Comparable<CodeItem> {
 
 		if (o instanceof CodeItem) {
 			final CodeItem ci = (CodeItem) o;
-			if (this.type == ci.type && this.fmClass.equals(ci.fmClass) && this.fieldOrMethodOrClassName.equals(ci.fieldOrMethodOrClassName)
+			if (this.type == ci.type && this.fmClass.equals(ci.fmClass) && this.fieldOrMethodOrFullClassName.equals(ci.fieldOrMethodOrFullClassName)
 					&& this.codeDisplay.equals(ci.codeDisplay)) {
 				return true;
 			}
@@ -262,7 +449,7 @@ public class CodeItem implements Comparable<CodeItem> {
 	public final static boolean containsSameFieldMethodName(final ArrayList<CodeItem> list, final String fieldOrMethodOrClassName) {
 		final int sizeList = list.size();
 		for (int j = 0; j < sizeList; j++) {
-			if (list.get(j).fieldOrMethodOrClassName.equals(fieldOrMethodOrClassName)) {
+			if (list.get(j).fieldOrMethodOrFullClassName.equals(fieldOrMethodOrClassName)) {
 				return true;
 			}
 		}

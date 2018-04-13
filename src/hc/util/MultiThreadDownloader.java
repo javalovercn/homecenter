@@ -24,6 +24,7 @@ import hc.core.IConstant;
 import hc.core.RootServerConnector;
 import hc.core.SessionManager;
 import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
 import hc.j2se.HCAjaxX509TrustManager;
 import hc.server.util.HCJFrame;
 
@@ -106,22 +107,36 @@ public class MultiThreadDownloader {
 			final JPanel panel = new JPanel(new BorderLayout());
 			panel.add(progress, BorderLayout.NORTH);
 			panel.add(desc, BorderLayout.CENTER);
-			final ActionListener listener = new ActionListener() {
-				@Override
-				public void actionPerformed(final ActionEvent e) {
-					isCancel = true;
-					try {
-						if (frame != null) {
-							frame.dispose();
+			final ActionListener listener;
+			final JButton button;
+			if (isCancelableByUser) {
+				button = App.buildDefaultCancelButton();
+				listener = new ActionListener() {
+					@Override
+					public void actionPerformed(final ActionEvent e) {
+						isCancel = true;
+						try {
+							if (frame != null) {
+								frame.dispose();
+							}
+							RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_cancel");
+						} catch (final Exception ex) {
 						}
-						RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_cancel");
-					} catch (final Exception ex) {
 					}
-				}
-			};
-			final JButton button = new JButton(ResourceUtil.get(1018));
-			if (isCancelableByUser == false) {
-				button.setEnabled(false);
+				};
+			}else {
+				button = App.buildDefaultCloseButton();
+				listener = new ActionListener() {
+					@Override
+					public void actionPerformed(final ActionEvent e) {
+						try {
+							if (frame != null) {
+								frame.dispose();
+							}
+						} catch (final Exception ex) {
+						}
+					}
+				};
 			}
 			final String downloading = ResourceUtil.get(9275);//downloading...，原为""download " + dnFileName"
 			frame = (JFrame) App.showCenterPanelMain(panel, 0, 0, downloading, false, button, null, listener, listener, null, false, true,
@@ -216,26 +231,25 @@ public class MultiThreadDownloader {
 		final long leftSeconds = ((readed == 0) ? 3600 : ((costMS * total / readed - costMS) / 1000));
 		final float totalM = (total * 1.0F) / 1024.0F / 1024.0F;
 		final float readedM = (readed * 1.0F) / 1024.0F / 1024.0F;
-		out += "<STRONG>downloaded :    " + String.format("%.2f", readedM) + "M / " + String.format("%.2f", totalM)
-				+ "M, </STRONG><BR><BR>";
-		out += "source :      " + fromURL + "<BR>";
-		// out += "Download to : " + storeFile + "<BR>";
-		out += "md5 :           " + md5.md5 + "<BR>";
-		out += "speed :         " + ((costMS == 0) ? 0 : (avg)) + " KB/s<BR>";
-		out += "cost time : " + toHHMMSS((int) (costMS / 1000)) + "<BR>";
-		out += "time left :     " + toHHMMSS((int) (leftSeconds)) + "<BR>";
-
-		out += "</html>";
+		String downedTotal = ResourceUtil.get(9294);//download : {down}M, total : {total}M.
+		downedTotal = StringUtil.replace(downedTotal, "{down}", String.format("%.2f", readedM));
+		downedTotal = StringUtil.replace(downedTotal, "{total}", String.format("%.2f", totalM));
+		out += "<CENTER><STRONG>" + downedTotal + "</STRONG></CENTER><BR><BR><table>";
+		out += "<tr><td>" + getItem(9295) + "</td><td>" + fromURL + "</td></tr>";
+		out += "<tr><td>" + buildItem("MD5") + "</td><td>" + md5.md5 + "</td></tr>";
+		out += "<tr><td>" + getItem(9296) + "</td><td>" + ((costMS == 0) ? 0 : (avg)) + " KB/s</td></tr>";
+		out += "<tr><td>" + getItem(9297) + "</td><td>" + ResourceUtil.toHHMMSS((int) (costMS / 1000)) + "</td></tr>";
+		out += "<tr><td>" + getItem(9298) + "</td><td>" + ResourceUtil.toHHMMSS((int) (leftSeconds)) + "</td></tr>";
+		out += "</table></html>";
 		return out;
 	}
-
-	private static String toHHMMSS(final int timeSecond) {
-		final int hour = timeSecond / 60 / 60;
-		final int minute = (timeSecond - hour * 60) / 60;
-		final int second = timeSecond % 60;
-		return (hour > 9 ? String.valueOf(hour) : "0" + String.valueOf(hour)) + ":"
-				+ (minute > 9 ? String.valueOf(minute) : "0" + String.valueOf(minute)) + ":"
-				+ (second > 9 ? String.valueOf(second) : "0" + String.valueOf(second));
+	
+	private final String getItem(final int resID) {
+		return buildItem(ResourceUtil.get(resID));
+	}
+	
+	private final String buildItem(final String res) {
+		return res + ResourceUtil.get(1041);//1041 = : 
 	}
 
 	public synchronized boolean searchNewTask(final DownloadThread dt) {

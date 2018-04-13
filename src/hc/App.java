@@ -379,6 +379,11 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		if (ResourceUtil.isLoggerOn() == false || isSimuFromArgs) {
 			LogManager.INI_DEBUG_ON = true;
 		}
+		
+		if (PropertiesManager.getValue(PropertiesManager.p_ApplicationServerID) == null) {
+			final String uuid = ResourceUtil.buildUUID();
+			PropertiesManager.setValue(PropertiesManager.p_ApplicationServerID, uuid);
+		}
 
 		if (PropertiesManager.getValue(PropertiesManager.p_SetupVersion) == null) {
 			PropertiesManager.setValue(PropertiesManager.p_SetupVersion, StarterManager.getHCVersion());
@@ -1129,26 +1134,31 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			return null;
 		}
 
-		final JButton jbCancle = new JButton(((cancelButText == null) ? (String) ResourceUtil.get(IContext.CANCEL) : cancelButText),
+		JButton jbCancle = null;
+		UIActionListener cancelAction = null;
+		if(isAddCancle) {
+			jbCancle = new JButton(((cancelButText == null) ? (String) ResourceUtil.get(IContext.CANCEL) : cancelButText),
 				new ImageIcon(ImageSrc.CANCEL_ICON));
-		final UIActionListener cancelAction = new UIActionListener() {
-			@Override
-			public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
-				window.dispose();// 注意：要先关闭，因为Listener逻辑可能会打开新窗口
+			cancelAction = new UIActionListener() {
+				@Override
+				public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
+					window.dispose();// 注意：要先关闭，因为Listener逻辑可能会打开新窗口
 
-				if (cancelListener != null) {
-					try {
-						cancelListener.actionPerformed(null);
-					} catch (final Throwable e) {
-						ExceptionReporter.printStackTrace(e);
+					if (cancelListener != null) {
+						try {
+							cancelListener.actionPerformed(null);
+						} catch (final Throwable e) {
+							ExceptionReporter.printStackTrace(e);
+						}
+					}
+
+					if (isDelayMode) {
+						loadDelayWindow(window);
 					}
 				}
-
-				if (isDelayMode) {
-					loadDelayWindow(window);
-				}
-			}
-		};
+			};
+		}
+		
 		if (jbOK == null) {
 			final JButton okButton = new JButton(ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 			jbOK = okButton;

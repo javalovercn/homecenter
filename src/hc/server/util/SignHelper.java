@@ -1,10 +1,5 @@
 package hc.server.util;
 
-import hc.core.L;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.core.util.StringUtil;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +36,11 @@ import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.util.encoders.Base64;
+
+import hc.core.L;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
 
 public class SignHelper {
 
@@ -190,9 +190,7 @@ public class SignHelper {
 		// PublicKey pk = certificate.getPublicKey();
 		final char[] pwdChars = toPfxPassword(password);
 
-		final KeyStore store = KeyStore.getInstance("PKCS12");// 不能用"BC"
-																// provider，因为没有sign
-																// jar
+		final KeyStore store = KeyStore.getInstance("PKCS12");// 不能用"BC" provider，因为没有sign jar
 		store.load(null, toPfxPassword(""));// initialized
 
 		for (int i = 0; i < items.size(); i++) {

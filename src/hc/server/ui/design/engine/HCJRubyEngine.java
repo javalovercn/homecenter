@@ -15,7 +15,6 @@ import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.Stack;
-import hc.core.util.StringValue;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.data.StoreDirManager;
@@ -108,14 +107,19 @@ public class HCJRubyEngine {
 		}
 	}
 
-	final Object parse(final StringValue sv, final String scriptName) throws Exception {
+	final Object parse(final ScriptValue sv, final String scriptName) throws Exception {
 		Object unit = null;
 		String script;
 		synchronized (sv) {
-			script = sv.value;
-			script = RubyExector.replaceImport(script);
-			script = UpgradeManager.preProcessScript(script);
-			sv.value = script;
+			if(sv.isOptimized == false) {
+				script = sv.value;
+				script = RubyExector.replaceImport(script);
+				script = UpgradeManager.preProcessScript(script);
+				sv.value = script;
+				sv.isOptimized = true;
+			}else {
+				script = sv.value;
+			}
 		}
 		L.V = L.WShop ? false : LogManager.log("parse/run [" + Thread.currentThread().getName() + "], scripts : \n" + script);
 
@@ -136,7 +140,7 @@ public class HCJRubyEngine {
 	Class classIRubyObject;
 	Class[] rubyToJavaParaTypes;// = {classIRubyObject};
 
-	final Object runScriptlet(final StringValue sv, final String scriptName) throws Throwable {
+	final Object runScriptlet(final ScriptValue sv, final String scriptName) throws Throwable {
 		final String script;
 		final Object evalUnit;
 		synchronized (sv) {

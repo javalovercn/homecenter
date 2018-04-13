@@ -22,6 +22,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -75,11 +77,13 @@ import javax.swing.undo.UndoableEdit;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.DelayWatcher;
+import hc.core.GlobalConditionWatcher;
 import hc.core.L;
+import hc.core.util.BooleanValue;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringBufferCacher;
-import hc.core.util.StringValue;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.CallContext;
@@ -101,9 +105,11 @@ import hc.server.ui.design.code.CSSIdx;
 import hc.server.ui.design.code.CodeHelper;
 import hc.server.ui.design.code.CodeItem;
 import hc.server.ui.design.code.CodeWindow;
+import hc.server.ui.design.code.ReturnType;
 import hc.server.ui.design.code.TabHelper;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
+import hc.server.ui.design.engine.ScriptValue;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.DownlistButton;
 import hc.server.util.HCLimitSecurityManager;
@@ -141,13 +147,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 	static Highlighter.HighlightPainter ERROR_CODE_LINE_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
 
-	public static final SimpleAttributeSet STR_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#4EA539"), false);
-	public static final SimpleAttributeSet REM_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#3AC2EB"), false);
+	public static final SimpleAttributeSet STR_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#34981D"), false);//4EA539加深
+	public static final SimpleAttributeSet REM_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#0E9AC3"), false);//3AC2EB加深
 	private static final SimpleAttributeSet MAP_LIGHTER = ResourceUtil.buildAttrSet(Color.BLACK, true);
-	static final SimpleAttributeSet KEYWORDS_LIGHTER = ResourceUtil.buildAttrSet(ResourceUtil.toDarker(Color.BLUE, 0.8F), false);
+	public static final SimpleAttributeSet KEYWORDS_LIGHTER = ResourceUtil.buildAttrSet(ResourceUtil.toDarker(Color.BLUE, 0.7F), false);
 	private static final SimpleAttributeSet NUM_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#887BE0"), true);
 	public static final SimpleAttributeSet DEFAULT_LIGHTER = ResourceUtil.buildAttrSet(Color.BLACK, false);
-	private static final SimpleAttributeSet VAR_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#f19e37"), false);
+	private static final SimpleAttributeSet VAR_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#E1912A"), false);//f19e37加深
 	private static final SimpleAttributeSet REGEXP_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#ffa07a"), false);
 
 	private static final SimpleAttributeSet UNDERLINE_LIGHTER = buildUnderline(true);
@@ -561,7 +567,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		consolePanel.ctp.clearText();
 
 		try {
-			final StringValue sv = new StringValue(script);
+			final ScriptValue sv = new ScriptValue(script);
 			{
 				callCtxNeverCycle.reset();
 				callCtxNeverCycle.targetURL = targetURL;
@@ -633,7 +639,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	}
 
-	private final void setEditorDefaultCurosr() {
+	private final void setEditorDefaultCursor() {
 		if (isHandCursor) {
 			isHandCursor = false;
 			jtaScript.setCursor(defaultCursor);
@@ -659,13 +665,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 		errorTimer.setErrorLable(errRunInfo, testBtn);
 
-		final String runTip = "run this script for test, NOT activate current project for mobile client." +
+		final String runTip = "running this script is for fast test, it is NOT activate current project for mobile client." +
 		// "<BR>To apply modification and access from mobile, please
 		// click [<STRONG>" + Designer.ACTIVE + "</STRONG>]." +
 				"<BR><BR>" + "<STRONG>Note : </STRONG><BR>"
-				+ "1. there is a JRuby engine instance for each project, and one for designer,<BR>"
-				+ "2. even if a green bar is displayed in bottom, defects may be in the scripts that are not covered,<BR>"
-				+ "3. although script runs in simulator, but it is a real run.";
+				+ "1. if a green bar is displayed in bottom, defects may be in the scripts that are not covered,<BR>"
+				+ "2. although it runs in simulator, but it is a real run.";
 		{
 			final Action testAction = new AbstractAction() {
 				final String runTipHtml = "<html>" + runTip + "</html>";
@@ -807,7 +812,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					selectedChars = selectedText.toCharArray();
 				}
 
-				// sb.append("#encoding:utf-8\n");
 				sb.append("sb = java.lang.StringBuilder::new(" + (selectedChars.length * 2) + ")\n");
 				int startIdx = 0;
 				for (int i = 0; i < selectedChars.length; i++) {
@@ -902,7 +906,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		fontHeight = jtaScript.getFontMetrics(jtaScript.getFont()).getHeight();
 		halfFontHeight = fontHeight / 2;
 		quarFontHeight = fontHeight / 4;
-		autoCodeTip = new MouseMovingTipTimer(this, jtaScript, jtaDocment, fontHeight);
+		autoCodeTip = new MouseMovingTipTimer(jtaScript, jtaDocment, fontHeight);
 
 		jtaScript.addCaretListener(new CaretListener() {
 			int lastLineNo = 0;
@@ -1019,7 +1023,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		jtaScript.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(final FocusEvent e) {
-				designer.codeHelper.window.hide();
+//				designer.codeHelper.window.hide();//Java 10出现自动关闭代码提示窗口
 			}
 
 			@Override
@@ -1030,7 +1034,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				}
 			}
 		});
-
+		
 		jtaScript.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseReleased(final MouseEvent e) {
@@ -1044,7 +1048,19 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 			@Override
 			public void mouseExited(final MouseEvent e) {
-				autoCodeTip.setEnable(false);
+				synchronized (ScriptEditPanel.scriptEventLock) {
+					L.V = L.WShop ? false : LogManager.log("[MouseMovingTipTimer] isClearHistroyShow = true");
+					autoCodeTip.isClearHistroyShow = true;
+					autoCodeTip.resetTimerCount();//有可能在途的，所以要延时
+					autoCodeTip.setEnable(true);
+				}
+//				注意：不能加，进入CodeList或DocTip时，会关闭它们
+//				GlobalConditionWatcher.addWatcher(new DelayWatcher(HCTimer.HC_INTERNAL_MS * 3) {//可能正在被打开
+//					@Override
+//					public void doBiz() {
+//						designer.codeHelper.window.hide();
+//					}
+//				});
 				// designer.codeHelper.hideAfterMouse(true);//手工输入代码提示时，会触发此事件
 			}
 
@@ -1174,20 +1190,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			};
 
 			final StyledDocument jtaStyledDoc = jtaScript.getStyledDocument();
-			int moveX, moveY;
+			int moveX, moveY, lastShowX, lastShowY;;
 
 			@Override
 			public void mouseMoved(final MouseEvent e) {
 				modifierKeysPressed = e.getModifiers();
 
 				if (modifierKeysPressed == 0) {
-					setEditorDefaultCurosr();
+					setEditorDefaultCursor();
 
 					final boolean codeWinIsShowing = designer.codeHelper.window.isVisible();
 					if (codeWinIsShowing) {
 						if (System.currentTimeMillis() - autoCodeTip.lastShowMS > 400
-								&& (Math.abs(e.getX() - autoCodeTip.lastShowX) >= fontHeight
-										|| Math.abs(e.getY() - autoCodeTip.lastShowY) >= halfFontHeight)) {
+								&& (Math.abs(e.getX() - lastShowX) >= fontHeight
+										|| Math.abs(e.getY() - lastShowY) >= halfFontHeight)) {
 						} else if (Math.abs(e.getX() - moveX) <= quarFontHeight && Math.abs(e.getY() - moveY) <= quarFontHeight) {// 消除CodeList显示时，鼠标微动
 							moveX = e.getX();
 							moveY = e.getY();
@@ -1198,13 +1214,15 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					moveY = e.getY();
 					synchronized (ScriptEditPanel.scriptEventLock) {
 						if (codeWinIsShowing) {
-							if (Math.abs(moveX - autoCodeTip.lastShowX) >= fontHeight
-									|| Math.abs(moveY - autoCodeTip.lastShowY) >= halfFontHeight) {
+							if (Math.abs(moveX - lastShowX) >= fontHeight
+									|| Math.abs(moveY - lastShowY) >= halfFontHeight) {
 								designer.codeHelper.lastMousePreCode = "";
 								final MouseExitHideDocForMouseMovTimer timer = designer.codeHelper.mouseExitHideDocForMouseMovTimer;
 								if (timer.isEnable() == false) {
 									timer.resetTimerCount();
 									timer.setEnable(true);// 有可能现tip时，移动
+									L.V = L.WShop ? false : LogManager.log("[CodeTip] enable MouseExitHideDocForMouseMovTimer, diffX : " 
+											+ Math.abs(moveX - lastShowX) + ", diffY : " + Math.abs(moveY - lastShowY));
 								}
 							}
 						}
@@ -1213,6 +1231,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							lastMouseClickX = -100;
 							lastMouseClickY = -100;
 							autoCodeTip.setLocation(moveX, moveY);
+							lastShowX = moveX;
+							lastShowY = moveY;
 							autoCodeTip.setEnable(true);
 						}
 					}
@@ -1222,7 +1242,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 					final int startIdx = focusCSSClass(e, action);
 					if (startIdx == -1) {
-						setEditorDefaultCurosr();
+						setEditorDefaultCursor();
 					}
 					if (lastFocusCSSStartIdxBack != startIdx && lastFocusCSSStartIdxBack != -1) {
 						jtaStyledDoc.setCharacterAttributes(lastFocusCSSStartIdxBack, lastFocusCSSLenBak, UNDERLINE_REMOVE_LIGHTER, false);
@@ -1283,7 +1303,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 									|| (codeHelper.wordCompletionModifyMaskCode == modifiers)))) {// 注意：请同步到MletNodeEditPanel
 						try {
 							final int caretPosition = jtaScript.getCaretPosition();
-							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition, true);
+							codeHelper.input(jtaScript, jtaDocment, fontHeight, true, caretPosition, true);
 						} catch (final Exception e) {
 							// if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
@@ -1478,7 +1498,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						synchronized (scriptEventLock) {
 							try {
 								final int caretPosition = jtaScript.getCaretPosition();
-								codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, false, caretPosition, false);
+								codeHelper.input(jtaScript, jtaDocment, fontHeight, false, caretPosition, false);
 							} catch (final Exception e) {
 								if (L.isInWorkshop) {
 									e.printStackTrace();
@@ -1510,6 +1530,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				}
 
 				autoCodeTip.setEnable(false);
+				window.autoDocPopTip.setEnable(false);
 				codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(false);
 
 				if (window.isVisible()) {
@@ -1545,7 +1566,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						// 注意：请同步到MletNodeEditPanel
 						try {
 							final int caretPosition = jtaScript.getCaretPosition();
-							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition, true);
+							codeHelper.input(jtaScript, jtaDocment, fontHeight, true, caretPosition, true);
 						} catch (final Throwable e) {
 							ExceptionReporter.printStackTrace(e);
 						}
@@ -1970,6 +1991,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				}
 			});
 		}
+		
+		@Override
+		public void notifyUpdateScript() {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						final String scripts = jtaScript.getText();
+						updateScript(scripts);// 更新待保存内容
+					} catch (final Exception e) {
+					}
+				}
+			});
+		}
 	};
 
 	private static final String ONE_TAB_STR = String.valueOf('\t');
@@ -2298,9 +2333,43 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		// }
 	}
 
-	public final void setInitText(final String listener) {
+	@Override
+	public final void notifyLostEditPanelFocus() {
+		super.notifyLostEditPanelFocus();
+	}
+	
+	public final void setInitText(final String script) {
 		jtaDocment.removeUndoableEditListener(scriptUndoListener);
-		setUndoText(listener, 0);
+		setUndoText(script, 0);
+		designer.codeHelper.window.scriptEditPanel = this;
+		final HashSet<String> importClasses = designer.codeHelper.importClasses;
+		importClasses.clear();
+		final BooleanValue isImportClassesDone = designer.codeHelper.isImportClassesDone;
+		isImportClassesDone.value = false;
+		
+		GlobalConditionWatcher.addWatcher(new DelayWatcher(DelayWatcher.NO_DELAY) {//由于线程优先级最低，所以NO_DELAY
+			@Override
+			public void doBiz() {
+				RubyExector.getImportedClassesFromScript(script, importClasses);
+				final Iterator<String> it = importClasses.iterator();
+				while(it.hasNext()) {
+					final String claz = it.next();
+					loadCodeItem(claz);
+				}
+				
+				synchronized (isImportClassesDone) {
+					isImportClassesDone.value = true;
+					isImportClassesDone.notify();
+				}
+			}
+
+			private final void loadCodeItem(final String claz) {
+				final ReturnType rt = CodeHelper.findClassByName(claz, false);
+				if(rt != null) {
+					designer.codeHelper.initClass(claz, rt.getRawClass());
+				}
+			}
+		});
 	}
 
 	private static boolean trimEqualWithIndentation(final String trim_str, final int withEndIdx) {
@@ -2680,7 +2749,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			jtaScript.getStyledDocument().setCharacterAttributes(lastFocusUnderlineCSSStartIdx, lastFocusUnderlineCSSLen,
 					UNDERLINE_REMOVE_LIGHTER, false);
 			lastFocusUnderlineCSSStartIdx = -1;
-			setEditorDefaultCurosr();
+			setEditorDefaultCursor();
 		}
 	}
 

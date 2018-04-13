@@ -1,5 +1,16 @@
 package hc.server.util;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.SecureRandom;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
+
 import hc.App;
 import hc.core.CoreSession;
 import hc.core.HCConnection;
@@ -13,17 +24,6 @@ import hc.server.PlatformManager;
 import hc.server.ui.SingleMessageNotify;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.SecureRandom;
-
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESKeySpec;
 
 public class ServerCUtil {
 	/**
@@ -77,8 +77,8 @@ public class ServerCUtil {
 	public static void notifyErrPWDDialog() {
 		CCoreUtil.checkAccess();
 
-		final String errPwd = (String) ResourceUtil.get(9185);
-		final String errPwdTitle = (String) ResourceUtil.get(9184);
+		final String errPwd = ResourceUtil.get(9185);
+		final String errPwdTitle = ResourceUtil.get(9184);
 		SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_PASS, errPwd, errPwdTitle, 1000 * 60,
 				App.getSysIcon(App.SYS_ERROR_ICON));
 		LogManager.errToLog(errPwd);
@@ -154,8 +154,13 @@ public class ServerCUtil {
 		final SecretKeyFactory factroy = SecretKeyFactory.getInstance(Algorithm);
 		// 根据提供的密钥规范（密钥材料）生成 SecretKey 对象,利用密钥工厂把DESKeySpec转换成一个SecretKey对象
 		final SecretKey sk = factroy.generateSecret(ks);
+		
 		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
+		
+		//注意：Android Cipher.getInstance("AES/CBC/PKCS7PADDING", "BC") 或 Cipher.getInstance("AES/CBC/PKCS7PADDING", Security.getProvider("BC")) - 则 Android P 的行为将取决于您应用的目标 API 级别。
+		//对于目标级别为 Android P 或之后版本的应用，调用会抛出 NoSuchAlgorithmException。
 		final Cipher c = Cipher.getInstance(cipherAlgorithm);
+		
 		// 用密钥和随机源初始化此 cipher
 		c.init(Cipher.DECRYPT_MODE, sk, sr);
 
@@ -177,8 +182,13 @@ public class ServerCUtil {
 		final SecretKeyFactory factroy = SecretKeyFactory.getInstance(Algorithm);
 		// 根据提供的密钥规范（密钥材料）生成 SecretKey 对象,利用密钥工厂把DESKeySpec转换成一个SecretKey对象
 		final SecretKey sk = factroy.generateSecret(ks);
+		
 		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
+
+		//注意：Android Cipher.getInstance("AES/CBC/PKCS7PADDING", "BC") 或 Cipher.getInstance("AES/CBC/PKCS7PADDING", Security.getProvider("BC")) - 则 Android P 的行为将取决于您应用的目标 API 级别。
+		//对于目标级别为 Android P 或之后版本的应用，调用会抛出 NoSuchAlgorithmException。
 		final Cipher c = Cipher.getInstance(cipherAlgorithm);
+		
 		// 用密钥和随机源初始化此 cipher
 		c.init(Cipher.DECRYPT_MODE, sk, sr);
 
@@ -233,7 +243,11 @@ public class ServerCUtil {
 		// // 根据给定的字节数组构造一个密钥。
 		// SecretKey deskey = new SecretKeySpec(key, Algorithm);
 		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
+
+		//注意：Android Cipher.getInstance("AES/CBC/PKCS7PADDING", "BC") 或 Cipher.getInstance("AES/CBC/PKCS7PADDING", Security.getProvider("BC")) - 则 Android P 的行为将取决于您应用的目标 API 级别。
+		//对于目标级别为 Android P 或之后版本的应用，调用会抛出 NoSuchAlgorithmException。
 		final Cipher c = Cipher.getInstance(CipherAlgorithm);
+		
 		// 用密钥初始化此 cipher
 		c.init(Cipher.ENCRYPT_MODE, sk);
 
@@ -266,7 +280,11 @@ public class ServerCUtil {
 		// // 根据给定的字节数组构造一个密钥。
 		// SecretKey deskey = new SecretKeySpec(key, Algorithm);
 		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
+
+		//注意：Android Cipher.getInstance("AES/CBC/PKCS7PADDING", "BC") 或 Cipher.getInstance("AES/CBC/PKCS7PADDING", Security.getProvider("BC")) - 则 Android P 的行为将取决于您应用的目标 API 级别。
+		//对于目标级别为 Android P 或之后版本的应用，调用会抛出 NoSuchAlgorithmException。
 		final Cipher c = Cipher.getInstance(CipherAlgorithm);
+		
 		// 用密钥初始化此 cipher
 		c.init(Cipher.ENCRYPT_MODE, sk);
 

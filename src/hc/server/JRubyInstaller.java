@@ -390,7 +390,7 @@ public class JRubyInstaller {
 		refreshProgressWindow();
 
 		mtd.download(StringUtil.split(fromURL, RootConfig.CFG_SPLIT), rubyjar, checkSum, biz, failBiz,
-				ResourceUtil.isNonUIServer() ? false : true, true);//显示下载进度forUIServer
+				ResourceUtil.isNonUIServer() ? false : true, false);//显示下载进度forUIServer
 	}
 
 	private static boolean isShutdown;

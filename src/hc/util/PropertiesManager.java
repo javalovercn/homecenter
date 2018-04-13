@@ -103,6 +103,8 @@ public class PropertiesManager {
 	public static final String p_Deploy_RecentIP = "DeployRecentIP";
 
 	public static final String p_isEnableHCAI = "isEnableHCAI";
+	
+	public static final String p_ApplicationServerID = "ApplicationServerID";
 
 	public static final String p_SearchDialogColumnWidths = "SearchDialogColumnWidths";
 
@@ -455,7 +457,7 @@ public class PropertiesManager {
 					|| key.equals(p_isDemoServer)// 影响securityManager
 					|| key.equals(p_NewCertIsNotTransed) || key.equals(p_EnableTransNewCertKeyNow) || key.equals(p_HideIDForErrCert)
 					|| key.equals(p_IsLoggerOn) || key.equals(p_IsForceNoLogger) || key.equals(p_SecurityCipher) || key.equals(p_SecuritySDPVersion)
-					|| key.equals(p_SecuritySecretKeySize) || key.equals(p_isRememberDevCertPassword)
+					|| key.equals(p_SecuritySecretKeySize) || key.equals(p_isRememberDevCertPassword) || key.equals(p_ApplicationServerID)
 					|| key.equals(p_J2SECACertsPassword) || key.equals(p_isAcceptCertsOnlyFromJ2SECACerts)) {// 注意：如果增加逻辑，请同步到remove中
 				ResourceUtil.checkHCStackTrace();
 			}

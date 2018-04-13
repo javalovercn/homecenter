@@ -332,7 +332,11 @@ public class ResourceUtil {
 		return out;
 	}
 	
-	public static String getJavaVersionFromFloat(final float version) {
+	public static String getJavaVersionFromStringJRE(final String version) {
+		return getJavaVersionFromFloatJRE(Float.valueOf(version));
+	}
+	
+	public static String getJavaVersionFromFloatJRE(final float version) {
 		for (int i = 0; i < JRE_VERSION.length; i++) {
 			if(JRE_VERSION[i] == version) {
 				return JAVA_VERSION[i];
@@ -341,9 +345,19 @@ public class ResourceUtil {
 		
 		return null;
 	}
+	
+	public static float getJREFromJavaVersion(final String javaVer) {
+		for (int i = 0; i < JAVA_VERSION.length; i++) {
+			if(JAVA_VERSION[i].equals(javaVer)) {
+				return JRE_VERSION[i];
+			}
+		}
+		
+		throw new Error("invalid java version : " + javaVer);
+	}
 
-	public static String[] getAllJREVersion() {
-		final int size = JRE_VERSION.length;
+	public static String[] getAllJavaVersion() {
+		final int size = JAVA_VERSION.length;
 		final String[] out = new String[size];
 		for (int i = 0; i < size; i++) {
 			out[i] = JAVA_VERSION[i];
@@ -2745,5 +2759,19 @@ public class ResourceUtil {
 		} catch (final Exception e) {
 			return createRandomFileWithExt(parent, fileExtension == null ? null : ("." + fileExtension));
 		}
+	}
+
+	public static boolean isResPath(final String path) {
+		final int pathIdx = path.indexOf("/");
+		return pathIdx == 0;
+	}
+
+	public static String toHHMMSS(final int timeSecond) {
+		final int hour = timeSecond / 60 / 60;
+		final int minute = (timeSecond - hour * 60) / 60;
+		final int second = timeSecond % 60;
+		return (hour > 9 ? String.valueOf(hour) : "0" + String.valueOf(hour)) + ":"
+				+ (minute > 9 ? String.valueOf(minute) : "0" + String.valueOf(minute)) + ":"
+				+ (second > 9 ? String.valueOf(second) : "0" + String.valueOf(second));
 	}
 }

@@ -37,7 +37,6 @@ import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
-import hc.core.util.StringValue;
 import hc.server.CallContext;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
@@ -54,6 +53,7 @@ import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
+import hc.server.ui.design.engine.ScriptValue;
 import hc.server.ui.design.hpj.ConsoleWriter;
 import hc.server.util.Assistant;
 import hc.server.util.ContextSecurityConfig;
@@ -1582,7 +1582,7 @@ public class ProjectContext {
 
 		final CallContext callCtx = CallContext.getFree();
 		try {
-			return RubyExector.runAndWaitOnEngine(callCtx, new StringValue(shell), "evalInProjectContext", null, engine);
+			return RubyExector.runAndWaitOnEngine(callCtx, new ScriptValue(shell), "evalInProjectContext", null, engine);
 		} catch (final Throwable e) {
 			// if(ExceptionReporter.isCauseByLineOffSession(e)){
 			throw new Error(ExceptionReporter.THROW_FROM, e);
@@ -3959,7 +3959,7 @@ public class ProjectContext {
 	 * @param caption
 	 *            the caption of message.
 	 * @param text
-	 *            the body of message.
+	 *            the body of message, "\n" for new line.
 	 * @param type
 	 *            one of {@link #MESSAGE_ERROR}, {@link #MESSAGE_WARN}, {@link #MESSAGE_INFO},
 	 *            {@link #MESSAGE_ALARM}, {@link #MESSAGE_CONFIRMATION}.
@@ -4001,6 +4001,7 @@ public class ProjectContext {
 	 * 
 	 * @return login ID/Email on this server
 	 * @see #getMemberID()
+	 * @see #getApplicationServerID()
 	 * @since 7.0
 	 */
 	public final String getLoginID() {
@@ -4080,6 +4081,7 @@ public class ProjectContext {
 	 * 
 	 * @return
 	 * @since 7.50
+	 * @see #getClientMemberID()
 	 */
 	public final String getClientSoftUID() {
 		return getSoftUID();
@@ -4090,6 +4092,7 @@ public class ProjectContext {
 	 * 
 	 * @return
 	 * @since 7.2
+	 * @see #getMobileMemberID()
 	 */
 	public final String getMobileSoftUID() {
 		return getSoftUID();
@@ -4226,6 +4229,31 @@ public class ProjectContext {
 		} else {
 			return noLoginUID;
 		}
+	}
+	
+	String applicationServerID;
+	
+	/**
+	 * returns this application server <code>UUID</code> string;
+	 * @return
+	 * @see #getLoginID()
+	 * @see #getMobileMemberID()
+	 * @see #getMobileSoftUID()
+	 */
+	public final String getApplicationServerID() {
+		if(applicationServerID == null) {
+			synchronized (lockForScheduler) {
+				if(applicationServerID == null) {
+					applicationServerID = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+						@Override
+						public Object run() throws Throwable {
+							return PropertiesManager.getValue(PropertiesManager.p_ApplicationServerID);
+						}
+					});
+				}
+			}
+		}
+		return applicationServerID;
 	}
 
 	boolean isShutdown;
@@ -4559,7 +4587,7 @@ public class ProjectContext {
 	 * @param caption
 	 *            the caption of message.
 	 * @param text
-	 *            the body of message.
+	 *            the body of message, "\n" for new line.
 	 * @param type
 	 *            one of {@link #MESSAGE_ERROR}, {@link #MESSAGE_WARN}, {@link #MESSAGE_INFO},
 	 *            {@link #MESSAGE_ALARM}, {@link #MESSAGE_CONFIRMATION}.

@@ -158,10 +158,11 @@ public class CSSNodeEditPanel extends NameEditPanel {
 
 	private final JPanel cssPanel = new JPanel();
 	private final JLabel tipCssLabel = new JLabel("<html>"
-			+ "1. if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect."
-			+ "<BR>" + "2. all above will be loaded automatically to all HTMLMlet/Dialog(s) of current project by server." + "<BR>"
-			+ "3. if you want special styles, please invoke <STRONG>loadCSS</STRONG> in HTMLMlet/Dialog." + "<BR>"
-			+ "4. for get CSS (2.2) properties or variables, please press shortcut keys for word completion." + "</html>");
+			+ "1. all above will be loaded automatically to all HTMLMlet/Dialog(s) of current project by server.<BR>"
+			+ "2. to load special styles for HTMLMlet/Dialog, please invoke <STRONG>loadCSS</STRONG> method.<BR>"
+			+ "3. for CSS (2.2) properties or variables of client, please press shortcut keys for word completion.<BR>" 
+			+ "4. if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect."
+			+ "</html>");
 
 	CSSUndoableEditListener cssUndoListener;
 	UndoManager cssUndoManager;
@@ -202,6 +203,10 @@ public class CSSNodeEditPanel extends NameEditPanel {
 					}
 				}
 			});
+		}
+		
+		@Override
+		public void notifyUpdateScript() {
 		}
 	};
 	private final JScrollPane cssScrollPane;
@@ -700,7 +705,6 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			@Override
 			public void focusLost(final FocusEvent e) {
 				designer.setProjCSS(cssEditPane.getText());
-				designer.codeHelper.window.hide();
 			}
 
 			@Override

@@ -3,7 +3,7 @@ package hc.core;
 import hc.core.util.CCoreUtil;
 
 /**
- * 依赖于HCTimer
+ * 依赖于HCTimer。本处理线程优先级为最低
  */
 public class GlobalConditionWatcher {
 	private static final HCConditionWatcher eventConditionWatcher = new HCConditionWatcher(
@@ -23,7 +23,8 @@ public class GlobalConditionWatcher {
 
 	/**
 	 * 如果服务器断线，则可能删除全部watcher，除非IWatcher声明isCancelable
-	 * 
+	 * <BR>
+	 * 注意：本处理线程优先级为最低
 	 * @param watcher
 	 */
 	public static void addWatcher(final IWatcher watcher) {

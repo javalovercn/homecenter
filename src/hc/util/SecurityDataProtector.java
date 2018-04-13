@@ -26,13 +26,13 @@ import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
-import hc.core.util.StringValue;
 import hc.server.CallContext;
 import hc.server.HCActionListener;
 import hc.server.JRubyInstaller;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
+import hc.server.ui.design.engine.ScriptValue;
 import hc.server.util.ServerUtil;
 
 public class SecurityDataProtector {
@@ -296,7 +296,10 @@ public class SecurityDataProtector {
 		final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
 		secureRandom.setSeed(privateBS);
 
+		//注意：Android Cipher.getInstance("AES/CBC/PKCS7PADDING", "BC") 或 Cipher.getInstance("AES/CBC/PKCS7PADDING", Security.getProvider("BC")) - 则 Android P 的行为将取决于您应用的目标 API 级别。
+		//对于目标级别为 Android P 或之后版本的应用，调用会抛出 NoSuchAlgorithmException。
 		final Cipher cipher = Cipher.getInstance(cipherName);
+		
 		final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, keySize), "AES");
 		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);
 
@@ -313,7 +316,10 @@ public class SecurityDataProtector {
 		secureRandom.setSeed(privateBS);
 		kgen.init(128, secureRandom);
 
+		//注意：Android Cipher.getInstance("AES/CBC/PKCS7PADDING", "BC") 或 Cipher.getInstance("AES/CBC/PKCS7PADDING", Security.getProvider("BC")) - 则 Android P 的行为将取决于您应用的目标 API 级别。
+		//对于目标级别为 Android P 或之后版本的应用，调用会抛出 NoSuchAlgorithmException。
 		final Cipher cipher = Cipher.getInstance(cipherName);
+		
 		final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(), "AES");
 		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);
 
@@ -356,7 +362,10 @@ public class SecurityDataProtector {
 		final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
 		secureRandom.setSeed(privateBS);
 
+		//注意：Android Cipher.getInstance("AES/CBC/PKCS7PADDING", "BC") 或 Cipher.getInstance("AES/CBC/PKCS7PADDING", Security.getProvider("BC")) - 则 Android P 的行为将取决于您应用的目标 API 级别。
+		//对于目标级别为 Android P 或之后版本的应用，调用会抛出 NoSuchAlgorithmException。
 		final Cipher cipher = Cipher.getInstance(cipherName);
+
 		final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, keySize), "AES");
 		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);
 		final byte[] decryptBytes = cipher.doFinal(src);
@@ -373,7 +382,10 @@ public class SecurityDataProtector {
 		secureRandom.setSeed(privateBS);
 		kgen.init(128, secureRandom);
 
+		//注意：Android Cipher.getInstance("AES/CBC/PKCS7PADDING", "BC") 或 Cipher.getInstance("AES/CBC/PKCS7PADDING", Security.getProvider("BC")) - 则 Android P 的行为将取决于您应用的目标 API 级别。
+		//对于目标级别为 Android P 或之后版本的应用，调用会抛出 NoSuchAlgorithmException。
 		final Cipher cipher = Cipher.getInstance(cipherName);
+
 		final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(), "AES");
 		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);
 		final byte[] decryptBytes = cipher.doFinal(src);
@@ -660,7 +672,7 @@ public class SecurityDataProtector {
 					+ values.toString() + "\"\n" + "		return k1\n" + "	end\n" + "end\n" + "\n"
 					+ "return AndroidSecurityData.new\n";
 			final CallContext callCtx = new CallContext();
-			androidHardwareObject = RubyExector.runAndWaitOnEngine(callCtx, new StringValue(script), "AndroidSecurityData", null, engine);
+			androidHardwareObject = RubyExector.runAndWaitOnEngine(callCtx, new ScriptValue(script), "AndroidSecurityData", null, engine);
 			if (callCtx.isError) {
 				callCtx.rubyThrowable.printStackTrace();
 			}

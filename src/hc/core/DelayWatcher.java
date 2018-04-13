@@ -3,10 +3,15 @@ package hc.core;
 import hc.core.util.ExceptionReporter;
 
 public abstract class DelayWatcher implements IWatcher {
+	public static final long NO_DELAY = 0;
+	
 	private final long execMS;
 
-	public DelayWatcher(final int msDelay) {
-		if (msDelay <= 0) {
+	/**
+	 * maybe NO_DELAY
+	 */
+	public DelayWatcher(final long msDelay) {
+		if (msDelay < 0) {
 			new IllegalArgumentException(
 					"error parameter delaywatcher : " + msDelay);
 		}

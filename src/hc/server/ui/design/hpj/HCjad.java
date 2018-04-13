@@ -1,13 +1,15 @@
 package hc.server.ui.design.hpj;
 
-import hc.core.util.ExceptionReporter;
-import hc.server.ui.design.Designer;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
+
+import hc.App;
+import hc.core.util.ExceptionReporter;
+import hc.server.ui.design.Designer;
+import hc.util.ResourceUtil;
 
 public class HCjad {
 
@@ -57,7 +59,7 @@ public class HCjad {
 			out.close();
 			fos.close();
 		} catch (final Exception e) {
-			System.err.println("err on write to had file.");
+			App.showErrorMessageDialog(null, "fail to save HAD : " + e.getMessage(), ResourceUtil.getErrorI18N());
 			ExceptionReporter.printStackTrace(e);
 		}
 	}

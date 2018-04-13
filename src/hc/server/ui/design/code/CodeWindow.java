@@ -11,6 +11,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
@@ -27,13 +28,19 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
+import hc.App;
+import hc.core.DelayWatcher;
+import hc.core.GlobalConditionWatcher;
 import hc.core.HCTimer;
 import hc.core.L;
+import hc.core.util.BooleanValue;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.DefaultManager;
+import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.ScriptEditPanel;
+import hc.server.ui.design.hpj.ScriptModelManager;
 import hc.util.ClassUtil;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
@@ -71,11 +78,11 @@ public class CodeWindow {
 	private final JList codeList = new JList();// JRE 1.6 not gerneric
 	Class codeBelongClass;
 	private final ArrayList<CodeItem> classData = new ArrayList<CodeItem>();
-	private final JFrame classFrame = new JFrame();
-	private final DocLayoutLimit layoutLimit = new DocLayoutLimit();
+	public final JFrame classFrame = new JFrame();
+	public final DocLayoutLimit layoutLimit = new DocLayoutLimit();
 	private final JScrollPane scrollPanel = new JScrollPane(codeList);
 	private final int delayDocTipMS = 300;
-	private final DocTipTimer autoDocPopTip = new DocTipTimer("", delayDocTipMS, false);
+	public final DocTipTimer autoDocPopTip = new DocTipTimer("autoDocPopTip", delayDocTipMS, false);
 	private final HCTimer noCodeListDelayCloseDocTipTimer = new HCTimer("NoCodeDelayDismissDocTip", delayDocTipMS + HCTimer.HC_INTERNAL_MS, false) {
 		@Override
 		public void doBiz() {
@@ -85,9 +92,11 @@ public class CodeWindow {
 	};
 
 	public final DocHelper docHelper;
+	private static final ClassImporter j2seHcClassImporter = ClassImporter.buildJ2SEHCImporter();
+	
 	public final CodeInvokeCounter codeInvokeCounter = new CodeInvokeCounter();
 	public final CSSHelper cssHelper = new CSSHelper();
-	private final CodeHelper codeHelper;
+	final CodeHelper codeHelper;
 
 	final Runnable refilterRunnable = new Runnable() {
 		@Override
@@ -120,7 +129,6 @@ public class CodeWindow {
 
 		if (keyCode == KeyEvent.VK_ESCAPE) {
 			hide();
-			autoDocPopTip.setEnable(false);
 			return;
 		}
 
@@ -154,8 +162,8 @@ public class CodeWindow {
 							dispatchEvent(e, keyCode);
 						}
 					} else if (keyCode == KeyEvent.VK_LEFT) {
-						if (preCodeCharsLen > 0) {
-							preCodeCharsLen--;
+						if (preCodeLowerCharsLen > 0) {
+							preCodeLowerCharsLen--;
 							textPane.setCaretPosition(--movingScriptIdx);
 							refill(e);
 						}
@@ -164,7 +172,7 @@ public class CodeWindow {
 							final char nextChar = textPane.getDocument().getText(movingScriptIdx, 1).toLowerCase().charAt(0);
 							if ((nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z')
 									|| (nextChar >= '0' && nextChar <= '9') || nextChar == '_') {
-								preCodeChars[preCodeCharsLen++] = nextChar;
+								preCodeLowerChars[preCodeLowerCharsLen++] = nextChar;
 								textPane.setCaretPosition(++movingScriptIdx);
 								refill(e);
 							}
@@ -181,9 +189,9 @@ public class CodeWindow {
 					actionOnItem(selectedIndex);
 				} else if (keyCode == KeyEvent.VK_BACK_SPACE) {
 					noCodeListDelayCloseDocTipTimer.isEnable();
-					if (preCodeCharsLen > 0) {
-						preCodeCharsLen--;
-						preCodeLower = String.valueOf(preCodeChars, 0, preCodeCharsLen);
+					if (preCodeLowerCharsLen > 0) {
+						preCodeLowerCharsLen--;
+						preCodeLower = String.valueOf(preCodeLowerChars, 0, preCodeLowerCharsLen);
 						SwingUtilities.invokeLater(refilterRunnable);
 
 						back(e);
@@ -210,7 +218,7 @@ public class CodeWindow {
 	}
 
 	private final void refill(final KeyEvent e) {
-		preCodeLower = String.valueOf(preCodeChars, 0, preCodeCharsLen);
+		preCodeLower = String.valueOf(preCodeLowerChars, 0, preCodeLowerCharsLen);
 		SwingUtilities.invokeLater(refilterRunnable);
 
 		TabHelper.notifyInputKey(true, e, e.getKeyChar(), 0);
@@ -243,7 +251,7 @@ public class CodeWindow {
 					renderer.setIcon(CodeRes.item3);
 				} else if (type == CodeItem.TYPE_METHOD) {
 					renderer.setIcon(CodeRes.item2);
-				} else if (type == CodeItem.TYPE_CLASS) {
+				} else if (type == CodeItem.TYPE_CLASS || type == CodeItem.TYPE_CLASS_IMPORT) {
 					renderer.setIcon(CodeRes.item1);
 				}
 				renderer.setForeground(Color.BLACK);
@@ -311,7 +319,7 @@ public class CodeWindow {
 				if (idx >= 0) {
 					final CodeItem item = classData.get(idx);
 					if (docHelper.acceptType(item.type)) {
-						startAutoPopTip(item, null, scriptEditPanel);
+						startAutoPopTip(item, null);
 					} else {
 						docHelper.setInvisible();
 					}
@@ -332,6 +340,7 @@ public class CodeWindow {
 				isWillOrAlreadyToFront = false;
 				synchronized (autoDocPopTip) {
 					docHelper.setInvisible();
+					autoDocPopTip.setEnable(false);
 				}
 				if (L.isInWorkshop) {
 					LogManager.log("[CodeTip] docHelper setInvisible.");
@@ -369,15 +378,15 @@ public class CodeWindow {
 
 	HCTextPane textPane;
 	Document document;
-	ScriptEditPanel scriptEditPanel;
+	public ScriptEditPanel scriptEditPanel;
 	private final ArrayList<CodeItem> fullList = new ArrayList<CodeItem>();
 	private String preCodeLower;
-	private final char[] preCodeChars = new char[2048];
-	private int preCodeCharsLen;
+	private final char[] preCodeLowerChars = new char[2048];
+	private int preCodeLowerCharsLen;
 	private int movingScriptIdx, oriScriptIdx;
 
 	private final void refilter() {
-		fillPreCode(fullList, classData, preCodeLower);
+		fillPreCode(fullList, classData);
 
 		codeList.setModel(new AbstractListModel() {// JRE 1.6 not gerneric
 			@Override
@@ -404,7 +413,7 @@ public class CodeWindow {
 
 	}
 
-	public final void fillPreCode(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, final String preCodeLower) {
+	public final void fillPreCode(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target) {
 		target.clear();
 		final int size = src.size();
 		final int preLen = preCodeLower.length();
@@ -426,15 +435,35 @@ public class CodeWindow {
 			// codeItem.codeLowMatch + ", code : " + codeItem.code + ",
 			// fieldOrMethod : " + codeItem.fieldOrMethodOrClassName);
 
-			if (preLen == 0 || (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS
-					&& codeItem.codeLowMatch.indexOf(preCodeLower) >= 0) || codeItem.codeLowMatch.startsWith(preCodeLower)) {
+			if (preLen == 0 
+					|| (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS && codeItem.matchPreCode(preCodeLower)) 
+					|| codeItem.similarity(preCodeLower, preCodeLowerChars, preCodeLowerCharsLen) > 0) {
 				addItemExcludeOverride(codeItem, target);
+			}
+		}
+		
+		if(preCodeType == CodeHelper.PRE_TYPE_BEFORE_INSTANCE) {
+			if(preCodeLowerCharsLen >= ClassImporter.MIN_PRE_LEN) {
+				final BooleanValue isImportClassesDone = codeHelper.isImportClassesDone;
+				if(isImportClassesDone.value == false) {
+					synchronized (isImportClassesDone) {
+						if(isImportClassesDone.value == false) {
+							try {
+								isImportClassesDone.wait();
+							} catch (final InterruptedException e) {
+							}
+						}
+					}
+				}
+				final HashSet<String> importClasses = codeHelper.importClasses;
+				j2seHcClassImporter.appendClassImport(this, preCodeLower, preCodeLowerChars, preCodeLowerCharsLen, target, importClasses);
+				codeHelper.nodeLibClassesAndResMap.appendClassImport(this, preCodeLower, preCodeLowerChars, preCodeLowerCharsLen, target, importClasses);
 			}
 		}
 
 		Collections.sort(target);
 	}
-
+	
 	public static void fillForAutoTip(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, final boolean isBeginWith,
 			final String fieldOrMethodWithoutGanTanHaoOrWenHao) {
 		target.clear();
@@ -452,12 +481,12 @@ public class CodeWindow {
 			// continue;
 			// }
 			// }
-			if ((isBeginWith && codeItem.fieldOrMethodOrClassName.startsWith(fieldOrMethodWithoutGanTanHaoOrWenHao, 0))// 考虑ruby.method!
+			if ((isBeginWith && codeItem.fieldOrMethodOrFullClassName.startsWith(fieldOrMethodWithoutGanTanHaoOrWenHao, 0))// 考虑ruby.method!
 					// |
 					// method?
 					// |
 					// method三型，所以改为startsWith
-					|| codeItem.fieldOrMethodOrClassName.equals(fieldOrMethodWithoutGanTanHaoOrWenHao)) {
+					|| codeItem.fieldOrMethodOrFullClassName.equals(fieldOrMethodWithoutGanTanHaoOrWenHao)) {
 				addItemExcludeOverride(codeItem, target);
 			}
 		}
@@ -489,7 +518,7 @@ public class CodeWindow {
 	public boolean isWillOrAlreadyToFront;
 	public int preCodeType;
 
-	public final void toFront(final int preCodeType, final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent,
+	public final void toFront(final int preCodeType, final Class codeClass, final HCTextPane eventFromComponent,
 			final int x, final int y, final ArrayList<CodeItem> list, final String preCode, final int scriptIdx, final int fontHeight) {
 		noCodeListDelayCloseDocTipTimer.isEnable();
 		this.preCodeType = preCodeType;
@@ -504,13 +533,12 @@ public class CodeWindow {
 
 		this.preCodeLower = preCode.toLowerCase();
 		final char[] preCharsLower = this.preCodeLower.toCharArray();
-		preCodeCharsLen = preCharsLower.length;
+		preCodeLowerCharsLen = preCharsLower.length;
 		this.movingScriptIdx = scriptIdx;
-		this.oriScriptIdx = scriptIdx - preCodeCharsLen;
+		this.oriScriptIdx = scriptIdx - preCodeLowerCharsLen;
 
-		System.arraycopy(preCharsLower, 0, preCodeChars, 0, preCodeCharsLen);
+		System.arraycopy(preCharsLower, 0, preCodeLowerChars, 0, preCodeLowerCharsLen);
 
-		this.scriptEditPanel = sep;
 		textPane = eventFromComponent;
 		document = textPane.getDocument();
 
@@ -576,17 +604,187 @@ public class CodeWindow {
 				// SwingUtilities.invokeLater(new Runnable() {
 				// @Override
 				// public void run() {
-				if (item.anonymousClass != null) {
+				if (item.type == CodeItem.TYPE_CLASS_IMPORT) {
+					insertClassImport(item);
+				}else if (item.anonymousClass != null) {
 					insertAnonymouseClass(item);
 				} else if (item.isInnerClass) {
 					insertInnerClass();
 				} else {
 					insertMethod(item);
 				}
+				textPane.notifyUpdateScript();
 				// }
 				// });
 			}
 		}
+	}
+	
+	private final void insertClassImport(final CodeItem item) {
+		try {
+			final int itemType = item.type;
+			if (codeInvokeCounter.isRecordableItemType(itemType)) {
+				codeInvokeCounter.addOne(item);
+			}
+
+			document.remove(oriScriptIdx, preCodeLowerCharsLen);
+			final String insertedCode = item.code;
+			document.insertString(oriScriptIdx, insertedCode, ScriptEditPanel.DEFAULT_LIGHTER);// 注：attSet不为null可减少闪烁，即使后有refreshCurrLineAfterKey
+			final int position = oriScriptIdx + insertedCode.length();
+
+//			textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
+			TabHelper.notifyInputBlock(insertedCode.length() - preCodeLowerCharsLen);
+
+			final char[] insertedCodeChars = insertedCode.toCharArray();
+			final int parameterNum = TabBlock.countParameterNum(insertedCodeChars);
+			if (parameterNum > 0) {
+				TabHelper.setCurrentTabBlock(oriScriptIdx, insertedCodeChars, parameterNum);
+				// setCurrentTabBlock方法内有setCaretPosition，故不用
+				// textPane.setCaretPosition(position);
+			} else {
+				textPane.setCaretPosition(position);
+			}
+			
+			final String fullClassName = item.codeForDoc;
+			final HashSet<String> importClasses = codeHelper.importClasses;
+			importClasses.add(fullClassName);
+			{
+				final BooleanValue isImportClassesDone = codeHelper.isImportClassesDone;
+				isImportClassesDone.value = false;
+				
+				GlobalConditionWatcher.addWatcher(new DelayWatcher(DelayWatcher.NO_DELAY) {//由于线程优先级最低，所以NO_DELAY
+					@Override
+					public void doBiz() {
+						loadCodeItem(fullClassName);
+
+						synchronized (isImportClassesDone) {
+							isImportClassesDone.value = true;
+							isImportClassesDone.notify();
+						}
+					}
+
+					private final void loadCodeItem(final String claz) {
+						final ReturnType rt = CodeHelper.findClassByName(claz, false);
+						if(rt != null) {
+							codeHelper.initClass(claz, rt.getRawClass());
+						}
+					}
+				});
+			}
+			
+			int firstRequireIdx = -1;
+			int afterEncodeUTF8Idx = -1;
+
+			//找到import xx的position
+			final String scripts = textPane.getText();
+			int insertIdx = 0;
+			boolean hasException = false;
+			
+			try {
+				while(true) {
+					insertIdx = scripts.indexOf(RubyExector.IMPORT, insertIdx);
+					if(insertIdx < 0) {
+						break;
+					}else {
+						if(insertIdx > oriScriptIdx) {
+							break;
+						}
+						if(scripts.charAt(insertIdx - 1) == '\n') {
+							insertImportClassCommands(insertIdx, fullClassName);
+							return;
+						}
+					}
+				}//end while
+				
+				//require 'xx.jar' 
+				insertIdx = 0;
+				int lastRequireIdx = -1;
+				while(true) {
+					insertIdx = scripts.indexOf(CodeHelper.PRE_REQUIRE, insertIdx);
+					if(insertIdx < 0) {
+						break;
+					}
+					if(firstRequireIdx < 0) {
+						firstRequireIdx = insertIdx;
+					}
+					if(scripts.charAt(insertIdx - 1) == '\n' && scripts.charAt(insertIdx + CodeHelper.PRE_REQUIRE.length()) == ' ') {
+						if(insertIdx > oriScriptIdx) {
+							break;
+						}
+						lastRequireIdx = insertIdx;
+					}
+					insertIdx++;
+				}
+				
+				if(lastRequireIdx >= 0) {
+					insertIdx = lastRequireIdx;
+					while(scripts.charAt(insertIdx++) != '\n') {
+					}
+					
+					document.insertString(insertIdx++, "\n", ScriptEditPanel.DEFAULT_LIGHTER);
+					insertImportClassCommands(insertIdx, fullClassName);
+					return;
+				}
+				
+				//#encoding:utf-8
+				insertIdx = scripts.indexOf(ScriptModelManager.ENCODING_UTF_8, 0);
+				if(insertIdx >= 0) {
+					insertIdx += ScriptModelManager.ENCODING_UTF_8.length();
+					afterEncodeUTF8Idx = insertIdx;
+					insertImportClassCommands(insertIdx, fullClassName);
+					return;
+				}
+				
+				hasException = true;
+				App.showMessageDialog(null, "fail to insert [" + RubyExector.IMPORT + fullClassName + "].", ResourceUtil.getErrorI18N(), 
+						App.ERROR_MESSAGE);
+			}catch (final Exception e) {
+				hasException = true;
+				throw e;
+			}finally {
+				if(hasException == false && item.thirdLibNameMaybeNull != null) {
+					//检查是否已require该lib，准备添加"require 'lib.jar'"
+					if(RubyExector.hasInsertedRequireLib(scripts, item.thirdLibNameMaybeNull, oriScriptIdx) == false) {
+						if(firstRequireIdx > 0) {
+							insertRequireLibCommands(firstRequireIdx, item.thirdLibNameMaybeNull);
+						}else {
+							if(afterEncodeUTF8Idx > 0) {
+								insertRequireLibCommands(afterEncodeUTF8Idx, item.thirdLibNameMaybeNull);
+							}else {
+								afterEncodeUTF8Idx = scripts.indexOf(ScriptModelManager.ENCODING_UTF_8, 0);
+								if(afterEncodeUTF8Idx >= 0) {
+									afterEncodeUTF8Idx += ScriptModelManager.ENCODING_UTF_8.length();
+									insertRequireLibCommands(afterEncodeUTF8Idx, item.thirdLibNameMaybeNull);
+								}else {
+									App.showMessageDialog(null, "fail to insert [" + CodeHelper.PRE_REQUIRE + " '" + item.thirdLibNameMaybeNull + "'].", ResourceUtil.getErrorI18N(), 
+											App.ERROR_MESSAGE);
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (final Exception e) {
+			// ExceptionReporter.printStackTrace(e);
+		}
+	}
+
+	private final void insertRequireLibCommands(int insertIdx, final String libName) throws BadLocationException {
+		document.insertString(insertIdx, CodeHelper.PRE_REQUIRE, ScriptEditPanel.KEYWORDS_LIGHTER);
+		insertIdx += CodeHelper.PRE_REQUIRE.length();
+		document.insertString(insertIdx, " '" + libName + "'\n", ScriptEditPanel.DEFAULT_LIGHTER);
+	}
+	
+	private final void insertImportClassCommands(int insertIdx, String fullClassName) throws BadLocationException {
+		if(fullClassName.startsWith(CodeHelper.JAVA_PACKAGE_CLASS_PREFIX, 0)) {
+			fullClassName += "\n";
+		}else {
+			fullClassName = RubyExector.JAVA_MAO_MAO + fullClassName + "\n";//可能hc.或用户级
+		}
+		
+		document.insertString(insertIdx, RubyExector.IMPORT, ScriptEditPanel.KEYWORDS_LIGHTER);
+		insertIdx += RubyExector.IMPORT.length();
+		document.insertString(insertIdx, fullClassName, ScriptEditPanel.DEFAULT_LIGHTER);
 	}
 
 	private final String removeParameters(final String insertedCode) {
@@ -610,7 +808,7 @@ public class CodeWindow {
 		try {
 			final int charIdxRemovedTab = getShujinTabIdx();
 
-			document.remove(oriScriptIdx, preCodeCharsLen);
+			document.remove(oriScriptIdx, preCodeLowerCharsLen);
 
 			final StringBuilder sb = StringBuilderCacher.getFree();
 			sb.append(CodeHelper.JRUBY_NEW);
@@ -642,7 +840,7 @@ public class CodeWindow {
 		try {
 			final int charIdxRemovedTab = getShujinTabIdx();
 
-			document.remove(oriScriptIdx, preCodeCharsLen);
+			document.remove(oriScriptIdx, preCodeLowerCharsLen);
 			final String insertedCode = removeParameters(item.code);
 
 			final StringBuilder sb = StringBuilderCacher.getFree();
@@ -694,7 +892,7 @@ public class CodeWindow {
 				codeInvokeCounter.addOne(item);
 			}
 
-			document.remove(oriScriptIdx, preCodeCharsLen);
+			document.remove(oriScriptIdx, preCodeLowerCharsLen);
 			final String insertedCode = item.code;
 			AttributeSet attSet = null;
 			if (item.isCSSProperty || item.isCSSClass) {
@@ -704,7 +902,7 @@ public class CodeWindow {
 			final int position = oriScriptIdx + insertedCode.length();
 
 			textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
-			TabHelper.notifyInputBlock(insertedCode.length() - preCodeCharsLen);
+			TabHelper.notifyInputBlock(insertedCode.length() - preCodeLowerCharsLen);
 
 			final char[] insertedCodeChars = insertedCode.toCharArray();
 			final int parameterNum = TabBlock.countParameterNum(insertedCodeChars);
@@ -715,7 +913,7 @@ public class CodeWindow {
 			} else {
 				textPane.setCaretPosition(position);
 			}
-		} catch (final BadLocationException e) {
+		} catch (final Exception e) {
 			// ExceptionReporter.printStackTrace(e);
 		}
 	}
@@ -728,7 +926,7 @@ public class CodeWindow {
 		}
 	}
 
-	public final void startAutoPopTip(final CodeItem item, final HCTextPane jtaPaneMaybeNull, final ScriptEditPanel scriptEditPanel) {
+	public final void startAutoPopTip(final CodeItem item, final HCTextPane jtaPaneMaybeNull) {
 		if (L.isInWorkshop) {
 			ClassUtil.printCurrentThreadStack("---------------------------------startAutoPopTip---------------------------------");
 		}
@@ -738,12 +936,8 @@ public class CodeWindow {
 			if (jtaPaneMaybeNull != null) {
 				textPane = jtaPaneMaybeNull;
 			}
-			this.scriptEditPanel = scriptEditPanel;
 			autoDocPopTip.classFrame = classFrame;
 			autoDocPopTip.item = item;
-			autoDocPopTip.fmClass = item.fmClass;
-			autoDocPopTip.fieldOrMethodName = item.codeForDoc;// 注意：构造方法已转为new(),而非simpleClassName()
-			autoDocPopTip.type = item.type;
 			autoDocPopTip.layoutLimit = layoutLimit;
 			autoDocPopTip.setEnable(true);
 		}
@@ -754,8 +948,8 @@ public class CodeWindow {
 		if (keyChar == '￿') {// Shift in Mac
 			return;
 		}
-		preCodeChars[preCodeCharsLen++] = keyChar;
-		preCodeLower = String.valueOf(preCodeChars, 0, preCodeCharsLen).toLowerCase();
+		preCodeLowerChars[preCodeLowerCharsLen++] = keyChar;
+		preCodeLower = String.valueOf(preCodeLowerChars, 0, preCodeLowerCharsLen).toLowerCase();
 
 		SwingUtilities.invokeLater(refilterRunnable);
 
@@ -770,35 +964,4 @@ public class CodeWindow {
 		}
 	}
 
-}
-
-class DocTipTimer extends HCTimer {
-	DocHelper docHelper;
-	JFrame classFrame;
-	CodeItem item;
-	String fieldOrMethodName;
-	String fmClass;
-	int type;
-	DocLayoutLimit layoutLimit;
-
-	public DocTipTimer(final String name, final int ms, final boolean enable) {
-		super(name, ms, enable);
-	}
-
-	@Override
-	public final void doBiz() {
-		synchronized (this) {// 与hide互斥
-			if (isEnable()) {// 重新检查条件，必须的
-				if (type == CodeItem.TYPE_CLASS) {
-					final Class c = ResourceUtil.loadClass(fieldOrMethodName, L.isInWorkshop);
-					if (c != null) {
-						CodeHelper.buildForClass(docHelper.codeHelper, c);
-					}
-				}
-				docHelper.popDocTipWindow(item, classFrame, fmClass, fieldOrMethodName, type, layoutLimit);
-				setEnable(false);
-				docHelper.codeHelper.window.scriptEditPanel.autoCodeTip.setEnable(false);
-			}
-		}
-	}
 }

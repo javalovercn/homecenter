@@ -1,18 +1,5 @@
 package hc.server.ui.design.code;
 
-import hc.core.ContextManager;
-import hc.core.IConstant;
-import hc.core.L;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.core.util.StringUtil;
-import hc.core.util.ThreadPriorityManager;
-import hc.server.DefaultManager;
-import hc.util.ClassUtil;
-import hc.util.HttpUtil;
-import hc.util.ResourceUtil;
-import hc.util.StringBuilderCacher;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -40,6 +27,18 @@ import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.StyleSheet;
 
+import hc.core.ContextManager;
+import hc.core.IConstant;
+import hc.core.L;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
+import hc.server.DefaultManager;
+import hc.util.ClassUtil;
+import hc.util.HttpUtil;
+import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
+
 public class DocHelper {
 	private static final int cssSize = 120;
 	private final HashMap<String, HashMap<String, String>> cache = new HashMap<String, HashMap<String, String>>();
@@ -61,7 +60,6 @@ public class DocHelper {
 			item.code = prop;
 			item.codeForDoc = item.code;
 			item.codeDisplay = prop;
-			item.codeLowMatch = prop.toLowerCase();
 			item.isCSSProperty = true;
 			item.fmClass = CodeItem.FM_CLASS_CSS;
 
@@ -291,6 +289,7 @@ public class DocHelper {
 		docPane.addMouseMotionListener(new MouseMotionListener() {
 			@Override
 			public void mouseMoved(final MouseEvent e) {
+				L.V = L.WShop ? false : LogManager.log("[MouseMovingTipTimer] docPane mouseMoved, flipTipKeepOn");
 				codeHelper.flipTipKeepOn();
 			}
 
@@ -315,7 +314,7 @@ public class DocHelper {
 
 			@Override
 			public void mouseEntered(final MouseEvent e) {
-				// codeHelper.flipTipKeepOn();
+				 //codeHelper.flipTipKeepOn();//注：参见mouseMoved
 			}
 
 			final HTMLDocument hDoc = (HTMLDocument) docPane.getDocument();
@@ -608,9 +607,12 @@ public class DocHelper {
 		currItem = item;
 	}
 
-	public final void popDocTipWindow(final CodeItem item, final JFrame codeWindow, String fmClass, String fieldOrMethodName,
-			final int type, final DocLayoutLimit layoutLimit) {
-		final boolean isForClassDoc = (type == CodeItem.TYPE_CLASS);
+	public final void popDocTipWindow(final CodeItem item, final JFrame codeWindow, final DocLayoutLimit layoutLimit) {
+		String fmClass = item.fmClass;
+		String fieldOrMethodName = item.codeForDoc;// 注意：构造方法已转为new(),而非simpleClassName()
+		final int type = item.type;
+		
+		final boolean isForClassDoc = (type == CodeItem.TYPE_CLASS || type == CodeItem.TYPE_CLASS_IMPORT);
 
 		// 支持类的doc描述
 		fmClass = isForClassDoc ? fieldOrMethodName : fmClass;
@@ -637,7 +639,8 @@ public class DocHelper {
 	}
 
 	public final boolean acceptType(final int type) {
-		return type == CodeItem.TYPE_FIELD || type == CodeItem.TYPE_METHOD || type == CodeItem.TYPE_CLASS || type == CodeItem.TYPE_CSS;
+		return type == CodeItem.TYPE_FIELD || type == CodeItem.TYPE_METHOD || type == CodeItem.TYPE_CLASS 
+				|| type == CodeItem.TYPE_CSS || type == CodeItem.TYPE_CLASS_IMPORT;
 	}
 
 	private final boolean contains(final String claz) {
@@ -663,12 +666,9 @@ public class DocHelper {
 
 		synchronized (cache) {
 			HashMap<String, String> map = cache.get(claz);
-
 			if (map == null) {
-				try {
-					Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);// 不能采用Notify技术，因为有可能不是目标claz装入
-				} catch (final Exception e) {
-				}
+				final Class c = CodeHelper.findClassByName(claz, false).getRawClass();
+				processDoc(codeHelper, c, claz, false);
 				map = cache.get(claz);// 等待异步线程完成doc内容
 				if (map == null) {
 					return null;
@@ -1145,7 +1145,7 @@ public class DocHelper {
 		for (int i = 0; i < size; i++) {
 			final CodeItem item = list.get(i);
 			if (methodForDoc.equals(item.codeForDoc) && item.fmClass.equals(clasName)) {
-				item.code = item.fieldOrMethodOrClassName + codeParameterList;
+				item.code = item.fieldOrMethodOrFullClassName + codeParameterList;
 				return true;
 			}
 		}

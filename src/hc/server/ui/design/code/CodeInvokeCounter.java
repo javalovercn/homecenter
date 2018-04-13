@@ -1,10 +1,5 @@
 package hc.server.ui.design.code;
 
-import hc.core.IConstant;
-import hc.core.util.IntValue;
-import hc.core.util.StringUtil;
-import hc.server.data.StoreDirManager;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,6 +13,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+
+import hc.core.IConstant;
+import hc.core.util.IntValue;
+import hc.core.util.StringUtil;
+import hc.server.data.StoreDirManager;
 
 public class CodeInvokeCounter {
 	private static final String PRE_UN_INVOKE_COUNT = "un_invoke_count";
@@ -159,6 +159,6 @@ public class CodeInvokeCounter {
 
 	public final boolean isRecordableItemType(final int itemType) {
 		return itemType == CodeItem.TYPE_CLASS || itemType == CodeItem.TYPE_METHOD || itemType == CodeItem.TYPE_FIELD
-				|| itemType == CodeItem.TYPE_CSS_VAR || itemType == CodeItem.TYPE_CSS;
+				|| itemType == CodeItem.TYPE_CSS_VAR || itemType == CodeItem.TYPE_CSS || itemType == CodeItem.TYPE_CLASS_IMPORT;
 	}
 }

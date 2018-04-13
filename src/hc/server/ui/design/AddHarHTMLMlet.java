@@ -39,7 +39,6 @@ import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
-import hc.core.util.StringValue;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.HCActionListener;
 import hc.server.PlatformManager;
@@ -58,8 +57,10 @@ import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.design.engine.ScriptValue;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.ui.design.hpj.ScriptModelManager;
 import hc.server.util.DelDeployedProjManager;
 import hc.server.util.SafeDataManager;
 import hc.server.util.SignHelper;
@@ -793,7 +794,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	}
 
 	private static AddHarHTMLMlet buildAndDispMlet(final J2SESession coreSS, final Class claz) {
-		final String scripts = "" + "#encoding:utf-8\n" + "import Java::" + claz.getName() + "\n" + "return " + claz.getSimpleName()
+		final String scripts = "" + ScriptModelManager.ENCODING_UTF_8 + "import Java::" + claz.getName() + "\n" + "return " + claz.getSimpleName()
 				+ ".new()\n";
 
 		try {
@@ -803,7 +804,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			final ProjectContext context = pr.context;
 			final String elementID = CCoreUtil.SYS_PREFIX + claz.getSimpleName();
 			final String targetURL = HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, elementID);
-			final AddHarHTMLMlet addHar = (AddHarHTMLMlet) ProjResponser.startMlet(coreSS, new StringValue(scripts), null, targetURL,
+			final AddHarHTMLMlet addHar = (AddHarHTMLMlet) ProjResponser.startMlet(coreSS, new ScriptValue(scripts), null, targetURL,
 					elementID, "add HAR", pr.hcje, context, isSynchronized);
 
 			return addHar;

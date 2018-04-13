@@ -30,7 +30,6 @@ import hc.core.util.RecycleThread;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
-import hc.core.util.StringValue;
 import hc.core.util.ThreadPool;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.CallContext;
@@ -60,6 +59,7 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SizeHeight;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
+import hc.server.ui.design.engine.ScriptValue;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.ui.design.hpj.HCjarHelper;
 import hc.server.ui.design.hpj.HPNode;
@@ -305,7 +305,7 @@ public class ProjResponser {
 			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.CONVERT_NAME_PROP, converterName);
 			final CallContext callCtx = CallContext.getFree();
 			final Object converter = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT,
-					callCtx, new StringValue(src.elementAt(itemIdx)), scriptName, null, hcje, context, Converter.class);
+					callCtx, new ScriptValue(src.elementAt(itemIdx)), scriptName, null, hcje, context, Converter.class);
 			if (converter != null) {
 				LogManager.log("succesful build instance for Converter [" + converterName + "] in project [" + projectID + "].");
 			} else {
@@ -378,7 +378,7 @@ public class ProjResponser {
 			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.DEVICE_NAME_PROP, devName);
 			final CallContext callCtx = CallContext.getFree();
 			final Object device = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
-					new StringValue(devListener), scriptName, null, hcje, context, Device.class);
+					new ScriptValue(devListener), scriptName, null, hcje, context, Device.class);
 			if (device != null) {
 				LogManager.log("successful build instance for Device [" + devName + "] in project [" + projectID + "].");
 			} else {
@@ -447,7 +447,7 @@ public class ProjResponser {
 			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.ROBOT_NAME_PROP, robotName);
 			final CallContext callCtx = CallContext.getFree();
 			final Object robot = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
-					new StringValue(robotListener), scriptName, null, hcje, context, Robot.class);
+					new ScriptValue(robotListener), scriptName, null, hcje, context, Robot.class);
 			if (robot != null) {
 				LogManager.log("successful build intance for Robot [" + robotName + "] in project [" + projectID + "].");
 			} else {
@@ -586,7 +586,7 @@ public class ProjResponser {
 							try {
 								final String script = "import Java::hc.server.util.JavaLangSystemAgent\n" + "path = \"" + absolutePath
 										+ "\"\n" + "JavaLangSystemAgent.load(path)\n";
-								final StringValue sv = new StringValue(script);
+								final ScriptValue sv = new ScriptValue(script);
 
 								// 注意：
 								// 1. 不能在工程级线程中执行，因为目录无权限
@@ -734,10 +734,10 @@ public class ProjResponser {
 			// 优先执行主菜单的事件
 			final String eventName = event.toString();
 			final String svKey = HCjar.buildEventMapKeyForStringValue(HCjar.MAIN_MENU_IDX, eventName);
-			StringValue sv = (StringValue) map.get(svKey);
+			ScriptValue sv = (ScriptValue) map.get(svKey);
 			if (sv == null) {
 				final String script = (String) map.get(HCjar.buildEventMapKey(HCjar.MAIN_MENU_IDX, eventName));
-				sv = new StringValue(script);
+				sv = new ScriptValue(script);
 				map.put(svKey, sv);
 			}
 			final String script = sv.value;
@@ -749,7 +749,7 @@ public class ProjResponser {
 				} else {
 					checkHasProjStartScriptErr = false;
 				}
-				final StringValue strValue = sv;
+				final ScriptValue strValue = sv;
 				final ReturnableRunnable runnable = new ReturnableRunnable() {
 					@Override
 					public Object run() throws Throwable {
@@ -868,7 +868,7 @@ public class ProjResponser {
 					return;
 				}
 
-				final StringValue sv = ServerUIAPIAgent.getMobiMenuItem_Listener(item);
+				final ScriptValue sv = ServerUIAPIAgent.getMobiMenuItem_Listener(item);
 				final String script = sv.value;
 				if (script == null || script.length() == 0) {
 					continue;
@@ -938,7 +938,7 @@ public class ProjResponser {
 			// 由于可能不同context，所以要进行全遍历，而非假定在前一当前打开的基础上。
 			final MenuItem item = getItem(coreSS, url, true);
 			if (item != null) {
-				final StringValue sv = ServerUIAPIAgent.getMobiMenuItem_Listener(item);
+				final ScriptValue sv = ServerUIAPIAgent.getMobiMenuItem_Listener(item);
 				final String listener = sv.value;
 				if (listener != null) {
 					if (listener.trim().length() > 0) {
@@ -959,7 +959,7 @@ public class ProjResponser {
 			// 由于可能不同context，所以要进行全遍历，而非假定在前一当前打开的基础上。
 			final MenuItem item = getItem(coreSS, url, true);
 			if (item != null) {
-				final StringValue sv = ServerUIAPIAgent.getMobiMenuItem_Listener(item);
+				final ScriptValue sv = ServerUIAPIAgent.getMobiMenuItem_Listener(item);
 				final String listener = sv.value;
 				if (listener != null) {
 					if (listener.trim().length() > 0) {
@@ -984,7 +984,7 @@ public class ProjResponser {
 			coreSS.notifyCanvasMenuResponse();
 			final MenuItem item = getItem(coreSS, url, true);
 			if (item != null) {
-				final StringValue sv = ServerUIAPIAgent.getMobiMenuItem_Listener(item);
+				final ScriptValue sv = ServerUIAPIAgent.getMobiMenuItem_Listener(item);
 				final String listener = sv.value;
 				if (listener != null) {
 					if (listener.trim().length() > 0) {
@@ -1231,7 +1231,7 @@ public class ProjResponser {
 		}
 	}
 
-	public static final Mlet startMlet(final J2SESession coreSS, final StringValue listener, final Map<String, String> mapRuby,
+	public static final Mlet startMlet(final J2SESession coreSS, final ScriptValue listener, final Map<String, String> mapRuby,
 			final String targetURL, final String elementID, final String title, final HCJRubyEngine hcje, final ProjectContext context,
 			final boolean isSynchronized) {
 		final CallContext runCtx = CallContext.getFree();
@@ -1264,7 +1264,7 @@ public class ProjResponser {
 		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, paras, values);
 	}
 
-	private static Mlet pushInMlet(final J2SESession coreSS, final CallContext runCtx, final StringValue listener,
+	private static Mlet pushInMlet(final J2SESession coreSS, final CallContext runCtx, final ScriptValue listener,
 			final Map<String, String> mapRuby, final String targetURL, final String title, final HCJRubyEngine hcje,
 			final ProjectContext context) {
 		try {
