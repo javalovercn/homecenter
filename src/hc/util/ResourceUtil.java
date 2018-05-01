@@ -189,6 +189,14 @@ public class ResourceUtil {
 		}
 	}
 	
+	public static boolean isEnableAndroidLogCat() {
+		return PropertiesManager.isSimu() || PropertiesManager.isTrue(PropertiesManager.p_isEnableAndroidLogCat, false);
+	}
+	
+	public static final void invokeDeprecatedOrRemoveMethod() {
+		ClassUtil.printCurrentThreadStack("invoke DeprecatedAndRemoveMethod.", true);
+	}
+	
 	public static void showTrayWithCheckReady(final boolean isDispInitlizing) {
 		if (ResourceUtil.isNonUIServer()) {
 			return;
@@ -476,6 +484,16 @@ public class ResourceUtil {
 		sb.append(get(coreSS, 9095));
 		sb.append(get(coreSS, 1041));
 		sb.append(msg);
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		return out;
+	}
+	
+	public static String buildMaoHaoBetween(final String start, final String end) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append(start);
+		sb.append(get(1041));
+		sb.append(end);
 		final String out = sb.toString();
 		StringBuilderCacher.cycle(sb);
 		return out;
@@ -1442,16 +1460,30 @@ public class ResourceUtil {
 		return null;
 	}
 	
-	public static String wrapHTMLTag(final String tip) {
+	/**
+	 * returns "&lt;html&gt;" + tip + "&lt;/html&gt;"
+	 * <BR>
+	 * 注意：JLable的Android不支持table标签
+	 * @param str
+	 * @return
+	 */
+	public static String wrapHTMLTag(final String str) {
+		if(str.indexOf("<table>", 0) >= 0) {
+			LogManager.errToLog("error html tag 'table' in text : " + str);
+		}
+		
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		
-		sb.append("<html>").append(tip).append("</html>");
+		sb.append("<html>").append(str).append("</html>");
 		final String out = sb.toString();
 		StringBuilderCacher.cycle(sb);
 		
 		return out;
 	}
 	
+	/**
+	 * returns "&lt;html&gt;" + resID + "&lt;/html&gt;"
+	 */
 	public static String wrapHTMLTag(final int resID) {
 		return wrapHTMLTag(get(resID));
 	}
@@ -1605,6 +1637,11 @@ public class ResourceUtil {
 		removeUnused(PropertiesManager.p_ResourcesMaybeUnusedOld);
 		PropertiesManager.saveFile();
 	}
+	
+	private static boolean isDoneInit = false;
+	public static final void notifyDoneInit() {
+		isDoneInit = true;
+	}
 
 	public static void notifyCancel() {
 		PropertiesManager.setValue(PropertiesManager.p_ResourcesMaybeUnusedOld, "");
@@ -1710,8 +1747,21 @@ public class ResourceUtil {
 		final String osPlatform = System.getProperty(CCoreUtil.SYS_SERVER_OS_PLATFORM);
 		return (osPlatform == null);
 	}
+	
+	private static Boolean isAndroidServerPlatformSnap;
 
 	public static boolean isAndroidServerPlatform() {
+		if(isDoneInit) {
+			if(isAndroidServerPlatformSnap == null) {
+				isAndroidServerPlatformSnap = isAndroidServerPlatformImpl();
+			}
+			return isAndroidServerPlatformSnap.booleanValue();
+		}
+		
+		return isAndroidServerPlatformImpl();
+	}
+
+	private static boolean isAndroidServerPlatformImpl() {
 		final String androidplatform = System.getProperty(CCoreUtil.SYS_SERVER_OS_PLATFORM);
 		if (androidplatform != null) {
 			return androidplatform.equalsIgnoreCase(CCoreUtil.SYS_SERVER_OS_ANDROID_SERVER);
@@ -2123,10 +2173,10 @@ public class ResourceUtil {
 	}
 
 	public static boolean writeToFile(final byte[] bfile, final File fileName) {
-		return writeToFile(bfile, 0, bfile.length, fileName);
+		return saveToFile(bfile, 0, bfile.length, fileName);
 	}
 
-	public static boolean writeToFile(final byte[] bfile, final int off, final int len, final File fileName) {
+	public static boolean saveToFile(final byte[] bfile, final int off, final int len, final File fileName) {
 		BufferedOutputStream bos = null;
 		FileOutputStream fos = null;
 		try {
@@ -2293,7 +2343,10 @@ public class ResourceUtil {
 	 * @return true, className包含系统保留的包名
 	 */
 	public static boolean checkSysPackageName(final String className) {
-		return className.startsWith("hc.", 0) || className.startsWith("java.", 0) || className.startsWith("javax.", 0);
+		return className.startsWith("hc.", 0) 
+				|| className.startsWith("java.", 0) 
+				|| className.startsWith("javax.", 0)
+				|| className.startsWith("org.jruby.", 0);
 	}
 
 	/**
@@ -2374,6 +2427,12 @@ public class ResourceUtil {
 	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader, final String moreMsg) {
 		checkHCStackTraceInclude(callerClass, loader, moreMsg, null);
 	}
+	
+	private static final boolean isDisableCheckAccessForAndroid = true;
+	
+	public static final boolean isDisableCheckAccessForAndroid() {
+		return isDisableCheckAccessForAndroid && isAndroidServerPlatform();
+	}
 
 	/**
 	 * 检查stackTrace的类源都是系统包，且callerClass非null时，必须在stackTrace中。否则抛出异常。
@@ -2385,6 +2444,10 @@ public class ResourceUtil {
 	 */
 	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader, final String moreMsg,
 			final String hclimitSecurityClassName) {
+		if(isDisableCheckAccessForAndroid()) {
+			return;
+		}
+		
 		final StackTraceElement[] el = Thread.currentThread().getStackTrace();// index越小，距本方法越近
 		final ClassLoader checkLoader = (loader == null ? ResourceUtil.class.getClassLoader() : loader);
 		boolean isFromCallerClass = false;
@@ -2392,6 +2455,11 @@ public class ResourceUtil {
 
 		for (int i = el.length - 1; i >= 0; i--) {
 			String className = el[i].getClassName();
+			
+			if(checkSysPackageName(className)) {
+				continue;
+			}
+			
 			final int dollarIdx = className.indexOf('$', 0);
 			if (dollarIdx > 0) {
 				className = className.substring(0, dollarIdx);
@@ -2676,7 +2744,7 @@ public class ResourceUtil {
 	}
 
 	public static boolean isReceiveDeployFromLocalNetwork() {
-		return PropertiesManager.isTrue(PropertiesManager.p_Deploy_EnableReceive, true);
+		return PropertiesManager.isTrue(PropertiesManager.p_Deploy_EnableReceive, false);//由原来的true改为缺省关闭
 	}
 
 	public static String getDefaultSkin() {

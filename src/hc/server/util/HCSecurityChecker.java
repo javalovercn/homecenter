@@ -1,20 +1,25 @@
 package hc.server.util;
 
+import java.util.ArrayList;
+
 import hc.App;
 import hc.core.util.CCoreUtil;
 import hc.core.util.SecurityChecker;
 import hc.server.HCSecurityException;
-
-import java.util.ArrayList;
+import hc.util.ResourceUtil;
 
 public class HCSecurityChecker implements SecurityChecker {
 	final Thread eventDispatchThread = HCLimitSecurityManager.getEventDispatchThread();
 	final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCEventQueue();
 	final ThreadGroup threadPoolToken = App.getRootThreadGroup();
 	final ArrayList<Thread> allowedThread = new ArrayList<Thread>(128);
-
+	
 	@Override
 	public final void check(final Object token) {
+		if(ResourceUtil.isDisableCheckAccessForAndroid()) {
+			return;
+		}
+		
 		ThreadGroup g = null;
 		Thread currentThread = null;
 		boolean isEventDispatchThread = false;

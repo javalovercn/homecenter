@@ -14,7 +14,6 @@ import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -52,6 +51,21 @@ public class MultiThreadDownloader {
 
 	public final void shutdown() {
 		isCancel = true;
+	}
+	
+	public static void main(final String[] args) {
+//		final DownloadInfoPanel downInfoPanel = new DownloadInfoPanel("thisIsTest", "test_md5_12345678");
+//		final MultiThreadDownloader m = new MultiThreadDownloader();
+//		m.buildDownloadMsg(1234, 876543, System.currentTimeMillis(), downInfoPanel);
+//		
+//		final JPanel panel = new JPanel(new BorderLayout());
+//		panel.add(new JProgressBar(0, 0, 100), BorderLayout.NORTH);
+//		panel.add(downInfoPanel, BorderLayout.CENTER);
+//		final ActionListener listener = null;
+//		final JButton button;
+//		final String downloading = ResourceUtil.get(9275);//downloading...，原为""download " + dnFileName"
+//		App.showCenterPanelMain(panel, 0, 0, downloading, false, null, null, listener, listener, null, false, true,
+//				null, false, false);
 	}
 
 	public void download(final Vector url_download, final File file, final CheckSum checkSum, final IBiz biz, final IBiz failBiz,
@@ -99,14 +113,13 @@ public class MultiThreadDownloader {
 
 		final long startMS = System.currentTimeMillis();
 		final String dnFileName = firstURL.substring(firstURL.lastIndexOf("/") + 1);
-		final String desc_str = buildDownloadMsg(dnFileName, fileName, checkSum, downloadByte, totalByted, startMS);
-		final JLabel desc = new JLabel();
-		desc.setText(desc_str);
+		final DownloadInfoPanel downInfoPanel = new DownloadInfoPanel(dnFileName, checkSum.md5);
+		buildDownloadMsg(downloadByte, totalByted, startMS, downInfoPanel);
 
 		if (isVisiable) {
 			final JPanel panel = new JPanel(new BorderLayout());
 			panel.add(progress, BorderLayout.NORTH);
-			panel.add(desc, BorderLayout.CENTER);
+			panel.add(downInfoPanel, BorderLayout.CENTER);
 			final ActionListener listener;
 			final JButton button;
 			if (isCancelableByUser) {
@@ -154,8 +167,7 @@ public class MultiThreadDownloader {
 						Thread.sleep(1000);
 					} catch (final Exception e) {
 					}
-					final String desc_str = buildDownloadMsg(dnFileName, fileName, checkSum, downloadByte, totalByted, startMS);
-					desc.setText(desc_str);
+					buildDownloadMsg(downloadByte, totalByted, startMS, downInfoPanel);
 					final int percent = (int) process;
 					progress.setValue(percent);
 					progress.setString("" + percent + "%");// need by
@@ -212,8 +224,7 @@ public class MultiThreadDownloader {
 	int storeLastIdx = 0;
 	float process;
 
-	private String buildDownloadMsg(final String fromURL, final String storeFile, final CheckSum md5, final int readed, final int total,
-			final long startMS) {
+	private final void buildDownloadMsg(final int readed, final int total, final long startMS, final DownloadInfoPanel downInfo) {
 		final int readedSec = readed - lastDispReaded;
 		lastDispReaded = readed;
 
@@ -225,33 +236,22 @@ public class MultiThreadDownloader {
 		storeLastIdx++;
 		int avg = (storeLastIdx <= avgSecond) ? (lastFiveTotal / storeLastIdx) : (lastFiveTotal / avgSecond);
 		avg = avg / 1024;
-		String out = "<html><BR>";
 		process = (float) readed / total * 100;// 算出百分比
 		final long costMS = System.currentTimeMillis() - startMS;
 		final long leftSeconds = ((readed == 0) ? 3600 : ((costMS * total / readed - costMS) / 1000));
 		final float totalM = (total * 1.0F) / 1024.0F / 1024.0F;
 		final float readedM = (readed * 1.0F) / 1024.0F / 1024.0F;
-		String downedTotal = ResourceUtil.get(9294);//download : {down}M, total : {total}M.
+		String downedTotal = ResourceUtil.get(9294);//注意：不宜带。号结束。download : {down}M, total : {total}M
 		downedTotal = StringUtil.replace(downedTotal, "{down}", String.format("%.2f", readedM));
 		downedTotal = StringUtil.replace(downedTotal, "{total}", String.format("%.2f", totalM));
-		out += "<CENTER><STRONG>" + downedTotal + "</STRONG></CENTER><BR><BR><table>";
-		out += "<tr><td>" + getItem(9295) + "</td><td>" + fromURL + "</td></tr>";
-		out += "<tr><td>" + buildItem("MD5") + "</td><td>" + md5.md5 + "</td></tr>";
-		out += "<tr><td>" + getItem(9296) + "</td><td>" + ((costMS == 0) ? 0 : (avg)) + " KB/s</td></tr>";
-		out += "<tr><td>" + getItem(9297) + "</td><td>" + ResourceUtil.toHHMMSS((int) (costMS / 1000)) + "</td></tr>";
-		out += "<tr><td>" + getItem(9298) + "</td><td>" + ResourceUtil.toHHMMSS((int) (leftSeconds)) + "</td></tr>";
-		out += "</table></html>";
-		return out;
+		
+		downInfo.totalDown.setText(downedTotal);
+		
+		downInfo.avgValue.setText(((costMS == 0) ? 0 : (avg)) + " KB/s");
+		downInfo.costValue.setText(ResourceUtil.toHHMMSS((int) (costMS / 1000)));
+		downInfo.leftValue.setText(ResourceUtil.toHHMMSS((int) (leftSeconds)));
 	}
 	
-	private final String getItem(final int resID) {
-		return buildItem(ResourceUtil.get(resID));
-	}
-	
-	private final String buildItem(final String res) {
-		return res + ResourceUtil.get(1041);//1041 = : 
-	}
-
 	public synchronized boolean searchNewTask(final DownloadThread dt) {
 		final int fastAvg = dt.getAvgSpeed();
 

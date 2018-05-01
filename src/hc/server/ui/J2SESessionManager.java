@@ -127,27 +127,24 @@ public class J2SESessionManager extends SessionManager {
 		socketSession.keepaliveManager.keepalive.doNowAsynchronous();
 	}
 
-	public final static void stopAllSession(final boolean notifyLineOff, final boolean notifyRelineon, final boolean isForce) {
+	public final static void stopAllSession(final boolean notifyLineOff, final boolean isForce) {
 		CCoreUtil.checkAccess();
 
 		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
 		for (int i = 0; i < coreSSS.length; i++) {
 			final CoreSession coreSS = coreSSS[i];
-			stopSession(coreSS, notifyLineOff, notifyRelineon, isForce);
+			stopSession(coreSS, notifyLineOff, isForce);
 		}
 	}
 
-	public final static void stopSession(final CoreSession coreSS, final boolean notifyLineOff, final boolean notifyRelineon,
-			final boolean isForce) {
+	public final static void stopSession(final CoreSession coreSS, final boolean notifyLineOff, final boolean isForce) {
 		if (notifyLineOff) {
 			try {
 				RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_ServerReq_STR);
 			} catch (final Throwable e) {// Anroid环境下，有可能不连接服务器时，产生异常。需catch。
 			}
 		}
-		if (notifyRelineon) {
-			coreSS.notifyLineOff(false, isForce);
-		}
+		coreSS.notifyLineOff(false, isForce);
 		try {
 			coreSS.eventCenter.stop();// eventCenter可能为null, 停止产生可能新的sequence任务
 		} catch (final Exception e) {

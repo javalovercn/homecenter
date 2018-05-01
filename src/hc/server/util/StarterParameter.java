@@ -1,5 +1,15 @@
 package hc.server.util;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Vector;
+
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.MsgBuilder;
@@ -14,6 +24,8 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.server.DirectServer;
+import hc.server.PlatformManager;
+import hc.server.localnet.ReceiveDeployServer;
 import hc.server.nio.NIOServer;
 import hc.util.ConnectionManager;
 import hc.util.HttpUtil;
@@ -23,16 +35,6 @@ import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 import hc.util.TokenManager;
 import hc.util.UPnPUtil;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Vector;
 
 public class StarterParameter {
 
@@ -233,6 +235,7 @@ public class StarterParameter {
 				if (L.isInWorkshop) {
 					HttpUtil.printAllNetworkInterface();
 				}
+				PlatformManager.getService().enableMulticast();
 				server = buildMulticastSocket(RootServerConnector.MULTICAST_IPV4);
 				if (server == null) {
 					server = buildMulticastSocket(RootServerConnector.MULTICAST_IPV6);
@@ -265,7 +268,30 @@ public class StarterParameter {
 						}
 					} else if (RootServerConnector.isCheckAliveCmd(bs, 0, len)) {
 						sendHelloFromServer(bs, recvPack);
+					} else if(RootServerConnector.isDeployLocalnet(bs, 0)) {
+						sendDeployIP(bs, recvPack);
 					}
+				}
+			}
+			
+			private final void sendDeployIP(final byte[] bs, final DatagramPacket recvPack) {
+				final String deployReceiveIP = ReceiveDeployServer.getServerIP();
+				if(deployReceiveIP == null) {
+					return;
+				}
+				
+				final byte[] deployBS = RootServerConnector.getDeployLocalnetBS();
+				final int cmdLen = deployBS.length;
+				System.arraycopy(deployBS, 0, bs, 0, cmdLen);
+				
+				final byte[] ipBS = deployReceiveIP.getBytes();
+				System.arraycopy(ipBS, 0, bs, cmdLen, ipBS.length);
+				recvPack.setLength(cmdLen + ipBS.length);
+
+				try {
+					server.send(recvPack);
+				} catch (final Throwable ex) {
+					ex.printStackTrace();
 				}
 			}
 

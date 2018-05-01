@@ -13,10 +13,24 @@ import hc.core.util.LogManager;
 import hc.util.HttpUtil;
 
 public class ReceiveDeployServer {
-
+	public static final boolean KEEP_RUNNING = true;
+	
 	final static int port = 56152;
 
 	static ServerSocket server = null;
+	
+	/**
+	 * 有可能返回null
+	 * @return
+	 */
+	public static String getServerIP() {
+		final ServerSocket snap = server;
+		if(snap == null) {
+			return null;
+		}else {
+			return snap.getInetAddress().getHostAddress();
+		}
+	}
 
 	public static void startServer() {
 		try {

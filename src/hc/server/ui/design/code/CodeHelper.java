@@ -1540,6 +1540,7 @@ public class CodeHelper {
 		}
 		if (window.scriptEditPanel != null) {//有可能CSS先调用
 			window.scriptEditPanel.autoCodeTip.setEnable(false);
+			L.V = L.WShop ? false : LogManager.log("[Code] flipTipKeepOn.");
 		}
 	}
 

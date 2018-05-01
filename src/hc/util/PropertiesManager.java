@@ -125,6 +125,7 @@ public class PropertiesManager {
 	 */
 	public static final String p_DeployTmpDir = "DeployTmpDir";
 
+	public static final String p_isEnableAndroidLogCat = "isEnableAndroidLogCat";
 	public static final String p_isEnableMSBLog = "isEnableMSBLog";
 	public static final String p_isEnableMSBExceptionDialog = "isEnableMSBExceptionDialog";
 	public static final String p_isEnableLimitHAR = "isEnableLimitHAR";

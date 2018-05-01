@@ -1320,7 +1320,7 @@ public class TrayMenuUtil {
 					final JPanel panel = new JPanel();
 					panel.add(new JLabel("<html><body style='width:400'>"
 							+ "System try upgrade starter.jar, but it fails, for more information see log.<br>Please do as following by hand.<BR><BR>"
-							+ "1. click 'O K' to download zip from http://homecenter.mobi<BR>"
+							+ "1. click 'O K' to download zip from https://homecenter.mobi<BR>"
 							+ "2. shutdown this HomeCenter App Server<BR>" + "3. unzip and override older HomeCenter App Server<BR>"
 							+ "4. run HomeCenter App Server, this '<strong>" + downloadMe + "</strong>' menu will disappear.<BR>"
 							+ "</body></html>"));
@@ -1328,13 +1328,24 @@ public class TrayMenuUtil {
 							new HCActionListener(new Runnable() {
 								@Override
 								public void run() {
-									String os = "Win";
+									String os = null;
 									if (ResourceUtil.isLinux()) {
 										os = "Linux";
 									} else if (ResourceUtil.isMacOSX()) {
 										os = "Mac";
+									} else if(ResourceUtil.isWindowsOS()) {
+										os = "Win";
 									}
-									HttpUtil.browse("http://homecenter.mobi/download/HC_Server_For_" + os + ".zip");
+									if(os != null) {
+										HttpUtil.browse("https://homecenter.mobi/download/HC_Server_For_" + os + ".zip");
+									}else {
+										try {
+											final String targetURL = HttpUtil.buildLangURL("pc/downloads.htm", null);
+											HttpUtil.browseLangURL(targetURL);
+										}catch (final Exception e) {
+											HttpUtil.browse("https://homecenter.mobi/en/pc/downloads.htm");
+										}
+									}
 								}
 							}, threadPoolToken), null, null, false, false, null, false, false);
 				}

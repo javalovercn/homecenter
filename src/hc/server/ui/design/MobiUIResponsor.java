@@ -1,6 +1,5 @@
 package hc.server.ui.design;
 
-import java.awt.Window;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -11,11 +10,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Vector;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import hc.App;
-import hc.UIActionListener;
 import hc.core.BaseWatcher;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
@@ -197,6 +194,9 @@ public class MobiUIResponsor extends BaseResponsor {
 
 	public final boolean hasRobotReferenceDevice() {
 		try {
+			if(bindRobotSource == null) {
+				bindRobotSource = new BindRobotSource(this);
+			}
 			// 每次重算，因为可能追加了工程
 			totalRobotRefDevices = 0;
 			for (int i = 0; i < responserSize; i++) {
@@ -204,6 +204,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			}
 			return totalRobotRefDevices > 0;
 		} catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
 			return false;
 		}
 	}
@@ -323,16 +324,24 @@ public class MobiUIResponsor extends BaseResponsor {
 			if (!lps.isActive()) {
 				continue;
 			}
-			final Map<String, Object> map = HCjar.loadHarFromLPS(lps);
-			if (lps.isRoot()) {
-				hasRoot = true;
+			try {
+				final Map<String, Object> map = HCjar.loadHarFromLPS(lps);
+				if (lps.isRoot()) {
+					hasRoot = true;
+				}
+				// 先暂存到Map中，因为后续需要检查判断。
+				maps[count] = map;
+				lpss[count] = lps;
+				projIDs[count] = lps.getProjectID();
+	
+				count++;
+			}catch (final Throwable e) {//有可能loadHarFromLPS失败
+				try {
+					LogManager.errToLog("fail to load project : " + lps.getProjectID());
+				}catch (final Throwable ee) {
+				}
+				ExceptionReporter.printStackTrace(e);
 			}
-			// 先暂存到Map中，因为后续需要检查判断。
-			maps[count] = map;
-			lpss[count] = lps;
-			projIDs[count] = lps.getProjectID();
-
-			count++;
 		}
 
 		if (hasRoot == false) {
@@ -359,7 +368,11 @@ public class MobiUIResponsor extends BaseResponsor {
 		}
 
 		for (int i = 0; i < responserSize; i++) {
-			responsors[i].initJarMainMenu();
+			try {
+				responsors[i].initJarMainMenu();
+			}catch (final Throwable e) {
+				ExceptionReporter.printStackTrace(e);
+			}
 		}
 
 		// 由于JRuby引擎初始化时，不能受限，所以增加下行代码，以完成初始化
@@ -420,68 +433,21 @@ public class MobiUIResponsor extends BaseResponsor {
 	 */
 	@Override
 	public final BaseResponsor checkAndReady(final JFrame owner) throws Exception {
-		final BindRobotSource bindSource = new BindRobotSource(this);
 		if (BindManager.hasProjNotBinded()) {
+			final BindRobotSource bindSource = new BindRobotSource(this);
 			if (BindManager.findNewUnbind(bindSource) == false) {
 				return this;
 			} else {
-				final Boolean[] isDoneBind = { null };
-				final ThreadGroup threadPoolToken = App.getThreadPoolToken();
-				ContextManager.getThreadPool().run(new Runnable() {
-					@Override
-					public void run() {
-						DeviceBinderWizard out = null;
-						try {
-							out = DeviceBinderWizard.getInstance(bindSource, false, owner, bindSource.respo, threadPoolToken);
-						} catch (final Throwable e) {
-							ExceptionReporter.printStackTrace(e);
-							isDoneBind[0] = false;
-							LinkProjectManager.reloadLinkProjects();
-							return;
-						}
-
-						final DeviceBinderWizard binder = out;
-						final UIActionListener jbOKAction = new UIActionListener() {
-							@Override
-							public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
-								window.dispose();
-
-								isDoneBind[0] = true;
-								binder.save();
-								bindSource.respo.msbAgent.workbench.reloadMap();
-							}
-						};
-						final UIActionListener cancelAction = new UIActionListener() {
-							@Override
-							public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
-								window.dispose();
-
-								// 以下代码，请与上行的DeviceBinderWizard.getInstance保持一致
-								isDoneBind[0] = false;
-								// 恢复原状态
-								LinkProjectManager.reloadLinkProjects();
-							}
-						};
-						binder.setButtonAction(jbOKAction, cancelAction);
-						binder.show();
-					}
-				});
-				while (isDoneBind[0] == null) {
-					try {
-						Thread.sleep(500);
-					} catch (final Exception e) {
-						ExceptionReporter.printStackTrace(e);
-					}
-				}
-				if (isDoneBind[0]) {
-					return this;
+				final DesktopDeviceBinderWizSource desktopSource = new DesktopDeviceBinderWizSource(bindSource, bindSource.respo);
+				if (DeviceBinderWizard.enterBindUI(desktopSource, owner, null)) {
+					return bindSource.respo;
+				}else {
+					return null;
 				}
 			}
 		} else {
 			return this;
 		}
-
-		return null;
 	}
 
 	public final ProjResponser getProjResponser(final String projID) {

@@ -1,8 +1,12 @@
 package hc.server.msb;
 
-import hc.server.ui.design.ProjResponser;
-
 import java.util.ArrayList;
+
+import hc.server.ui.design.BDNTree;
+import hc.server.ui.design.ConverterTree;
+import hc.server.ui.design.DevTree;
+import hc.server.ui.design.MobiUIResponsor;
+import hc.server.ui.design.ProjResponser;
 
 public abstract class IoTSource {
 	public abstract ArrayList<String> getProjectList();
@@ -11,6 +15,12 @@ public abstract class IoTSource {
 
 	public abstract ArrayList<DeviceBindInfo> getReferenceDeviceListByRobotName(String projID, String robotName) throws Exception;
 
+	public abstract BDNTree buildTree(final MobiUIResponsor mobiResp) throws Exception ;
+	
+	public abstract ConverterTree buildConverterTree(final MobiUIResponsor mobiResp) throws Exception ;
+	
+	public abstract DevTree buildDevTree(final MobiUIResponsor mobiResp) throws Exception ;
+	
 	/**
 	 * 可能返回null
 	 * 
@@ -22,20 +32,10 @@ public abstract class IoTSource {
 	public abstract DeviceCompatibleDescription getDeviceCompatibleDescByRobotName(String projID, String robotName,
 			String referenceDeviceID) throws Exception;
 
-	public abstract void getDeviceCompatibleDescByDevice(final ProjResponser pr, final RealDeviceInfo deviceInfo);
-
-	public abstract void getConverterDescUpDownToUserThread(final ProjResponser pr, final ConverterInfo converterInfo);
-
+	public abstract DataDeviceCapDesc getDataForDeviceCompatibleDesc(final ProjResponser pr, final DeviceCompatibleDescription devCompDesc);
+	
 	public abstract DeviceCompatibleDescription getDeviceCompatibleDescByRobotToUserThread(final ProjResponser pr, final Robot r,
 			final String referenceDeviceID);
-
-	/**
-	 * @param pr
-	 * @param devCompDesc
-	 *            支持null对象
-	 * @return
-	 */
-	public abstract DataDeviceCapDesc getDataForDeviceCompatibleDesc(final ProjResponser pr, final DeviceCompatibleDescription devCompDesc);
 
 	public abstract ArrayList<ConverterInfo> getConverterInAllProject() throws Exception;
 

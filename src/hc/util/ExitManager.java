@@ -135,7 +135,7 @@ public class ExitManager {
 		// HttpUtil.notifyStopServer(false, null);
 		// 以上逻辑不能置于notifyShutdown中，因为这些方法有可能被其它外部事件，如手机下线，中继下线触发。
 
-		J2SESessionManager.stopAllSession(true, false, false);// 注意：notifyRelineon是false
+		J2SESessionManager.stopAllSession(true, false);// 注意：notifyRelineon是false
 
 		exit();
 		LogManager.exit();

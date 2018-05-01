@@ -569,4 +569,8 @@ public class J2SEPlatformService implements PlatformService {
 		return null;
 	}
 
+	@Override
+	public void enableMulticast() {
+	}
+
 }

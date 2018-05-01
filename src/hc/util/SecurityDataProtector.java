@@ -197,7 +197,7 @@ public class SecurityDataProtector {
 
 									App.showInputPWDDialog(uuid, "", "", false);
 
-									J2SESessionManager.stopAllSession(false, true, false);
+									J2SESessionManager.stopAllSession(false, false);
 
 									PropertiesManager.remove(PropertiesManager.p_isNeedResetPwd);
 									PropertiesManager.saveFile();

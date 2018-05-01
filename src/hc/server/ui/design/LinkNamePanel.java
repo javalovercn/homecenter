@@ -1,13 +1,5 @@
 package hc.server.ui.design;
 
-import hc.App;
-import hc.server.HCActionListener;
-import hc.server.ui.ServerUIUtil;
-import hc.server.util.ContextSecurityConfig;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-import hc.util.SocketEditPanel;
-
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -24,6 +16,14 @@ import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import hc.App;
+import hc.server.HCActionListener;
+import hc.server.ui.ServerUIUtil;
+import hc.server.util.ContextSecurityConfig;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
+import hc.util.SocketEditPanel;
 
 public class LinkNamePanel extends JPanel {
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
@@ -55,7 +55,7 @@ public class LinkNamePanel extends JPanel {
 	final ContextSecurityConfig csc;
 	final LinkProjectStore lps;
 	public final String CANCLE = "-1";
-	final JButton resetPermission = new JButton((String) ResourceUtil.get(9090));
+	final JButton resetPermission = new JButton(ResourceUtil.get(9090));
 
 	public LinkNamePanel(final String linkName, final String desc, final ContextSecurityConfig csconfig, final LinkProjectStore lpstore) {
 		this.csc = csconfig;
@@ -234,7 +234,7 @@ public class LinkNamePanel extends JPanel {
 		{
 			final JPanel panel = new JPanel(new BorderLayout());
 
-			final JLabel nameLabel = new JLabel((String) ResourceUtil.get(8021));
+			final JLabel nameLabel = new JLabel(ResourceUtil.get(8021));
 			final Font oldfont = nameLabel.getFont();
 			nameLabel.setFont(new Font(oldfont.getFontName(), Font.BOLD, oldfont.getSize()));
 
@@ -242,26 +242,26 @@ public class LinkNamePanel extends JPanel {
 			panel.add(linkNameField, BorderLayout.CENTER);
 
 			composeLinkName.add(panel);
-			composeLinkName.add(new JLabel("<html>it is folder name for the entrance to current project in your mobile menu.</html>"));
+			composeLinkName.add(new JLabel(ResourceUtil.wrapHTMLTag(9299)));//9299=it is folder name for the entrance to current project in your mobile menu.
 
-			composeLinkName.setBorder(new TitledBorder((String) ResourceUtil.get(8021)));
+			composeLinkName.setBorder(new TitledBorder(ResourceUtil.get(8021)));
 		}
 		{
 			final JPanel panel = new JPanel(new BorderLayout());
-			panel.add(new JLabel((String) ResourceUtil.get(8022)), BorderLayout.LINE_START);
+			panel.add(new JLabel(ResourceUtil.get(8022)), BorderLayout.LINE_START);
 			panel.add(projRemarkField, BorderLayout.CENTER);
 
 			composeComment.add(panel);
-			composeComment.add(new JLabel("comment information of the project"));
+			composeComment.add(new JLabel(ResourceUtil.get(9300)));//9300=comment information of the project.
 
-			composeComment.setBorder(new TitledBorder((String) ResourceUtil.get(8022)));
+			composeComment.setBorder(new TitledBorder(ResourceUtil.get(8022)));
 		}
 
 		setLayout(new BorderLayout());
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		{
 			final JComponent[] components = { composeLinkName, composeComment };
-			tabbedPane.addTab((String) ResourceUtil.get(9095), ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER));
+			tabbedPane.addTab(ResourceUtil.get(9095), ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER));
 		}
 
 		final JPanel mobilePanel = new JPanel(new GridLayout(1, 4));
@@ -299,7 +299,7 @@ public class LinkNamePanel extends JPanel {
 			permission.add(resetPermission, BorderLayout.SOUTH);
 
 			if (ResourceUtil.isJ2SELimitFunction()) {
-				tabbedPane.addTab((String) ResourceUtil.get(9094), permission);
+				tabbedPane.addTab(ResourceUtil.get(9094), permission);
 			}
 		}
 

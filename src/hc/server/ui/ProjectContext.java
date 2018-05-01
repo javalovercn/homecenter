@@ -741,8 +741,9 @@ public class ProjectContext {
 	 * log an error message to log system or console.
 	 * 
 	 * @param logMessage
-	 * @see #err(String)
 	 * @since 7.0
+	 * @see #log(String)
+	 * @see #err(String)
 	 */
 	public final void error(final String logMessage) {
 		final StringBuilder sb = StringBuilderCacher.getFree();
@@ -977,7 +978,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * add a menu item for project or session at run-time.<BR>
+	 * add a mobile/client menu item for project or session at run-time.<BR>
 	 * <BR>
 	 * if in project level, add item to list of project level.<BR>
 	 * if in session level, add item to list of session level. <BR>
@@ -1021,7 +1022,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * inserts the menu item at a given <code>position</code> into project list. <BR>
+	 * inserts the mobile/client menu item at a given <code>position</code> into project list. <BR>
 	 * <BR>
 	 * <STRONG>Important :</STRONG><BR>
 	 * the scripts of menu item works in session level, no matter which is added to list of project
@@ -1073,7 +1074,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * inserts the menu item at a given <code>position</code> into session list. <BR>
+	 * inserts the mobile/client menu item at a given <code>position</code> into session list. <BR>
 	 * <BR>
 	 * it is thread safe.
 	 * 
@@ -3443,8 +3444,9 @@ public class ProjectContext {
 	 * log an error message to log system or console
 	 * 
 	 * @param msg
-	 * @see #error(String)
 	 * @since 7.0
+	 * @see #log(String)
+	 * @see #error(String)
 	 */
 	public final void err(final String msg) {
 		error(msg);
@@ -3455,6 +3457,7 @@ public class ProjectContext {
 	 * 
 	 * @param msg
 	 * @since 7.0
+	 * @see #error(String)
 	 */
 	public final void log(final String msg) {
 		final StringBuilder sb = StringBuilderCacher.getFree();

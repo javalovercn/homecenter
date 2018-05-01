@@ -127,6 +127,6 @@ public class TokenManager {
 		});
 
 		// 强制重连
-		J2SESessionManager.stopAllSession(false, true, true);
+		J2SESessionManager.stopAllSession(false, true);
 	}
 }

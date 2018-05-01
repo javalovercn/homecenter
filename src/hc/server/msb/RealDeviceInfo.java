@@ -1,12 +1,16 @@
 package hc.server.msb;
 
-public class RealDeviceInfo {
+import java.io.Serializable;
+
+public class RealDeviceInfo implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
+	
 	public String proj_id;
 	public String dev_name;
 	public String dev_id;
-	public Device device;
-
-	public DeviceCompatibleDescription deviceCompatibleDescriptionCache;
+	public String[] compatibleItem;
+	public DataDeviceCapDesc deviceCapDesc;
 
 	@Override
 	public String toString() {

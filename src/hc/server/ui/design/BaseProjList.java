@@ -43,7 +43,12 @@ public abstract class BaseProjList {
 	}
 
 	protected final boolean isDeployed(final int selectedRow) {
-		final Object[] elementAt = data.elementAt(selectedRow);
+		Object[] elementAt = null;
+		try {
+			elementAt = data.elementAt(selectedRow);//有可能越界，所以catch
+		}catch (final Throwable e) {
+		}
+		
 		if (elementAt == null) {
 			return false;
 		}
@@ -53,7 +58,11 @@ public abstract class BaseProjList {
 	}
 
 	protected final boolean isActive(final int selectedRow) {
-		final Object[] elementAt = data.elementAt(selectedRow);
+		Object[] elementAt = null;
+		try {
+			elementAt = data.elementAt(selectedRow);
+		}catch (final Throwable e) {
+		}
 		if (elementAt == null) {
 			return false;
 		}
@@ -184,13 +193,13 @@ public abstract class BaseProjList {
 			}
 
 			final Vector<String> noActiveProjs = new Vector<String>();
-
+			final LinkPanePlugSource linkPanePlugSource = new LinkPanePlugSource();
 			for (int i = 0; i < dataRowNum; i++) {
 				final LinkEditData led = (LinkEditData) data.elementAt(i)[IDX_OBJ_STORE];
 				final LinkProjectStore lps = led.lps;
 				if (led.status == LinkProjectManager.STATUS_NEW) {
 					final File oldBackEditFile = delBackFileMap.get(lps.getProjectID());
-					final boolean result = AddHarHTMLMlet.addHarToDeployArea(J2SESession.NULL_J2SESESSION_FOR_PROJECT, led, lps, false,
+					final boolean result = AddHarHTMLMlet.addHarToDeployArea(linkPanePlugSource, led, lps, false,
 							true, oldBackEditFile);
 					isChanged = isChanged ? true : result;
 				} else if (led.op == LinkProjectManager.STATUS_MODIFIED) {

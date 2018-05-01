@@ -400,8 +400,9 @@ public class ConfigPane extends SingleJFrame {
 			};
 
 			final JCheckBox enableLoggerOn = new JCheckBox(ResourceUtil.get(9206));
+			final JCheckBox enableAndroidLogCat = new JCheckBox("LogCat");
 			final JCheckBox enableMSBLog = new JCheckBox(ResourceUtil.get(8014));
-			final JCheckBox enableReceiveDeployFromLocal = new JCheckBox(ResourceUtil.get(9249));
+			final JCheckBox enableReceiveDeployFromLocal = new JCheckBox(ResourceUtil.get(9249));//9249=receive deployment from local network
 			final JCheckBox enableMSBDialog = new JCheckBox(ResourceUtil.get(8015));
 			final JCheckBox enableReportException = App.buildReportExceptionCheckBox(false);
 
@@ -511,12 +512,14 @@ public class ConfigPane extends SingleJFrame {
 			enableMSBLog.setToolTipText(ResourceUtil.wrapHTMLTag(9288));//9288=log MSB messages between Robot, Converter and Device.<br>it is very useful to debug modules in HAR project.
 			enableMSBDialog.setToolTipText(ResourceUtil.get(9289));//9289=When MSBException/HCSecurityException is thrown, system pop up Exception-Browse window automaticly.
 
+			final String isOldLogCat = IConstant.toString(ResourceUtil.isEnableAndroidLogCat());
 			final String isOldLogger = PropertiesManager.getValue(PropertiesManager.p_IsLoggerOn, IConstant.TRUE);
 			final String isOldMSBLog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBLog, IConstant.FALSE);
 			final String isOldReceiveDeployFromLocal = PropertiesManager.getValue(PropertiesManager.p_Deploy_EnableReceive, IConstant.TRUE);
 			final String isOldMSBDialog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBExceptionDialog, IConstant.FALSE);
 			final String isOldReportException = PropertiesManager.getValue(PropertiesManager.p_isReportException, IConstant.FALSE);
 
+			enableAndroidLogCat.setSelected(ResourceUtil.isEnableAndroidLogCat());
 			enableLoggerOn.setSelected(ResourceUtil.isLoggerOn());
 			enableReceiveDeployFromLocal.setSelected(ResourceUtil.isReceiveDeployFromLocalNetwork());
 			enableMSBLog.setSelected(isOldMSBLog.equals(IConstant.TRUE));
@@ -552,15 +555,34 @@ public class ConfigPane extends SingleJFrame {
 				public void applyBiz(final int option) {
 					if (option == OPTION_OK_BEFORE_SAVE) {
 						if (isOldReceiveDeployFromLocal.equals(getNewValue()) == false) {
-							if (enableReceiveDeployFromLocal.isSelected()) {
-								ReceiveDeployServer.startServer();
-							} else {
-								ReceiveDeployServer.stopServer();
+							if (ReceiveDeployServer.KEEP_RUNNING) {//强制keepRunning，以便内网被发现
+							}else {
+								if (enableReceiveDeployFromLocal.isSelected()) {
+									ReceiveDeployServer.startServer();
+								} else {
+									ReceiveDeployServer.stopServer();
+								}
 							}
 						}
 					}
 				}
 			};
+			
+			new ConfigValue(PropertiesManager.p_isEnableAndroidLogCat, isOldLogCat, group) {
+				
+				@Override
+				public String getNewValue() {
+					return enableAndroidLogCat.isSelected() ? IConstant.TRUE : IConstant.FALSE;
+				}
+				
+				@Override
+				public void applyBiz(final int option) {
+					if (option == OPTION_OK_BEFORE_SAVE) {
+						PlatformManager.getService().doExtBiz(PlatformService.BIZ_ENABLE_ANDROID_LOGCAT, IConstant.toString(enableAndroidLogCat.isSelected()));
+					}
+				}
+			};
+			
 			final ConfigValue cvIsEnableMSBLog = new ConfigValue(PropertiesManager.p_isEnableMSBLog, isOldMSBLog, group) {
 				@Override
 				public void applyBiz(final int option) {
@@ -609,6 +631,9 @@ public class ConfigPane extends SingleJFrame {
 
 				panel.add(enableReportException);
 				panel.add(enableLoggerOn);
+				if(ResourceUtil.isAndroidServerPlatform()) {
+					panel.add(enableAndroidLogCat);
+				}
 				panel.add(enableReceiveDeployFromLocal);
 				panel.add(enableMSBLog);
 				panel.add(enableMSBDialog);
@@ -1494,7 +1519,7 @@ public class ConfigPane extends SingleJFrame {
 			public void run() {
 				HttpUtil.notifyStopServer(true, self);
 
-				J2SESessionManager.stopAllSession(true, true, false);
+				J2SESessionManager.stopAllSession(true, false);
 			}
 		}, App.getThreadPoolToken()), null, self, true, false, null, false, false);
 	}

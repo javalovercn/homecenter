@@ -31,7 +31,11 @@ public final class MSBAgent {
 			return (String[]) pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() throws Throwable {
-					return compDesc.getCompatibleItem();
+					if(compDesc == null) {
+						return new String[0];
+					}else {
+						return compDesc.getCompatibleItem();
+					}
 				}
 			});
 		}

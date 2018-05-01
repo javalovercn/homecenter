@@ -1,6 +1,11 @@
 package hc.server.msb;
 
-public class DataDeviceCapDesc {
+import java.io.Serializable;
+
+public class DataDeviceCapDesc implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+	
 	public final String desc, capList, ver;
 
 	public DataDeviceCapDesc(final String desc, final String capList, final String ver) {

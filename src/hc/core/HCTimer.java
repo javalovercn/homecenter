@@ -12,6 +12,7 @@ public abstract class HCTimer {
 	long interval;
 	private Object bizObj;
 	final String name;
+	private final Object lockMe = new Object();
 	public static final long ONE_SECOND = 1000;
 	public static final long ONE_MINUTE = ONE_SECOND * 60;
 	public static final long ONE_HOUR = ONE_MINUTE * 60;
@@ -88,17 +89,19 @@ public abstract class HCTimer {
 	}
 
 	public void setEnable(final boolean enable) {
-		if (this.isEnable != enable) {
-			if (L.isInWorkshop) {
-				LogManager.log("HCTimer [" + name + "] setEnable : " + enable);
-			}
-			this.isEnable = enable;
-			if (enable) {
-				final long nowMS = System.currentTimeMillis();
-				if (this.nextExecMS < nowMS) {
-					this.nextExecMS = getNextMS(nowMS, interval);
+		synchronized (lockMe) {
+			if (this.isEnable != enable) {
+				if (L.isInWorkshop) {
+					LogManager.log("HCTimer [" + name + "] setEnable : " + enable);
 				}
-				wakeUp();
+				this.isEnable = enable;
+				if (enable) {
+					final long nowMS = System.currentTimeMillis();
+					if (this.nextExecMS < nowMS) {
+						this.nextExecMS = getNextMS(nowMS, interval);
+					}
+					wakeUp();
+				}
 			}
 		}
 	}
@@ -127,7 +130,9 @@ public abstract class HCTimer {
 	}
 
 	private final void resetToMS(final long ms) {
-		nextExecMS = getNextMS(0, ms);
+		synchronized (lockMe) {
+			nextExecMS = getNextMS(0, ms);
+		}
 	}
 
 	/**
@@ -239,11 +244,13 @@ public abstract class HCTimer {
 						// 注意：
 						// 调整nextExecMS要优先执行，如果doBize可能需要调整下次时间，由doBiz内部处理，如setInterval()
 						// 本行只负责通用情形
-						timer.nextExecMS += timer.interval;
-
-						// 严重滞时的情形，补正为下一段正确时间
-						if (timer.nextExecMS < nowMS) {// 支持电脑休眠后继续
-							timer.nextExecMS = getNextMS(nowMS, timer.interval);
+						synchronized (timer.lockMe) {
+							timer.nextExecMS += timer.interval;
+	
+							// 严重滞时的情形，补正为下一段正确时间
+							if (timer.nextExecMS < nowMS) {// 支持电脑休眠后继续
+								timer.nextExecMS = getNextMS(nowMS, timer.interval);
+							}
 						}
 						// long curr = System.currentTimeMillis();
 						try {

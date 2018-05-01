@@ -16,27 +16,38 @@ to implement the cross-platform UI for Android/iPhone, write with J2SE+CSS as [h
 ***
 ### Demo on mobile
 1. download mobile client from https://github.com/javalovercn/client
-2. click "Demo" button in login form, or input account : 012345，password : 012345
+2. click "Demo" button in login form. (or input account : 012345，password : 012345)
 
 ***
 ### Features
 
-1. HomeCenter server runs not only on JDK/JRE, but also Android (because of ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android)).
-2. double click to run, no configuration.
-3. the component HTMLMlet (codes above) will be translated to HTML5+JavaScript+CSS for Android/iPhone client on air, user inputs will be translated to J2SE Event and dispatch to their listeners.
-4. focus business/UI with Java/J2SE technology.
-5. scan QRcode from mobile and download/load HAR (home archive) project on server, plug and play, not required to restart server.
-6. ScriptPanel is used to load and execute JavaScript on mobile client.
-7. code editor supports Java 8 API, Ruby 2.2.0 and CSS 2.2 (part) documents, hint of code and resource file(in user jar) will be auto completion. (Note : code editor is not build-in Android server)
-8. built-in Lucene, Quartz and HSQLDB, see [API](https://homecenter.mobi/download/javadoc/index.html) for more.
-9. mobile voice command API drives IoT and your business.
-10. family members or work group not only share the same service account, but also differentiate services based on the member ID.
-11. stratify IoT, Robot+Converter+Device(device is required to open source or provide API), provides powerful device adaptability and data format conversion.
-12. HAR project is self-signed and be upgraded automatically if the newer on web.
-13. a powerful tool for building your voice, mobility, automation, intelligence life.
-14. exception is automatically reported to Email or website if end user enable reporting exception.
-15. build-in SecurityManager limits project running in an optional, security computing and networking environment.
+1. scan QRcode from mobile and download/load HAR (home archive) project on server, plug and play.
+2. the component HTMLMlet (codes above) will be translated to HTML5+JavaScript+CSS for Android/iPhone client on air, user inputs will be translated to J2SE Event and dispatch to their listeners.
+3. focus business/UI with J2SE/JavaScript+CSS technology.
+4. ScriptPanel is used to load and execute JavaScript on mobile client.
+5. code editor supports Java 8 API, Ruby 2.2.0 and CSS 2.2 (part) documents, hint of code and resource file(in user jar) will be auto completion. 
+6. built-in Lucene, Quartz and HSQLDB, see [API](https://homecenter.mobi/download/javadoc/index.html) for more.
+7. mobile voice command API (let Android/iPhone recognize your voice) drives IoT and your business.
+8. family members or work group not only share the same service account, but also differentiate services based on the member ID.
+9. stratify IoT, Robot+Converter+Device(device is required to open source or provide API), provides powerful device adaptability and data format conversion.
+10. HAR project is self-signed and be upgraded automatically if the newer on web.
+11. a powerful tool for building your voice, mobility, automation, intelligence life.
+12. exception is automatically reported to Email or website if end user enable reporting exception.
+13. if in the same intranet, the desktop server (with code editor) can hot-publish the HAR to the Android server.
+14. build-in SecurityManager limits project running in an optional, security computing and networking environment.
+15. because of ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android), HAR can also run on Android server (code editor is not built in),  and dex jar automatically.
+16. when in same intranet, desktop server can hot-deploy HAR to Android server.
 
+***
+### best practice for development (recommend)
+
+1. unfamiliar with CSS or debug JavaScript, edit it by text editor you like, test by web browser.
+2. the added jar library, must be full tested in Eclipse or Java IDE. (the jar libraries are isolated if in difference projects, and never conflict; if in same project, be careful with conflict of class name)
+3. debug JRuby scripts and HAR, please with desktop server, not Android server. (even if the target environment is Android server)
+4. if the target environment is Android server, it is required to test UI and listeners of HTMLMlet. (J2SE Swing is not full supported by Android server), edit in code editor of desktop server, and one-click to hot deploy to Android server if in same home intranet. (code instantly, deploy instantly, test instantly)
+5. there are two servers at same time on above step, be careful, please use difference account when register; if conflict with account, please change it or verify account in error message dialog.
+6. to print logs, please use "ProjectContext.log()" and "ProjectContext.error()", the message will be added prefix "[YourProjectID]". For Android server, the log will be print to LogCat (the filter is regex, so input is "\[YourProjectID\]", please enable [option/developer/LogCat] on Android server), and appent to log file of server also.
+7. to see log in console of Eclipse, create Java project in Eclipse, add starter.jar from [binary distribution](https://github.com/javalovercn/hc_server_dist), set Main class "starter.Starter", set VM arguments : "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8", and disable [option/developer/Logger] of server.
 ***
 ### How to use
 

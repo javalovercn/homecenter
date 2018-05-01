@@ -136,6 +136,7 @@ public class CodeWindow {
 			if (classFrame.isVisible()) {
 				if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_LEFT
 						|| keyCode == KeyEvent.VK_RIGHT) {
+					final boolean isEnableLeftRight = false;
 					if (keyCode == KeyEvent.VK_UP) {
 						if (codeList.getSelectedIndex() == 0) {
 							SwingUtilities.invokeLater(new Runnable() {// App.invokeLaterUI不正常
@@ -162,12 +163,12 @@ public class CodeWindow {
 							dispatchEvent(e, keyCode);
 						}
 					} else if (keyCode == KeyEvent.VK_LEFT) {
-						if (preCodeLowerCharsLen > 0) {
+						if (isEnableLeftRight && preCodeLowerCharsLen > 0) {//停用，因为后面一个字符仍在。比如："@|"时，左移一，变为"|@"
 							preCodeLowerCharsLen--;
 							textPane.setCaretPosition(--movingScriptIdx);
 							refill(e);
 						}
-					} else if (keyCode == KeyEvent.VK_RIGHT) {
+					} else if (isEnableLeftRight && keyCode == KeyEvent.VK_RIGHT) {//停用，同上
 						try {
 							final char nextChar = textPane.getDocument().getText(movingScriptIdx, 1).toLowerCase().charAt(0);
 							if ((nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z')
@@ -179,6 +180,7 @@ public class CodeWindow {
 						} catch (final Exception ex) {
 						}
 					}
+					//end VK_LEFT, VK_RIGHT, VK_UP, VK_DOWN
 					return;
 				}
 				if (scriptEditPanel != null) {
@@ -330,13 +332,14 @@ public class CodeWindow {
 	}
 
 	public final void hide() {
-		if (L.isInWorkshop) {
-			ClassUtil.printCurrentThreadStack("[CodeTip] CodeWindow.hide()");
-		}
 		noCodeListDelayCloseDocTipTimer.setEnable(false);
 		codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(false);
 		synchronized (classFrame) {
-			if (classFrame.isVisible() || docHelper.isShowing()) {
+			boolean isCodeWindowVisible, isDocWinVisible = false;
+			if ((isCodeWindowVisible = classFrame.isVisible()) || (isDocWinVisible = docHelper.isShowing())) {
+				if (L.isInWorkshop) {
+					ClassUtil.printCurrentThreadStack("[CodeTip] CodeWindow.hide(), isCodeWindowVisible : " + isCodeWindowVisible + ", isDocWinVisible : " + isDocWinVisible);
+				}
 				isWillOrAlreadyToFront = false;
 				synchronized (autoDocPopTip) {
 					docHelper.setInvisible();
@@ -406,6 +409,7 @@ public class CodeWindow {
 			codeList.clearSelection();
 		} else {
 			codeList.setSelectedIndex(0);
+			L.V = L.WShop ? false : LogManager.log("[Code] refilter : " + classData.get(0).codeDisplay);
 		}
 
 		scrollPanel.getVerticalScrollBar().setValue(0);
@@ -589,6 +593,7 @@ public class CodeWindow {
 			classFrame.setVisible(true);
 			if (scriptEditPanel != null) {
 				scriptEditPanel.autoCodeTip.setEnable(false);
+				L.V = L.WShop ? false : LogManager.log("[Code] toVisibleRunnable.");
 			}
 		}
 	};

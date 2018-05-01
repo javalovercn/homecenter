@@ -1,5 +1,21 @@
 package hc.server.ui.design;
 
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.Window;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Vector;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+
 import hc.App;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -20,23 +36,9 @@ import hc.server.msb.WorkingDeviceList;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.design.hpj.HCjarHelper;
 
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.Window;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Vector;
-
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-
 public class BindRobotSource extends IoTSource {
 	final MobiUIResponsor respo;
+	final ConverterInfoMap converterInfoMap = new ConverterInfoMap();
 
 	public BindRobotSource(final MobiUIResponsor r) {
 		this.respo = r;
@@ -174,41 +176,154 @@ public class BindRobotSource extends IoTSource {
 			});
 		}
 	}
+	
+	public static String buildDevCapDescStr(final DataDeviceCapDesc desc) {
+		return "<html>" + "<STRONG>Description : </STRONG>" + desc.desc + "<BR><STRONG>Version : </STRONG>" + desc.ver
+				+ "<BR><STRONG>Compatible : </STRONG>" + desc.capList + "</html>";
+	}
+	
+	private String buildConverterCapDescStr(final ProjResponser pr, final DeviceCompatibleDescription upDCD,
+			final DeviceCompatibleDescription downDCD) {
+		final DataDeviceCapDesc upDataDCD = getDataForDeviceCompatibleDesc(pr, upDCD);
+		final DataDeviceCapDesc downDataDCD = getDataForDeviceCompatibleDesc(pr, downDCD);
 
-	@Override
-	public void getDeviceCompatibleDescByDevice(final ProjResponser pr, final RealDeviceInfo deviceInfo) {
-		if (deviceInfo.deviceCompatibleDescriptionCache != null) {
-			return;
-		}
+		return "<html>" + "<STRONG>Up Description : </STRONG>" + upDataDCD.desc + "<BR><STRONG>Up Version : </STRONG>" + upDataDCD.ver
+				+ "<BR><STRONG>Up Compatible : </STRONG>" + upDataDCD.capList + "<BR><BR><STRONG>Down Description : </STRONG>"
+				+ downDataDCD.desc + "<BR><STRONG>Down Version : </STRONG>" + downDataDCD.ver
+				+ "<BR><STRONG>Down Compatible : </STRONG>" + downDataDCD.capList + "</html>";
+	}
 
+	private void getDeviceCompatibleDescByDevice(final ProjResponser pr, final DeviceAndExt deviceAndExt, final RealDeviceInfo deviceInfo) {
 		pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				deviceInfo.deviceCompatibleDescriptionCache = deviceInfo.device.getDeviceCompatibleDescription();
-				MSBAgent.getCompatibleItemToUserThread(pr, true, deviceInfo.deviceCompatibleDescriptionCache);
+				deviceAndExt.deviceCompatibleDescription = deviceAndExt.device.getDeviceCompatibleDescription();
+				deviceInfo.compatibleItem = MSBAgent.getCompatibleItemToUserThread(pr, true, deviceAndExt.deviceCompatibleDescription);
 				return null;
 			}
 		});
 	}
 
-	@Override
-	public final void getConverterDescUpDownToUserThread(final ProjResponser pr, final ConverterInfo converterInfo) {
-		if (converterInfo.upDeviceCompatibleDescriptionCache != null || converterInfo.downDeviceCompatibleDescriptionCache != null) {
-			return;
-		}
-
+	private final void getConverterDescUpDownToUserThread(final ProjResponser pr, final ConverterAndExt converterAndExt, final ConverterInfo converterInfo) {
 		pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				converterInfo.upDeviceCompatibleDescriptionCache = converterInfo.converter.getUpDeviceCompatibleDescription();
-				converterInfo.downDeviceCompatibleDescriptionCache = converterInfo.converter.getDownDeviceCompatibleDescription();
+				converterAndExt.upDeviceCompatibleDescriptionCache = converterAndExt.converter.getUpDeviceCompatibleDescription();
+				converterAndExt.downDeviceCompatibleDescriptionCache = converterAndExt.converter.getDownDeviceCompatibleDescription();
 
-				MSBAgent.getCompatibleItemToUserThread(pr, true, converterInfo.upDeviceCompatibleDescriptionCache);
-				MSBAgent.getCompatibleItemToUserThread(pr, true, converterInfo.downDeviceCompatibleDescriptionCache);
+				converterInfo.upCompItems = MSBAgent.getCompatibleItemToUserThread(pr, true, converterAndExt.upDeviceCompatibleDescriptionCache);
+				converterInfo.downCompItems = MSBAgent.getCompatibleItemToUserThread(pr, true, converterAndExt.downDeviceCompatibleDescriptionCache);
 
 				return converterInfo;
 			}
 		});
+	}
+	
+	@Override
+	public final BDNTree buildTree(final MobiUIResponsor mobiResp) throws Exception {
+		final BDNTree tree = new BDNTree();
+		
+		final ArrayList<String> list = BindManager.getProjectIDList(this);
+		for (int i = 0; i < list.size(); i++) {
+			final String projID = list.get(i);
+
+			if (BindManager.getTotalReferenceDeviceNumByProject(this, projID) == 0) {
+				continue;
+			}
+
+			final ArrayList<String> robotList = BindManager.getRobotsByProjectID(this, projID);
+			
+			final BDNTreeNode bdnTreeNode = new BDNTreeNode();
+			tree.addProjectAndRobotList(projID, robotList, bdnTreeNode);
+			
+			bdnTreeNode.projectNode = BindManager.buildDataNodeForProject(mobiResp, projID);
+
+			for (int j = 0; j < robotList.size(); j++) {
+				final String robotID = robotList.get(j);
+				final ArrayList<DeviceBindInfo> refList = BindManager.getReferenceDeviceListByRobotName(this, projID, robotID);
+				bdnTreeNode.addRefList(refList);
+				
+				final int refSize = refList.size();
+
+				if (refSize == 0) {
+					continue;
+				}
+
+				bdnTreeNode.addBDNForRobot(BindManager.buildDataNodeForRobot(mobiResp, projID, robotID));
+
+				final ArrayList<BindDeviceNode> devBelowRobot = new ArrayList<BindDeviceNode>();
+				for (int k = 0; k < refSize; k++) {
+					final DeviceBindInfo di = refList.get(k);
+
+					devBelowRobot.add(BindManager.buildDataNodeForRefDevInRobot(mobiResp, projID, robotID, di, this));
+				}
+				bdnTreeNode.addDevBelowRobot(devBelowRobot);
+			}
+		}
+		
+		return tree;
+	}
+	
+	@Override
+	public final ConverterTree buildConverterTree(final MobiUIResponsor mobiResp) throws Exception{
+		final ConverterTree converterTree = new ConverterTree();
+		
+		final ArrayList<ConverterInfo> list = getConverterInAllProject();
+		if (list == null || list.size() == 0) {
+			return converterTree;
+		}
+
+		final HashSet<String> proj_map = new HashSet<String>();
+
+		for (int i = 0; i < list.size(); i++) {
+			final ConverterInfo cbi = list.get(i);
+			if (proj_map.contains(cbi.proj_id) == false) {
+				converterTree.addProjectNode(new BindDeviceNode(mobiResp, BindDeviceNode.PROJ_NODE, cbi.proj_id, "", null, null));
+				proj_map.add(cbi.proj_id);
+			}
+
+			final BindDeviceNode userObject = new BindDeviceNode(mobiResp, BindDeviceNode.CONVERTER_NODE, cbi.proj_id, cbi.name, null,
+					null);
+			userObject.convBind = cbi;
+			converterTree.addConverterNode(userObject);
+		}
+		
+		return converterTree;
+	}
+	
+	@Override
+	public final DevTree buildDevTree(final MobiUIResponsor mobiResp) throws Exception{
+		final DevTree devTree = new DevTree();
+		
+		final ArrayList<RealDeviceInfo> list = getRealDeviceInAllProject();
+		if (list == null || list.size() == 0) {
+			return devTree;
+		}
+
+		final HashSet<String> proj_map = new HashSet<String>();
+		final HashSet<String> dev_name_map = new HashSet<String>();
+		
+		for (int i = 0; i < list.size(); i++) {
+			final RealDeviceInfo cbi = list.get(i);
+			if (proj_map.contains(cbi.proj_id) == false) {
+				devTree.addProjectNode(new BindDeviceNode(mobiResp, BindDeviceNode.PROJ_NODE, cbi.proj_id, "", null, null));
+				proj_map.add(cbi.proj_id);
+			}
+
+			if (dev_name_map.contains(cbi.proj_id + cbi.dev_name) == false) {
+				devTree.addDevNode(new BindDeviceNode(mobiResp, BindDeviceNode.DEV_NODE, cbi.proj_id, cbi.dev_name, null, null));
+				dev_name_map.add(cbi.proj_id + cbi.dev_name);
+			}
+
+			final DeviceBindInfo devBindInfo = new DeviceBindInfo(cbi.proj_id, cbi.dev_name);
+			devBindInfo.ref_dev_id = cbi.dev_id;
+			final BindDeviceNode userObject = new BindDeviceNode(mobiResp, BindDeviceNode.REAL_DEV_ID_NODE, cbi.proj_id, cbi.dev_name,
+					devBindInfo, null);
+			userObject.realDevBind = cbi;
+			devTree.addRealDevNode(userObject);
+		}
+		
+		return devTree;
 	}
 
 	@Override
@@ -223,9 +338,15 @@ public class BindRobotSource extends IoTSource {
 					for (int j = 0; j < convs.length; j++) {
 						final ConverterInfo cbi = new ConverterInfo();
 						cbi.proj_id = pr.context.getProjectID();
-						cbi.name = MSBAgent.getName(convs[j]);
-						cbi.converter = convs[j];
+						final Converter converter = convs[j];
+						cbi.name = MSBAgent.getName(converter);
 						list.add(cbi);
+						
+						final ConverterAndExt converterAndExt = new ConverterAndExt(converter);
+						getConverterDescUpDownToUserThread(pr, converterAndExt, cbi);
+						cbi.converterInfoDesc = buildConverterCapDescStr(pr, converterAndExt.upDeviceCompatibleDescriptionCache,
+								converterAndExt.downDeviceCompatibleDescriptionCache);
+						converterInfoMap.addConverterInfo(converterAndExt, cbi);
 					}
 				}
 			}
@@ -265,8 +386,13 @@ public class BindRobotSource extends IoTSource {
 								rdbi.proj_id = projectID;
 								rdbi.dev_name = dev_name;
 								rdbi.dev_id = devRealIDS[k];
-								rdbi.device = device;
 								list.add(rdbi);
+								
+								final DeviceAndExt deviceAndExt = new DeviceAndExt(device);
+								
+								getDeviceCompatibleDescByDevice(pr, deviceAndExt, rdbi);
+								rdbi.deviceCapDesc = getDataForDeviceCompatibleDesc(pr, deviceAndExt.deviceCompatibleDescription);
+//								realDeviceInfoMap.addRealDeviceInfo(deviceAndExt, rdbi);
 							}
 						}
 					}
@@ -276,7 +402,7 @@ public class BindRobotSource extends IoTSource {
 
 		return list;
 	}
-
+	
 	@Override
 	public RealDeviceInfo getRealDeviceBindInfo(final String bind_id) {
 		// 由于全内存运算，所以不计性能，不用cache到变量

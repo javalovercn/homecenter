@@ -593,7 +593,7 @@ public class LinkProjectPanel extends ProjectListPanel {
 				final LinkEditData led = (LinkEditData) data.elementAt(tablePanel.table.getSelectedRow())[IDX_OBJ_STORE];
 				final LinkProjectStore lps = led.lps;
 
-				final LinkNamePanel panel = showInputLinkName(self, lps.getLinkName(), lps.getProjectRemark(), editBut, lps);
+				final LinkNamePanel panel = showLinkNameAndExtEditor(self, lps.getLinkName(), lps.getProjectRemark(), editBut, lps);
 				if (checkIsCancle(panel)) {
 					return;
 				}
@@ -896,7 +896,7 @@ public class LinkProjectPanel extends ProjectListPanel {
 				true);// isResizabel=false,会导致漂移
 	}
 
-	protected LinkNamePanel showInputLinkName(final JFrame self, final String linkName, final String mem, final Component relativeTo,
+	private final LinkNamePanel showLinkNameAndExtEditor(final JFrame self, final String linkName, final String mem, final Component relativeTo,
 			final LinkProjectStore lps) {
 		final LinkNamePanel panel = new LinkNamePanel(linkName, mem, ContextSecurityConfig.getContextSecurityConfig(lps), lps);
 		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(9017), true, null, null, null, // cancel

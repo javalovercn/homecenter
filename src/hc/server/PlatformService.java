@@ -26,6 +26,7 @@ public interface PlatformService {
 	public static final int BIZ_BCL = 8;
 	public static final int BIZ_DISABLE_TEXTFIELD_HINT = 9;
 	public static final int BIZ_PRINT_MAIN_TRACE_STACK = 10;
+	public static final int BIZ_ENABLE_ANDROID_LOGCAT = 11;
 
 	/**
 	 * 
@@ -56,6 +57,8 @@ public interface PlatformService {
 	public WiFiDeviceManager getWiFiManager();
 
 	public String getOsNameAndVersion();
+	
+	public void enableMulticast();
 
 	/**
 	 * 

@@ -56,7 +56,6 @@ import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
-import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.engine.ScriptValue;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
@@ -244,6 +243,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	 * 
 	 * @param coreSS
 	 * @param url
+	 * @param isInstallFromClient true means add from by QR or WiFi of client.
 	 */
 	private final void startAddHar(final J2SESession coreSS, final String url, final boolean isInstallFromClient) {
 		LogManager.log("try ready to download HAR [" + url.toString() + "]...");
@@ -292,7 +292,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					throw new Exception(httpErr);
 				}
 
-				if (ResourceUtil.checkSysPackageNameInJar(fileHar)) {
+				if (false && ResourceUtil.checkSysPackageNameInJar(fileHar)) {
 					throw new Exception(ResourceUtil.RESERVED_PACKAGE_NAME_IS_IN_HAR);
 				}
 
@@ -345,8 +345,9 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 											return null;
 										}
 										try {
-											startAddAfterAgreeInQuestionThread(mlet, coreSS, fileHar, map, isUpgrade, oldBackEditFile,
-													isInstallFromClient);
+											final AddMletPlugSource addMletPlugSrc = new AddMletPlugSource(AddHarHTMLMlet.this, mlet, coreSS, map);
+											addMletPlugSrc.startPlugForQROrLocalDeployInSysThread(fileHar, map, isInstallFromClient);
+											addMletPlugSrc.sendMessage(addMletPlugSrc.getSuccessMessage());
 										} catch (final Exception e) {
 											runException[0] = e;
 										}
@@ -477,7 +478,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		}
 	}
 
-	private final boolean enterMobileBindInSysThread(final BindRobotSource source, final J2SESession coreSS, final HTMLMlet mletFrom) {
+	final boolean enterMobileBindInSysThread(final BindRobotSource source, final J2SESession coreSS, final HTMLMlet mletFrom) {
 		final Boolean[] waitLock = { false };
 
 		enterBindInSysThread(waitLock, mletFrom, source, coreSS);
@@ -520,94 +521,16 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	}
 
 	/**
-	 * 本方法内异常会被拦截，并转显到手机
-	 * 
-	 * @param coreSS
-	 * @return true isNeedCloseLicenseMlet
-	 */
-	private final void startAddAfterAgreeInQuestionThread(final HTMLMlet mlet, final J2SESession coreSS, final File fileHar,
-			final Map<String, Object> map, final boolean isUpgrade, final File oldBackEditFile, final boolean isInstallFromClient)
-			throws Exception {
-		final ArrayList<LinkProjectStore> appendLPS = appendMapToSavedLPS(coreSS, fileHar, map, false, isUpgrade, oldBackEditFile);
-		LinkProjectManager.reloadLinkProjects();// 十分重要
-
-		final MobiUIResponsor mobiResp = (MobiUIResponsor) ServerUIUtil.getResponsor();
-
-		final ProjResponser[] appendRespNotAll = mobiResp.appendNewHarProject(isInstallFromClient);// 仅扩展新工程，不启动或不运行
-
-		{
-			for (int i = 0; i < appendRespNotAll.length; i++) {
-				final ProjResponser pr = appendRespNotAll[i];
-
-				pr.initSessionContext(coreSS);// 供device input token
-			}
-		}
-
-		showMsgForAddHar(IConstant.INFO, ResourceUtil.get(coreSS, 9092));
-
-		BindRobotSource bindSource = mobiResp.bindRobotSource;
-		if (bindSource == null) {
-			bindSource = new BindRobotSource(mobiResp);
-		}
-
-		if (BindManager.findNewUnbind(bindSource)) {// 进行自动绑定
-			// 提前释放可能的异常
-			bindSource.getRealDeviceInAllProject();
-			bindSource.getConverterInAllProject();
-
-			if (enterMobileBindInSysThread(bindSource, coreSS, mlet) == false) {
-				final String errMsg = "NOT binded for robots for project [" + (String) map.get(HCjar.PROJ_ID) + "].";
-				throw new Exception(errMsg);
-			}
-		}
-
-		mobiResp.fireSystemEventListenerOnAppendProject(appendRespNotAll, appendLPS);// 进入运行状态
-
-		final ProjResponser resp = mobiResp.getCurrentProjResponser(coreSS);
-		final JarMainMenu linkMenu = resp.jarMainMenu;
-		linkMenu.appendProjToMenuItemArray(mobiResp.maps, mobiResp.responserSize, appendLPS);
-		// final String menuData = linkMenu.buildJcip(coreSS);
-		//
-		// {
-		// final String projID = resp.context.getProjectID();
-		// final byte[] projIDbs = StringUtil.getBytes(projID);
-		// final String softUID =
-		// UserThreadResourceUtil.getMobileSoftUID(coreSS);
-		// final byte[] softUidBS = ByteUtil.getBytes(softUID, IConstant.UTF_8);
-		// final String urlID = CacheManager.ELE_URL_ID_MENU;
-		// final byte[] urlIDbs = CacheManager.ELE_URL_ID_MENU_BS;
-		//
-		// final CacheComparator menuRefreshComp = new CacheComparator(projID,
-		// softUID, urlID, projIDbs, softUidBS, urlIDbs) {
-		// @Override
-		// public void sendData(final Object[] paras) {
-		// coreSS.context.send(MsgBuilder.E_MENU_REFRESH, menuData);
-		//// HCURLUtil.sendEClass(HCURLUtil.CLASS_BODY_TO_MOBI, bodyBS, 0,
-		// bodyBS.length);
-		// }
-		// };
-		// final byte[] data = StringUtil.getBytes(menuData);
-		//
-		// //注意：不能走cache，因为历史安装过，可能存在相同cache，导致生成一个新Menu
-		// menuRefreshComp.encodeGetCompare(coreSS, false, data, 0, data.length,
-		// null);
-		// }
-
-		LogManager.log("successful apply added project to ACTIVE status.");
-		appendMessage(ResourceUtil.get(coreSS, 9128));
-	}
-
-	/**
 	 * 添加一个har到lps并存储。 注意：本过程被初始加载及发布MyFirst.har使用
 	 * 
 	 * @param fileHar
 	 * @param map
 	 * @return
 	 */
-	static final ArrayList<LinkProjectStore> appendMapToSavedLPS(final J2SESession coreSS, final File fileHar,
+	static final ArrayList<LinkProjectStore> appendMapToSavedLPSInSysThread(final PlugSource plugSource, final File fileHar,
 			final Map<String, Object> map, final boolean isRoot, final boolean isUpgrade, final File oldBackEditFile) throws Exception {// 本异常会被拦截，并转显到手机
 		final LinkEditData led = buildAddHarDesc(fileHar, map, "", "");
-		AddHarHTMLMlet.addHarToDeployArea(coreSS, led, led.lps, isRoot, isUpgrade, oldBackEditFile);
+		AddHarHTMLMlet.addHarToDeployArea(plugSource, led, led.lps, isRoot, isUpgrade, oldBackEditFile);
 
 		final Iterator<LinkProjectStore> lpsIT = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		final Vector<LinkProjectStore> lpsVectorNewStore = new Vector<LinkProjectStore>();
@@ -942,17 +865,15 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		return led;
 	}
 
-	static boolean addHarToDeployArea(final J2SESession coreSS, final LinkEditData led, final LinkProjectStore lps, final boolean isRoot,
+	static boolean addHarToDeployArea(final PlugSource plugSource, final LinkEditData led, final LinkProjectStore lps, final boolean isRoot,
 			final boolean isUpgrade, final File oldBackFile) {
 		final File source = new File(led.filePath);// 不能加App.getBaseDir(),
 													// 它是绝对路径。适合J2SE, Android
 		final boolean result = LinkProjectManager.importLinkProject(lps, source, isUpgrade, oldBackFile, false);
 
-		final int requMin = 200;
-		if (PlatformManager.getService().getAvailableSize() < requMin * 1024 * 1024) {// <200M
-			final String warnMsg = StringUtil.replace(ResourceUtil.get(coreSS, 9187), "{min}", String.valueOf(requMin));
-			final int msgType = IConstant.WARN;
-			showMsgForAddHar(msgType, warnMsg);
+		if (PlatformManager.getService().getAvailableSize() < PlugSource.requMin * 1024 * 1024) {// <200M
+			final String warnMsg = plugSource.getLowDiskSpaceMessage();
+			plugSource.sendWarn(warnMsg);
 		}
 
 		led.status = LinkProjectManager.STATUS_DEPLOYED;

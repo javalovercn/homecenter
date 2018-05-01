@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.Deflater;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -414,7 +415,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 
 			final Thread t = new Thread("printAllThreadStack") {
-				final long sleepMS = Long.valueOf(PropertiesManager.getValue(PropertiesManager.p_DebugStackMS, "60000"));
+				final long sleepMS = Long.valueOf(PropertiesManager.getValue(PropertiesManager.p_DebugStackMS, "180000"));
 
 				@Override
 				public void run() {
@@ -435,6 +436,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 		// forece init, because {NativeLibLoader.loadLibraries()};
 		try {
+			final int initDeflater = Deflater.DEFLATED;//static ZipUtils.loadLibrary();
 			new JTextArea("").append("");
 			new MouseEvent(new JLabel(""), 0, 0, 0, 0, 0, 0, false, 0);
 		} catch (final Throwable e) {
@@ -822,11 +824,13 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		if (ilog != null && ilog instanceof LogServerSide) {
 			((LogServerSide) ilog).buildOutStream();
 		}
+		
+		ResourceUtil.notifyDoneInit();
 
-		if (ResourceUtil.isReceiveDeployFromLocalNetwork()) {
+		if(ReceiveDeployServer.KEEP_RUNNING || ResourceUtil.isReceiveDeployFromLocalNetwork()) {//强制keepRunning，以便内网被发现，
 			ReceiveDeployServer.startServer();
 		}
-
+		
 		try {
 			if (JRubyInstaller.checkNeedUpgradeJRuby()) {// 要置于下午doBefore之前
 				JRubyInstaller.startInstall();
@@ -1084,9 +1088,9 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param title
 	 * @param isAddCancle
 	 *            如果为true，则添加一个Cancle
-	 * @param jbOK
+	 * @param btnOK
 	 *            如果为null，则创建缺少的图标按钮
-	 * @param cancelButText
+	 * @param btnCancel
 	 * @param listener
 	 * @param cancelListener
 	 * @param owner
@@ -1097,10 +1101,10 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 *            延时显示，如果当前有正在显示的CenterPanel，则当前对话关闭后，才后加载显示
 	 */
 	public static Window showCenterPanelMain(final JPanel panel, final int width, final int height, final String title,
-			final boolean isAddCancle, final JButton jbOK, final String cancelButText, final ActionListener listener,
+			final boolean isAddCancle, final JButton btnOK, final JButton btnCancel, final ActionListener listener,
 			final ActionListener cancelListener, final JFrame owner, final boolean model, final boolean isNewJFrame,
 			final Component relativeToComponent, final boolean isResizable, final boolean delay) {
-		return showCenterOKDisposeDelayMode(panel, width, height, title, isAddCancle, jbOK, cancelButText, listener, cancelListener, true,
+		return showCenterOKDisposeDelayMode(panel, width, height, title, isAddCancle, btnOK, btnCancel, listener, cancelListener, true,
 				owner, model, isNewJFrame, relativeToComponent, isResizable, delay);
 	}
 
@@ -1113,8 +1117,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param height
 	 * @param title
 	 * @param isAddCancle
-	 * @param jbOK
-	 * @param cancelButText
+	 * @param btnOK
+	 * @param btnCancel
 	 * @param listener
 	 * @param cancelListener
 	 * @param isOkDispose
@@ -1127,18 +1131,18 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @return
 	 */
 	public static Window showCenterOKDisposeDelayMode(final JPanel panel, final int width, final int height, final String title,
-			final boolean isAddCancle, JButton jbOK, final String cancelButText, final ActionListener listener,
+			final boolean isAddCancle, JButton btnOK, JButton btnCancel, final ActionListener listener,
 			final ActionListener cancelListener, final boolean isOkDispose, final JFrame owner, final boolean model,
 			final boolean isNewJFrame, final Component relativeToObj, final boolean isResizable, final boolean isDelayMode) {
 		if (ResourceUtil.isNonUIServer()) {
 			return null;
 		}
 
-		JButton jbCancle = null;
 		UIActionListener cancelAction = null;
 		if(isAddCancle) {
-			jbCancle = new JButton(((cancelButText == null) ? (String) ResourceUtil.get(IContext.CANCEL) : cancelButText),
-				new ImageIcon(ImageSrc.CANCEL_ICON));
+			if(btnCancel == null) {
+				btnCancel = buildDefaultCancelButton();
+			}
 			cancelAction = new UIActionListener() {
 				@Override
 				public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
@@ -1159,9 +1163,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			};
 		}
 		
-		if (jbOK == null) {
-			final JButton okButton = new JButton(ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
-			jbOK = okButton;
+		if (btnOK == null) {
+			btnOK = buildDefaultOKButton();
 		}
 		final UIActionListener jbOKAction = new UIActionListener() {
 			@Override
@@ -1182,7 +1185,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 		};
 
-		return showCenterDelayMode(panel, width, height, title, isAddCancle, jbOK, jbCancle, jbOKAction, cancelAction, owner, model,
+		return showCenterDelayMode(panel, width, height, title, isAddCancle, btnOK, btnCancel, jbOKAction, cancelAction, owner, model,
 				isNewJFrame, relativeToObj, isResizable, isDelayMode);
 	}
 
@@ -1833,6 +1836,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		App.showMessageDialog(parent, msg, title, App.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
 	}
 
+	/**
+	 * 
+	 * @param parent
+	 * @param msg 支持html
+	 * @param title
+	 */
 	public static void showErrorMessageDialog(final Component parent, final String msg, final String title) {
 		App.showMessageDialog(parent, msg, title, App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 	}
@@ -2164,7 +2173,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		IConstant.setPassword(pwd);
 
 		// reloadEncrypt(false, null);
-		// 正在会话的，无需进行重新初始化
+		//注意：正在会话的，无需进行重新初始化
 		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
 		for (int i = 0; i < coreSSS.length; i++) {
 			final CoreSession coreSession = coreSSS[i];
@@ -2529,8 +2538,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		}, threadPoolToken);
 	}
 
-	public static Window buildCloseableWindow(final boolean newFrame, final JFrame owner, final String title, final boolean model) {
-		if (newFrame) {
+	public static Window buildCloseableWindow(final boolean isFrameNotDialog, final JFrame owner, final String title, final boolean model) {
+		if (isFrameNotDialog) {
 			class CloseableFrame extends HCJFrame implements ClosableWindow {
 				public CloseableFrame(final String title) {
 					super(title);
@@ -2641,7 +2650,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 				public void run() {
 					final JPanel panel = new JPanel(new BorderLayout());
 					final String forDeveloping = ResourceUtil.get(9286);//9286=For programming development features, please download desktop versions such as Windows, Mac or Linux.
-					panel.add(new JLabel("<html>" + forDeveloping + "</html>", getSysIcon(SYS_INFO_ICON),
+					final String hotDeploy = ResourceUtil.get(9303);//9303=project can be hot deployed from desktop to Android if in local net.
+					panel.add(new JLabel(ResourceUtil.wrapHTMLTag(forDeveloping + "<BR>" + hotDeploy), getSysIcon(SYS_WARN_ICON),
 							SwingConstants.LEADING), BorderLayout.CENTER);
 
 					final HCActionListener okAction = null;

@@ -1,5 +1,9 @@
 package hc.server.localnet;
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.util.Vector;
+
 import hc.core.L;
 import hc.core.util.LogManager;
 import hc.server.ui.design.Designer;
@@ -7,10 +11,6 @@ import hc.server.util.DownlistButton;
 import hc.server.util.ListAction;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
-
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.util.Vector;
 
 public class LocalDeployManager {
 
@@ -23,16 +23,15 @@ public class LocalDeployManager {
 		PropertiesManager.saveFile();
 	}
 
-	public static void refreshAliveServerFromLocalNetwork(final DownlistButton actionButton, final String projectID,
-			final Designer designer) {
+	public static void refreshAliveServerFromLocalNetwork(final InetAddress localIA, final DownlistButton actionButton, final Designer designer,
+			int startIP, final int endStartIP) {
 		// do network search
-		final InetAddress ia = HttpUtil.getLocal();
-		if (ia == null || ia instanceof Inet6Address) {
+		if (localIA == null || localIA instanceof Inet6Address) {
 			actionButton.removeDownArrow();
 			return;
 		}
 
-		final String ip = ia.getHostAddress();
+		final String ip = localIA.getHostAddress();
 		if (HttpUtil.isLocalNetworkIP(ip) == false) {
 			actionButton.removeDownArrow();
 			return;
@@ -43,9 +42,8 @@ public class LocalDeployManager {
 
 		final String recentIP = PropertiesManager.getValue(PropertiesManager.p_Deploy_RecentIP);
 
-		int startIP = 1;
 		// 2 - 254
-		for (; startIP < 255; startIP++) {
+		for (; startIP < endStartIP; startIP++) {
 			if (designer.isDisposed()) {
 				return;
 			}
@@ -71,7 +69,7 @@ public class LocalDeployManager {
 			}
 
 			final ListAction item = new ListAction(testIP);
-			if (DeploySender.isAlive(testIP, projectID)) {
+			if (DeploySender.isAlive(testIP, designer)) {
 				L.V = L.WShop ? false : LogManager.log("[Deploy] find a live server at " + testIP);
 				actionButton.addListAction(item);
 			} else {

@@ -29,8 +29,8 @@ public class DocTipTimer extends HCTimer {
 						CodeHelper.buildForClass(docHelper.codeHelper, c);
 					}
 				}
+				setEnable(false);//置于下行之前，因为后者有可能产生异常，导致不被执行
 				docHelper.popDocTipWindow(item, classFrame, layoutLimit);
-				setEnable(false);
 //				docHelper.codeHelper.window.scriptEditPanel.autoCodeTip.setEnable(false);//有可能mouseExit scriptEditPane，所以不能disable
 			}
 		}

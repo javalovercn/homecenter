@@ -667,7 +667,11 @@ public class DocHelper {
 		synchronized (cache) {
 			HashMap<String, String> map = cache.get(claz);
 			if (map == null) {
-				final Class c = CodeHelper.findClassByName(claz, false).getRawClass();
+				final ReturnType docClass = CodeHelper.findClassByName(claz, false);
+				if(docClass == null) {
+					return null;
+				}
+				final Class c = docClass.getRawClass();
 				processDoc(codeHelper, c, claz, false);
 				map = cache.get(claz);// 等待异步线程完成doc内容
 				if (map == null) {

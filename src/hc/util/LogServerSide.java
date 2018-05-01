@@ -18,6 +18,8 @@ import hc.App;
 import hc.core.HCConnection;
 import hc.core.HCTimer;
 import hc.core.IConstant;
+import hc.core.L;
+import hc.core.util.BooleanValue;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
@@ -37,6 +39,8 @@ public class LogServerSide implements ILog {
 	private OutputStreamWriter osw;
 	private BufferedWriter bw;
 	protected final boolean isLogToFile;
+	private boolean isDispErrorForSimu = false;
+	private boolean isCheckInWorkShop = false;
 
 	public LogServerSide() {
 		buildOutStream();
@@ -267,6 +271,15 @@ public class LogServerSide implements ILog {
 
 	@Override
 	public void err(final String msg) {// 被AndroidLogServerSide覆盖
+		if(isCheckInWorkShop == false) {
+			isCheckInWorkShop = true;
+			isDispErrorForSimu = L.isInWorkshop && (ResourceUtil.isNonUIServer() == false);
+		}
+		
+		if(isDispErrorForSimu) {
+			TrayMenuUtil.displayMessage(ResourceUtil.getErrorI18N(), msg, IConstant.ERROR, null, 0);
+		}
+		
 		final StringBuffer sb = StringBufferCacher.getFree();
 
 		synchronized (calendar) {

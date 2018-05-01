@@ -39,6 +39,7 @@ import hc.server.JRubyInstaller;
 import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
 import hc.server.data.StoreDirManager;
+import hc.server.localnet.DeploySocket;
 import hc.server.msb.ConverterInfo;
 import hc.server.msb.RealDeviceInfo;
 import hc.server.ui.LinkProjectStatus;
@@ -78,6 +79,7 @@ public class LinkProjectManager {
 				final String item = projIDSet.getItem(i);
 				final LinkProjectStore lp = new LinkProjectStore();
 				lp.restore(item);
+				L.V = L.WShop ? false : LogManager.log("[project] projects in list : [" + lp.getProjectID() + "].");
 				lpsVector.add(lp);
 			}
 		} catch (final Throwable e) {
@@ -740,27 +742,52 @@ public class LinkProjectManager {
 	}
 
 	/**
-	 * 
+	 * 支持发布已active，已有但非active和全新
 	 * @param fileHar
 	 * @return 0 : OK; -1 : error
 	 */
-	public static int deployInLocalNetwork(final byte[] bs, final int len, final String projectID) {
+	public static int deployInLocalNetwork(final DeploySocket socket, final byte[] bs, final int len, final String projectID) {
 		CCoreUtil.checkAccess();
 
 		if (enterDownloadStatus() == false) {
 			return -1;
 		}
 
-		LogManager.log("[Deploy] start deploy project in receive-deploy service...");
-
-		final Vector<LinkProjectStore> upgradeLPS = new Vector<LinkProjectStore>(1);
-
-		final LinkProjectStore lps = getProjByID(projectID);
-		final File fileHar = new File(LINK_UPGRADE_DIR, lps.getHarFile());
-		ResourceUtil.writeToFile(bs, 0, len, fileHar);
-		upgradeLPS.add(lps);
-		LinkProjectManager.appNewLinkedInProjNow(upgradeLPS, true, true, true);
-
+		try {
+			LogManager.log("[Deploy] start deploy project in receive-deploy service...");
+	
+			final Vector<LinkProjectStore> upgradeLPS = new Vector<LinkProjectStore>(1);
+	
+			final LinkProjectStore lps = getProjByID(projectID);
+			if(lps != null) {
+				if(lps.isActive() == false) {
+					lps.setActive(true);
+				}
+				final File fileHar = new File(LINK_UPGRADE_DIR, lps.getHarFile());
+				ResourceUtil.saveToFile(bs, 0, len, fileHar);
+				upgradeLPS.add(lps);
+				LinkProjectManager.appNewLinkedInProjNow(upgradeLPS, true, true, true);
+				L.V = L.WShop ? false : LogManager.log("[Deploy] succesful upgrade HAR.");
+			}else {
+				final LocalDeployPlugSource localDeployPlugSrc = new LocalDeployPlugSource(socket);
+				try {
+					final File fileHar = ResourceUtil.getTempFileName(Designer.HAR_EXT);
+					PropertiesManager.addDelFile(fileHar);
+					ResourceUtil.saveToFile(bs, 0, len, fileHar);
+					final Map<String, Object> map = HCjar.loadHar(fileHar, false);
+					localDeployPlugSrc.startPlugForQROrLocalDeployInSysThread(fileHar, map, false);
+					L.V = L.WShop ? false : LogManager.log("[Deploy] succesful plugin HAR.");
+				} catch (final Exception e) {
+					LogManager.errToLog("[Deploy] fail to plugin HAR!");
+					e.printStackTrace();
+					localDeployPlugSrc.sendError(e.getMessage());
+				}
+			}
+			
+		}catch (final Throwable e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		
 		exitDownloadUpgrade();
 
 		return 0;
@@ -768,7 +795,8 @@ public class LinkProjectManager {
 
 	/**
 	 * 注意：被ProjMgrDialog在用户级线程使用，但是相同包
-	 * 
+	 * <BR><BR>
+	 * 本方法可同时在user级或Sys级
 	 * @param includeRoot
 	 * @return
 	 */

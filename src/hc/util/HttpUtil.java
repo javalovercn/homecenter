@@ -740,13 +740,13 @@ public class HttpUtil {
 	}
 
 	public static String buildLangURL(final String langURL, final String lang) throws UnsupportedEncodingException {
-		String url = URLEncoder.encode("http://homecenter.mobi/_lang_/" + langURL, IConstant.UTF_8);
+		String url = URLEncoder.encode("https://homecenter.mobi/_lang_/" + langURL, IConstant.UTF_8);
 		if (lang == null) {
 			url = "?to=" + url;
 		} else {
 			url = "?lang=" + lang + "&to=" + url;
 		}
-		return "http://homecenter.mobi/gotolang.php" + url;
+		return "https://homecenter.mobi/gotolang.php" + url;
 	}
 
 	public static boolean browse(final String webURL) {

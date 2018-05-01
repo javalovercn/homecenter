@@ -63,7 +63,7 @@ public class UpdateOneTimeRunnable implements Runnable {
 		if (hcConnection.isReceivedOneTimeInSecuChannalFromMobile == false) {
 			// LogManager.log("timeout for
 			// ReceivedOneTimeInSecuChannalFromMobile");
-			J2SESessionManager.stopSession(j2seCoreSS, true, true, false);
+			J2SESessionManager.stopSession(j2seCoreSS, true, false);
 		}
 
 		// System.out.println("--------done

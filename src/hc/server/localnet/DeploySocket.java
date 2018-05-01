@@ -1,13 +1,13 @@
 package hc.server.localnet;
 
-import hc.core.IConstant;
-import hc.core.util.ByteArrayCacher;
-import hc.core.util.ByteUtil;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+
+import hc.core.IConstant;
+import hc.core.util.ByteArrayCacher;
+import hc.core.util.ByteUtil;
 
 public class DeploySocket {
 	public static final byte H_HELLO = 10;
@@ -19,15 +19,19 @@ public class DeploySocket {
 	public static final byte H_TRANS = 65;
 	public static final byte H_OK = 70;
 	public static final byte H_BYE = 80;
-
+	public static final byte H_IS_ACCEPT_TRANS = 90;
+	public static final byte H_MSG = 100;
+	public static final byte H_SEND_BIND_OBJS = 101;
+	public static final byte H_SAVE_BIND_OBJS = 102;
+	
 	public static final int HEADER_LEN_OFFSET = 1;
 	public static final int HEADER_LEN_SIZE = 4;
 	public static final int HEADER_BS_LEN = HEADER_LEN_OFFSET + HEADER_LEN_SIZE;
 
 	public static final int AUTH_LEN = 100;
 	public static final int MAX_DATA_LEN = 1 * 1024 * 1024;
-	public static final int TIMEOUT_MS = 10000;// 5000;
-	public static final int CONN_TIMEOUT_MS = 4000;// 太小会导致无法正常连接
+	public static final int READ_TIMEOUT_MS = 0;//由于可能rebind在发送端，所以时间不限。
+	public static final int CONN_TIMEOUT_MS = 1000;// 太小会导致无法正常连接，192.168.1.1: icmp_seq=0 ttl=64 time=0.672 ms
 
 	public static final String TEST_PASSWORD = "Hello world";
 
@@ -40,8 +44,43 @@ public class DeploySocket {
 
 	static final byte[] VERSION_1_0 = ByteUtil.getBytes("1.0", IConstant.UTF_8);
 
+	public final void sendError(final String msg) throws IOException {
+		final byte[] bs = ByteUtil.getBytes(msg, IConstant.UTF_8);
+		sendError(bs);
+	}
+	
 	public final void sendError(final byte[] bs) throws IOException {
 		sendHeader(H_ERROR, bs.length);
+		sendData(bs, 0, bs.length, false, false, null);
+		
+		this.socket.close();
+	}
+	
+	public final void sendMsg(final String msg) throws IOException {
+		final byte[] bs = ByteUtil.getBytes(msg, IConstant.UTF_8);
+		sendMsg(bs);
+	}
+	
+	public final byte sayHelloProject(final String projectID) throws IOException{
+		final byte[] projectBS = ByteUtil.getBytes(projectID, IConstant.UTF_8);
+		final int projectBSLen = projectBS.length;
+
+		sendHeader(DeploySocket.H_HELLO, projectBSLen);
+		sendData(projectBS, 0, projectBSLen, false, false, null);
+
+		final byte header = receive();//如果是deled工程，则可能为H_ERROR
+		final int respLen = receiveDataLen();
+		if(respLen > 0) {
+			final byte[] dataBS = receiveData(respLen, null);
+			if(dataBS != null) {
+				cache.cycle(dataBS);
+			}
+		}
+		return header;
+	}
+	
+	public final void sendMsg(final byte[] bs) throws IOException {
+		sendHeader(H_MSG, bs.length);
 		sendData(bs, 0, bs.length, false, false, null);
 	}
 
@@ -60,7 +99,7 @@ public class DeploySocket {
 
 	public DeploySocket(final Socket socket) throws Exception {
 		this.socket = socket;
-		socket.setSoTimeout(DeploySocket.TIMEOUT_MS);
+		socket.setSoTimeout(DeploySocket.READ_TIMEOUT_MS);
 
 		dis = new DataInputStream(socket.getInputStream());
 		os = socket.getOutputStream();
@@ -84,6 +123,7 @@ public class DeploySocket {
 		}
 
 		os.write(bs, offset, len);
+		os.flush();
 	}
 
 	/**

@@ -1,8 +1,12 @@
 package hc.server.msb;
 
+import java.io.Serializable;
+
 import hc.core.util.StringUtil;
 
-public class DeviceBindInfo {
+public class DeviceBindInfo implements Serializable{
+	private static final long serialVersionUID = 1L;
+
 	private static final String SPLIT = "/";
 
 	public final String projID;

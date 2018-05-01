@@ -539,8 +539,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen 
 			// KeepaliveManager.keepalive.setEnable(true);
 			// }
 		} else if (bizNo == BIZ_SHOW_ONCE_SAME_ID) {
-			SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SAME_ID, ResourceUtil.get(9259), ResourceUtil.get(IConstant.ERROR),
-					SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
+			ChangeIDDialog.showChangeIDWindow();
 			return null;
 			// }else if(bizNo == BIZ_MATCHED_FOR_CLIENT_ON_RELAY){
 			// j2seCoreSS.keepaliveManager.startConnBuilderWatcherIfNotStart();
@@ -620,17 +619,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen 
 			}
 
 			if (out.equals("e")) {
-				String msg = ResourceUtil.get(9113);
-				msg = StringUtil.replace(msg, "{uuid}", IConstant.getUUID());// html
-																				// tag
-																				// is
-																				// in
-																				// it.
-
-				LogManager.errToLog(msg);// html can't be displayMessage in
-											// TrayIcon.
-
-				LineFailManager.showLineFailWindow((J2SESession) coreSS, msg);
+				ChangeIDDialog.showChangeIDWindow();
 
 				final String[] ret = { IConstant.FALSE };
 				return ret;

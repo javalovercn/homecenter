@@ -1,10 +1,11 @@
 package hc.server.util;
 
-import hc.util.ClassUtil;
-
 import java.io.FileDescriptor;
 import java.net.InetAddress;
 import java.security.Permission;
+
+import hc.util.ClassUtil;
+import hc.util.ResourceUtil;
 
 public class WrapperSecurityManager extends SecurityManager {
 	private final SecurityManager old;
@@ -26,13 +27,15 @@ public class WrapperSecurityManager extends SecurityManager {
 		return true;
 	}
 
-	@Override
+//	@Override
 	public final boolean getInCheck() {
-		if (old == null) {
-			return false;
-		}
-
-		return old.getInCheck();
+//		if (old == null) {
+//			return false;
+//		}
+//
+//		return old.getInCheck();
+		ResourceUtil.invokeDeprecatedOrRemoveMethod();
+		return false;
 	}
 
 	@Override
@@ -49,84 +52,90 @@ public class WrapperSecurityManager extends SecurityManager {
 		// return back;
 	}
 
-	@Override
+//	@Override
 	protected final ClassLoader currentClassLoader() {
-		if (old != null) {
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentClassLoader", nullParaTypes, nullParas, true);
-			if (out != null && out instanceof ClassLoader) {
-				return (ClassLoader) out;
-			}
-		}
-
+//		if (old != null) {
+//			final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentClassLoader", nullParaTypes, nullParas, true);
+//			if (out != null && out instanceof ClassLoader) {
+//				return (ClassLoader) out;
+//			}
+//		}
+//
+		ResourceUtil.invokeDeprecatedOrRemoveMethod();
 		return null;
 	}
 
-	@Override
+//	@Override
 	protected final Class<?> currentLoadedClass() {
-		if (old != null) {
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentLoadedClass", nullParaTypes, nullParas, true);
-			if (out != null && out instanceof Class<?>) {
-				return (Class<?>) out;
-			}
-		}
-
+//		if (old != null) {
+//			final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentLoadedClass", nullParaTypes, nullParas, true);
+//			if (out != null && out instanceof Class<?>) {
+//				return (Class<?>) out;
+//			}
+//		}
+//
+		ResourceUtil.invokeDeprecatedOrRemoveMethod();
 		return null;
 	}
 
-	@Override
+//	@Override
 	protected final int classDepth(final String name) {
-		if (old != null) {
-			final Class[] paraTypes = { String.class };
-			final Object[] para = { name };
-
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "classDepth", paraTypes, para, true);
-			if (out != null && out instanceof Integer) {
-				return (Integer) out;
-			}
-		}
-
+//		if (old != null) {
+//			final Class[] paraTypes = { String.class };
+//			final Object[] para = { name };
+//
+//			final Object out = ClassUtil.invoke(SecurityManager.class, old, "classDepth", paraTypes, para, true);
+//			if (out != null && out instanceof Integer) {
+//				return (Integer) out;
+//			}
+//		}
+//
+		ResourceUtil.invokeDeprecatedOrRemoveMethod();
 		return 0;
 	}
 
-	@Override
+//	@Override
 	protected final int classLoaderDepth() {
-		if (old != null) {
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "classLoaderDepth", nullParaTypes, nullParas, true);
-			if (out != null && out instanceof Integer) {
-				return (Integer) out;
-			}
-		}
-
+//		if (old != null) {
+//			final Object out = ClassUtil.invoke(SecurityManager.class, old, "classLoaderDepth", nullParaTypes, nullParas, true);
+//			if (out != null && out instanceof Integer) {
+//				return (Integer) out;
+//			}
+//		}
+//
+		ResourceUtil.invokeDeprecatedOrRemoveMethod();
 		return 0;
 	}
 
-	@Override
+//	@Override
 	protected final boolean inClass(final String name) {
-		if (old != null) {
-			final Class[] paraTypes = { String.class };
-			final Object[] para = { name };
-
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClass", paraTypes, para, true);
-			if (out != null && out instanceof Boolean) {
-				return (Boolean) out;
-			}
-		}
-
+//		if (old != null) {
+//			final Class[] paraTypes = { String.class };
+//			final Object[] para = { name };
+//
+//			final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClass", paraTypes, para, true);
+//			if (out != null && out instanceof Boolean) {
+//				return (Boolean) out;
+//			}
+//		}
+//
+		ResourceUtil.invokeDeprecatedOrRemoveMethod();
 		return false;
 	}
 
-	@Override
+//	@Override
 	protected final boolean inClassLoader() {
-		if (old != null) {
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClassLoader", nullParaTypes, nullParas, true);
-			if (out != null && out instanceof Boolean) {
-				return (Boolean) out;
-			}
-		}
-
+//		if (old != null) {
+//			final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClassLoader", nullParaTypes, nullParas, true);
+//			if (out != null && out instanceof Boolean) {
+//				return (Boolean) out;
+//			}
+//		}
+//
+		ResourceUtil.invokeDeprecatedOrRemoveMethod();
 		return false;
 	}
-
+	
 	@Override
 	public final Object getSecurityContext() {
 		if (old != null) {

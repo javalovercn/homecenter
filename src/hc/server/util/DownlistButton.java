@@ -1,8 +1,5 @@
 package hc.server.util;
 
-import hc.core.L;
-import hc.core.util.LogManager;
-
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,6 +12,9 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+
+import hc.core.L;
+import hc.core.util.LogManager;
 
 public abstract class DownlistButton extends JButton {
 	private final Vector<ListAction> actionList = new Vector<ListAction>();
@@ -103,10 +103,12 @@ public abstract class DownlistButton extends JButton {
 	}
 
 	private final void addDownArrow() {
-		final String btnText = getText();
-		final int downIdx = btnText.indexOf(downArrow);
-		if (downIdx < 0) {
-			setText(btnText + downArrow);
+		synchronized (actionList) {
+			final String btnText = getText();
+			final int downIdx = btnText.indexOf(downArrow);
+			if (downIdx < 0) {
+				setText(btnText + downArrow);
+			}
 		}
 	}
 
@@ -121,6 +123,10 @@ public abstract class DownlistButton extends JButton {
 
 	public final void addListAction(final ListAction item) {
 		synchronized (actionList) {
+			if(actionList.contains(item)) {
+				return;
+			}
+			
 			actionList.add(item);
 			if (actionList.size() == 1) {
 				addDownArrow();

@@ -966,23 +966,43 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 		}
 		if (csc != null) {
-			boolean isJFFIStubLoader = false;
-			// com.kenai.jffi.internal.StubLoader.loadFromJar(StubLoader.java:367)
-			if (JRubyInstaller.JRUBY_VERSION.equals(JRubyInstaller.JRUBY_VERSION_1_7_27)) {
-				final StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-				final int size = stack.length;
-				for (int i = 0; i < size; i++) {
-					final StackTraceElement element = stack[i];
-					if (element.getClassName().equals("com.kenai.jffi.internal.StubLoader")) {
-						LogManager.log("ignore checkLink for Class [com.kenai.jffi.internal.StubLoader].");
-						isJFFIStubLoader = true;
+			final StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+			final int size = stack.length;
+			//检查是否是J2SE类调用loadLibrary();
+			boolean isJ2SELoadLib = false;
+			for (int i = 0; i < size; i++) {
+				final StackTraceElement element = stack[i];
+				final String methodName = element.getMethodName();
+				if(methodName.equals("loadLibrary")) {
+					final String className = element.getClassName();
+					if(className.indexOf("$Proxy", 0) >= 0) {//注意：排除JRuby产生的动态类
+						continue;
+					}
+					if(className.startsWith("java.", 0) || className.startsWith("javax.", 0)) {
+						LogManager.log("[security] allow checkLink permission for lib : " + lib + ", in class : " + className + ", method : " + methodName);
+						isJ2SELoadLib = true;
 						break;
 					}
 				}
 			}
-			if (isJFFIStubLoader == false && csc.isLoadLib() == false) {
-				throw new HCSecurityException("block java.lang.Runtime.load(lib) in HAR project  [" + csc.projID + "]."
-						+ buildPermissionOnDesc(HCjar.PERMISSION_LOAD_LIB));
+			
+			if(isJ2SELoadLib == false) {
+				boolean isJFFIStubLoader = false;
+				// com.kenai.jffi.internal.StubLoader.loadFromJar(StubLoader.java:367)
+				if (JRubyInstaller.JRUBY_VERSION.equals(JRubyInstaller.JRUBY_VERSION_1_7_27)) {
+					for (int i = 0; i < size; i++) {
+						final StackTraceElement element = stack[i];
+						if (element.getClassName().equals("com.kenai.jffi.internal.StubLoader")) {
+							LogManager.log("ignore checkLink for Class [com.kenai.jffi.internal.StubLoader].");
+							isJFFIStubLoader = true;
+							break;
+						}
+					}
+				}
+				if (isJFFIStubLoader == false && csc.isLoadLib() == false) {
+					throw new HCSecurityException("block java.lang.Runtime.load(lib) in HAR project  [" + csc.projID + "]."
+							+ buildPermissionOnDesc(HCjar.PERMISSION_LOAD_LIB));
+				}
 			}
 		}
 

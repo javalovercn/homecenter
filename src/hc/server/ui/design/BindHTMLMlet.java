@@ -479,12 +479,14 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 
 		final ConverterInfo cInfo = allConverters.get(selectedIndex - emptyItem);
 		final ProjResponser pr = source.respo.getProjResponser(cInfo.proj_id);
-		source.getConverterDescUpDownToUserThread(pr, cInfo);
+//		source.getConverterDescUpDownToUserThread(pr, cInfo);
 
 		bdn.convBind = cInfo;
+		
+		final ConverterAndExt converterAndExt = source.converterInfoMap.getConverterAndExt(cInfo.hashCodeForConverter);
 
-		final DataDeviceCapDesc upDesc = source.getDataForDeviceCompatibleDesc(pr, cInfo.upDeviceCompatibleDescriptionCache);
-		final DataDeviceCapDesc downDesc = source.getDataForDeviceCompatibleDesc(pr, cInfo.downDeviceCompatibleDescriptionCache);
+		final DataDeviceCapDesc upDesc = source.getDataForDeviceCompatibleDesc(pr, converterAndExt.upDeviceCompatibleDescriptionCache);
+		final DataDeviceCapDesc downDesc = source.getDataForDeviceCompatibleDesc(pr, converterAndExt.downDeviceCompatibleDescriptionCache);
 
 		return buildStrForCap(upDesc, downDesc);
 	}
@@ -500,13 +502,14 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		}
 
 		final RealDeviceInfo rdi = allDevices.get(selectedIndex - emptyItem);
-		final ProjResponser pr = source.respo.getProjResponser(rdi.proj_id);
-		source.getDeviceCompatibleDescByDevice(pr, rdi);
+//		final ProjResponser pr = source.respo.getProjResponser(rdi.proj_id);
+//		source.getDeviceCompatibleDescByDevice(pr, rdi);
 
 		bdn.realDevBind = rdi;
 
-		final DataDeviceCapDesc dev = source.getDataForDeviceCompatibleDesc(pr, rdi.deviceCompatibleDescriptionCache);
-		return buildStrForCap(dev);
+//		final DataDeviceCapDesc dev = source.getDataForDeviceCompatibleDesc(pr, rdi.deviceCompatibleDescriptionCache);
+//		return buildStrForCap(dev);
+		return buildStrForCap(rdi.deviceCapDesc);
 	}
 
 	private final String buildStrForCap(final DataDeviceCapDesc devDesc) {

@@ -9,7 +9,6 @@ import hc.core.L;
 import hc.core.util.LogManager;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.code.CodeHelper;
-import hc.util.ClassUtil;
 
 public class MouseMovingTipTimer extends HCTimer {
 	int x, y;
@@ -82,7 +81,7 @@ public class MouseMovingTipTimer extends HCTimer {
 				if (isOn) {
 					lastShowMS = System.currentTimeMillis();
 				}
-			} catch (final Exception ex) {
+			} catch (final Throwable ex) {
 				// 比如java.awt.IllegalComponentStateException: component must be
 				// showing on the screen to determine its location
 				// ex.printStackTrace();

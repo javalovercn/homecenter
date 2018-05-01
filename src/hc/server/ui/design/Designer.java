@@ -23,6 +23,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -77,6 +81,7 @@ import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IWatcher;
 import hc.core.L;
+import hc.core.RootServerConnector;
 import hc.core.util.BooleanValue;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
@@ -99,6 +104,7 @@ import hc.server.TrayMenuUtil;
 import hc.server.data.StoreDirManager;
 import hc.server.localnet.DeployError;
 import hc.server.localnet.DeploySender;
+import hc.server.localnet.DeploySocket;
 import hc.server.localnet.LocalDeployManager;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.ExceptionCatcherToWindow;
@@ -143,6 +149,7 @@ import hc.server.util.SignHelper;
 import hc.util.BaseResponsor;
 import hc.util.ClassUtil;
 import hc.util.Constant;
+import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -245,22 +252,84 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 	private boolean needRebuildTestJRuby = true;
 
-	private final HCTimer refreshAliveServerInLocalNetwork = new HCTimer("", 60 * 1000, false) {
+	private final HCTimer refreshAliveServerInLocalNetwork = new HCTimer("", 60 * 1000, true) {
 		final Runnable run = new Runnable() {
+			final int fastCheckEndIP = 11;
+			boolean isSlowRuning;
+			boolean isFastRuning;
+
 			@Override
 			public void run() {
+				final InetAddress ia = HttpUtil.getLocal();
+				
 				synchronized (this) {
-					if (isRuning) {
+					if (isFastRuning) {
 						return;
 					}
-					isRuning = true;
+					isFastRuning = true;
 				}
-				LocalDeployManager.refreshAliveServerFromLocalNetwork(activeButton, getCurrProjID(), Designer.this);
-				isRuning = false;
+				
+				checkMulticastServerDeployAlive(ia, activeButton);//高频执行，不同于refreshAliveServerFromLocalNetwork低频、长时间
+				LocalDeployManager.refreshAliveServerFromLocalNetwork(ia, activeButton, Designer.this, 1, fastCheckEndIP);
+				isFastRuning = false;
+				
+				synchronized (this) {
+					if (isSlowRuning) {
+						return;
+					}
+					isSlowRuning = true;
+				}
+				LocalDeployManager.refreshAliveServerFromLocalNetwork(ia, activeButton, Designer.this, fastCheckEndIP, 255);//低频、长时间
+				isSlowRuning = false;
+			}
+			
+			final void checkMulticastServerDeployAlive(final InetAddress localIA, final DownlistButton activeButton) {
+				final String localIP = localIA.getHostAddress();
+				
+				MulticastSocket client = null;
+				byte[] receiveBS = null;
+				try {
+					final InetAddress targetAddr = InetAddress.getByName(RootServerConnector.MULTICAST_IPV4);
+					client = new MulticastSocket();
+					client.setBroadcast(true);
+					client.setSoTimeout(4000);
+
+					final byte[] deployLocalnetBS = RootServerConnector.getDeployLocalnetBS();
+					final int cmdLen = deployLocalnetBS.length;
+					final DatagramPacket sendPack = new DatagramPacket(deployLocalnetBS, cmdLen, targetAddr, RootServerConnector.MULTICAST_PORT);
+					client.send(sendPack);
+					receiveBS = ByteUtil.byteArrayCacher.getFree(1024);
+					activeButton.reset();
+					
+					while(true) {
+						sendPack.setData(receiveBS, 0, receiveBS.length);
+						client.receive(sendPack);
+						final int receiveLen = sendPack.getLength();
+						if(receiveLen > cmdLen && ByteUtil.isSame(deployLocalnetBS, 0, cmdLen, receiveBS, 0, cmdLen)) {
+							final String ip = ByteUtil.bytesToStr(receiveBS, cmdLen, receiveLen - cmdLen);
+							if(ip.equals(localIP)) {//不包含自己
+								continue;
+							}
+							final ListAction item = new ListAction(ip);
+							L.V = L.WShop ? false : LogManager.log("[Deploy] find a live server at " + ip);
+							activeButton.addListAction(item);
+						}
+					}
+				} catch (final Throwable e) {
+					if(L.isInWorkshop) {
+						e.printStackTrace();
+					}
+				} finally {
+					if (receiveBS != null) {
+						ByteUtil.byteArrayCacher.cycle(receiveBS);
+					}
+					try {
+						client.close();
+					} catch (final Throwable e) {
+					}
+				}
 			}
 		};
-
-		boolean isRuning;
 
 		@Override
 		public void doBiz() {
@@ -564,9 +633,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 
 	private final void setToolbarVisible(final JToolBar toolbar, final boolean isVisible) {
-		if (isVisible) {
-			refreshAliveServerInLocalNetwork.doNowAsynchronous();
-		}
 		toolbar.setVisible(isVisible);
 	}
 
@@ -976,6 +1042,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		activeButton.setToolTipText("<html>" + "(" + ResourceUtil.getAbstractCtrlKeyText() + " + D)"
 				+ "<BR>after click activate, current project will be active and menu will be displayed to mobile."
 				+ "<BR><BR><STRONG>Note :</STRONG><BR>if the project is modified, please <STRONG>re-activate</STRONG> it with this button."
+				+ "<BR><BR>You can one click to hot deploy project to Android server, <STRONG>NO</STRONG> same account, if in local net."
 				+ "</html>");
 		{
 			final Action deployAction = new AbstractAction() {
@@ -1393,8 +1460,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 		});
 
-		refreshAliveServerInLocalNetwork.setEnable(true);
-
 		// 该行命令不能置于loadMainProject之后，因为导致resize事件不正确
 		toVisiableAndLocation(panelSubMRInfo);
 
@@ -1450,11 +1515,44 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			} else {
 				passBS = ByteUtil.cloneBS(IConstant.getPasswordBS());
 			}
-			final DeploySender sender = new DeploySender(ip, passBS, true);
+			DeploySender sender = null;
 			try {
+				sender = new DeploySender(ip, passBS);
+			}catch (final Exception e) {//建立连接失败
+				App.showErrorMessageDialog(instance, e.getMessage(), ResourceUtil.getErrorI18N());//不能连接，可能目标服务器关闭deploy_localnet
+				return;
+			}
+			try {
+				if(sender.isAcceptTran() == false) {
+					sender.close();
+					final String enableTranLocal = ResourceUtil.get(9249);//9249=receive deployment from local network;
+					String isDisableAcceTranHar = ResourceUtil.get(9302);//9302=target server is DISABLE accept translate HAR, <BR>please enable option [{trans}].
+					isDisableAcceTranHar = StringUtil.replace(isDisableAcceTranHar, "{ip}", ip);
+					final String dispStr = StringUtil.replace(isDisableAcceTranHar, "{trans}", enableTranLocal);
+					App.showErrorMessageDialog(null, ResourceUtil.wrapHTMLTag(dispStr), ResourceUtil.getErrorI18N());
+					return;
+				}
+			}catch (final Exception e) {
+				sender.close();
+				App.showErrorMessageDialog(null, ResourceUtil.get(9301), ResourceUtil.getErrorI18N());//9301=target server version is too low, please upgrade it!
+				return;
+			}
+			
+			try {
+				byte header = 0;
+				try {
+					header = sender.sayHelloProject(getCurrProjID());//通知更新/添加工程名
+				}catch (final Throwable e) {
+				}
+				if(header == DeploySocket.H_HELLO) {
+				}else if(header == DeploySocket.H_ERROR) {
+					App.showErrorMessageDialog(instance, ResourceUtil.getErrProjIsDeledNeedRestart(null), ResourceUtil.getErrorI18N());
+					return;
+				}
+				
 				boolean isPassPassword = sender.auth();
 				if (isPassPassword == false) {
-					final JLabel jPassword = new JLabel("please input password of " + ip);
+					final JLabel jPassword = new JLabel("please input password of [" + ip + "]");
 					final JPasswordField password = new JPasswordField();
 					final JPanel panel = new JPanel(new GridLayout(2, 1));
 					panel.add(jPassword);
@@ -1475,7 +1573,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					}
 				}
 
-				deploy(sender);
+				deploy(sender, ip);
 			} catch (final Exception e) {
 				showError("unknown error!");
 			} finally {
@@ -1487,7 +1585,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}
 	}
 
-	private final void deploy(final DeploySender sender) {
+	private final void deploy(final DeploySender sender, final String deployIPMaybeNull) {
 		Map<String, Object> map = null;
 		if (isModified) {
 			final int out = modifyNotify();
@@ -1505,14 +1603,18 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final byte[] fileBS = ResourceUtil.getContent(deployFile);
 		try {
 			ProcessingWindowManager.showCenterMessage(ResourceUtil.get(9130));
-			sender.sendData(fileBS, 0, fileBS.length);
-			showHCMessage("successful activate project, " + "mobile can access this resources now.", ACTIVE + " OK", this, true, null);
+			sender.sendHARData(fileBS, 0, fileBS.length, deployIPMaybeNull);
+			displayActiveOK();
 		} catch (final Exception e) {
+			if(L.isInWorkshop) {
+				e.printStackTrace();
+			}
 			ProcessingWindowManager.disposeProcessingWindow();
 			if (e instanceof DeployError) {
-				final byte[] eBS = ((DeployError) e).errorBS;
-				final String desc = ByteUtil.buildString(eBS, 0, eBS.length, IConstant.UTF_8);
-				showError(desc);
+				final DeployError dErr = (DeployError) e;
+				showError(dErr.error);
+			}else if(e instanceof SocketTimeoutException) {
+				showError("timeout for depoyment!");
 			}
 		}
 		return;
@@ -1579,7 +1681,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 				DeviceBinderWizard out = null;
 				try {
-					out = DeviceBinderWizard.getInstance(bindSource, false, frameOwner, respo, tgt);
+					final DesktopDeviceBinderWizSource desktopSource = new DesktopDeviceBinderWizSource(bindSource, respo);
+					out = DeviceBinderWizard.getInstance(desktopSource, false, frameOwner, null);
 				} catch (final Throwable e) {
 					LogManager.log("user cancel connect device or JRuby code error!");
 					ServerUIUtil.restartResponsorServer(frameOwner, respo);
@@ -1826,7 +1929,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 				// 发布缺省工程
 				final Map<String, Object> map = AddHarHTMLMlet.getMap(fileHar);
-				AddHarHTMLMlet.appendMapToSavedLPS(J2SESession.NULL_J2SESESSION_FOR_PROJECT, fileHar, map, true, true, null);
+				AddHarHTMLMlet.appendMapToSavedLPSInSysThread(new LinkPanePlugSource(), fileHar, map, true, true, null);
 				LinkProjectManager.reloadLinkProjects();// 不可少
 
 				// active
@@ -1891,6 +1994,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			// 没有菜单的空工程情形
 		}
 		addItemButton.setEnabled(hasMainMenu);
+		if(false){
+			activeButton.reset();//注：不能reset，非multicast方式下循环一次需要很长时间
+		}
 		activeButton.setEnabled(true);
 
 		refresh();
@@ -1899,6 +2005,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		updateCssClassOfProjectLevel(null);
 		Designer.expandTree(tree);
 
+		refreshAliveServerInLocalNetwork.doNowAsynchronous();
+		
 		//注意：由于用户输入代码，自动require lib + import javaClass，所以不使用delay
 		final Enumeration enumeration = shareFolders[IDX_SHARE_JRUBY_FOLDER].children();
 		while (enumeration.hasMoreElements()) {
@@ -2601,13 +2709,16 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 			if (br instanceof MobiUIResponsor) {
 				if (ec.isNoError()) {
-					showHCMessage("successful activate project, " + "mobile can access this resources now.", ACTIVE + " OK", this, true,
-							null);
+					displayActiveOK();
 				}
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	private final void displayActiveOK() {
+		showHCMessage("successful activate project, mobile can access this resources now.", ACTIVE + " OK", this, true, null);
 	}
 
 	private void doExportBiz(final Map<String, Object> map, final File fileExits, final File fileHadExits, final Designer self) {
@@ -2949,10 +3060,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 
 			loadDefaultEdit();
-			if (isSameProj == false) {
-				activeButton.reset();
-				refreshAliveServerInLocalNetwork.doNowAsynchronous();
-			}
 		}
 	}
 

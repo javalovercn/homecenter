@@ -137,6 +137,7 @@ public class RootServerConnector {
 	final static byte[] MC_QUERY_DIRECT_SERVER_IP = "queryDirectServerIP:"
 			.getBytes();
 	final static byte[] MC_CHECK_ALIVE = "checkAlive".getBytes();
+	final static byte[] MC_DEPLOY_LOCALNET = "deployLocalnet".getBytes();
 
 	public static final byte[] getQueryDirectServerCmdBS() {
 		CCoreUtil.checkAccess();
@@ -146,6 +147,11 @@ public class RootServerConnector {
 	public static final byte[] getCheckAliveCmdBS() {
 		CCoreUtil.checkAccess();
 		return MC_CHECK_ALIVE;
+	}
+	
+	public static final byte[] getDeployLocalnetBS() {
+		CCoreUtil.checkAccess();
+		return MC_DEPLOY_LOCALNET;
 	}
 
 	public final static boolean isQueryDirectServerIPCmd(final byte[] bs,
@@ -161,6 +167,10 @@ public class RootServerConnector {
 	public final static boolean isCheckAliveCmd(final byte[] bs, int off,
 			final int len) {
 		return isCmd(bs, off, len, MC_CHECK_ALIVE);
+	}
+	
+	public final static boolean isDeployLocalnet(final byte[] bs, int off) {
+		return isCmd(bs, off, MC_DEPLOY_LOCALNET.length, MC_DEPLOY_LOCALNET);
 	}
 
 	private static boolean isCmd(final byte[] bs, int off, final int len,

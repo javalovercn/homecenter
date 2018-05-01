@@ -218,7 +218,7 @@ public class ServerUIUtil {
 								"Error", App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 						System.exit(0);
 					}
-					if (respo instanceof MobiUIResponsor) {
+					if (respo != null && respo instanceof MobiUIResponsor) {
 						final ExceptionCatcherToWindow ec = ((MobiUIResponsor) respo).ec;
 						if (ec != null) {
 							ec.setThrowable(e);
@@ -228,8 +228,10 @@ public class ServerUIUtil {
 					ExceptionReporter.printStackTrace(e);
 				}
 				if (responsor == null) {
-					LogManager.log("cancel all HAR projects.");
-					cancelHAR(respo);
+					if(respo != null) {
+						LogManager.log("cancel all HAR projects.");
+						cancelHAR(respo);
+					}
 				}
 				if (responsor == null) {
 					responsor = new DefaultUIResponsor();
@@ -371,7 +373,7 @@ public class ServerUIUtil {
 			HttpUtil.notifyStopServer(isQuery, parent);
 		}
 
-		J2SESessionManager.stopAllSession(true, true, false);// 触发EVENT_SYS_MOBILE_LOGOUT，确保在Event
+		J2SESessionManager.stopAllSession(true, false);// 触发EVENT_SYS_MOBILE_LOGOUT，确保在Event
 																// shutdown之前
 
 		ServerUIUtil.stop();// event shutdown 需要被确保执行，所以提前

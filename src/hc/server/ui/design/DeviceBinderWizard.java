@@ -1,23 +1,5 @@
 package hc.server.ui.design;
 
-import hc.App;
-import hc.UIActionListener;
-import hc.core.ContextManager;
-import hc.core.util.ExceptionReporter;
-import hc.server.HCActionListener;
-import hc.server.HCWindowAdapter;
-import hc.server.msb.ConverterInfo;
-import hc.server.msb.DataDeviceCapDesc;
-import hc.server.msb.DeviceBindInfo;
-import hc.server.msb.DeviceCompatibleDescription;
-import hc.server.msb.IoTSource;
-import hc.server.msb.RealDeviceInfo;
-import hc.server.ui.ServerUIUtil;
-import hc.server.util.HCJDialog;
-import hc.server.util.HCJFrame;
-import hc.util.ClassUtil;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -34,7 +16,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Vector;
@@ -66,14 +48,32 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import hc.App;
+import hc.UIActionListener;
+import hc.core.ContextManager;
+import hc.core.util.ExceptionReporter;
+import hc.server.HCActionListener;
+import hc.server.HCWindowAdapter;
+import hc.server.msb.ConverterInfo;
+import hc.server.msb.DataDeviceCapDesc;
+import hc.server.msb.DeviceBindInfo;
+import hc.server.msb.DeviceCompatibleDescription;
+import hc.server.msb.IoTSource;
+import hc.server.msb.RealDeviceInfo;
+import hc.server.ui.ServerUIUtil;
+import hc.server.util.HCJDialog;
+import hc.server.util.HCJFrame;
+import hc.server.util.SafeDataManager;
+import hc.util.ClassUtil;
+import hc.util.ResourceUtil;
+
 public class DeviceBinderWizard extends JPanel {
-	final ThreadGroup threadPoolToken;
 	final JFrame selfFrame;
+	final ThreadGroup threadPoolToken;
 
 	UIActionListener jbOKAction;
 	UIActionListener cancelAction;
 
-	IoTSource rs;
 	JTree tree;
 	boolean isDialogDispose = false;
 	DefaultMutableTreeNode root;
@@ -93,53 +93,88 @@ public class DeviceBinderWizard extends JPanel {
 
 	JTree converterTree, devTree;
 
-	private BindDeviceNode[] getBindDeviceNodesOfRobot(final DefaultMutableTreeNode robotNode) {
-		final int size = robotNode.getChildCount();
-		final BindDeviceNode[] bdn = new BindDeviceNode[size];
-		if (size > 0) {
-			for (int i = 0; i < size; i++) {
-				final DefaultMutableTreeNode referNode = (DefaultMutableTreeNode) robotNode.getChildAt(i);
-				bdn[i] = (BindDeviceNode) referNode.getUserObject();
-			}
-		}
-		return bdn;
-	}
-
 	private final void enableSelectDevCon(final boolean enable) {
 		chooseConverterButton.setEnabled(enable && converterTree != null);
 		clearConverterButton.setEnabled(enable && converterTree != null);
 		chooseRealDevButton.setEnabled(enable && devTree != null);
 	}
 
-	private Vector<BindDeviceNode[]> getBindDeviceNodesofProject(final DefaultMutableTreeNode projNode) {
-		final Vector<BindDeviceNode[]> bdns = new Vector<BindDeviceNode[]>();
-
-		final int countProjChild = projNode.getChildCount();
-
-		if (countProjChild > 0) {
-			for (int i = 0; i < countProjChild; i++) {
-				final DefaultMutableTreeNode robotNode = (DefaultMutableTreeNode) projNode.getChildAt(i);
-				bdns.add(getBindDeviceNodesOfRobot(robotNode));
-			}
-		}
-
-		return bdns;
-	}
-
 	public void save() {
-		final TreeNode root = (TreeNode) tree.getModel().getRoot();
-		final int rootChildCount = root.getChildCount();
-		if (rootChildCount > 0) {
-			for (int i = 0; i < rootChildCount; i++) {
-				final DefaultMutableTreeNode projNode = (DefaultMutableTreeNode) root.getChildAt(i);
-				final BindDeviceNode projBDN = (BindDeviceNode) projNode.getUserObject();
-				final String projID = projBDN.projID;
+		devBinderWizSource.save();
+	}
+	
+	public void cancel() {
+		devBinderWizSource.cancel();
+	}
+	
+	/**
+	 * 
+	 * @param devBinderSource
+	 * @param owner
+	 * @return true means save OK.
+	 */
+	public static final boolean enterBindUI(final DeviceBinderWizSource devBinderSource, final JFrame owner, final String deployIPMaybeNull) {
+		final Boolean[] isDoneBind = { null };
+		ContextManager.getThreadPool().run(new Runnable() {
+			@Override
+			public void run() {
+				SafeDataManager.startSafeBackupProcess(true, false);
+				DeviceBinderWizard out = null;
+				try {
+					out = DeviceBinderWizard.getInstance(devBinderSource, false, owner, deployIPMaybeNull);
+				} catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
+					isDoneBind[0] = false;
+					LinkProjectManager.reloadLinkProjects();
+					synchronized (isDoneBind) {
+						isDoneBind.notify();
+					}
+					
+					return;
+				}
 
-				AddHarHTMLMlet.updateProjectBindsToLPS(projID, getBindDeviceNodesofProject(projNode));
+				final DeviceBinderWizard binder = out;
+				final UIActionListener jbOKAction = new UIActionListener() {
+					@Override
+					public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
+						window.dispose();
+
+						isDoneBind[0] = true;
+						binder.save();
+						
+						synchronized (isDoneBind) {
+							isDoneBind.notify();
+						}
+					}
+				};
+				final UIActionListener cancelAction = new UIActionListener() {
+					@Override
+					public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
+						window.dispose();
+
+						// 以下代码，请与上行的DeviceBinderWizard.getInstance保持一致
+						isDoneBind[0] = false;
+						binder.cancel();
+						
+						synchronized (isDoneBind) {
+							isDoneBind.notify();
+						}
+					}
+				};
+				binder.setButtonAction(jbOKAction, cancelAction);
+				binder.show();
+			}
+		});
+		synchronized (isDoneBind) {
+			if(isDoneBind[0] == null) {
+				try {
+					isDoneBind.wait();
+				} catch (final InterruptedException e) {
+				}
 			}
 		}
-
-		LinkProjectManager.updateToLinkProject();
+		
+		return isDoneBind[0];
 	}
 
 	private void switchPanel(final BindDeviceNode bindNode, final boolean isRefresh) {
@@ -165,16 +200,12 @@ public class DeviceBinderWizard extends JPanel {
 	private void refreshPanel(final BindDeviceNode bindNode) {
 		enableSelectDevCon(true);
 
-		final ProjResponser projResponser = mobiResp.getProjResponser(bindNode.projID);
-
 		final String buildConverterFieldString = buildConverterFieldString(bindNode.convBind);
 		clearConverterButton.setEnabled(buildConverterFieldString.length() != 0);
 
 		convertLabel.setText(buildConverterFieldString);
 		realDevLabel.setText(buildRealDeviceFieldString(bindNode.realDevBind));
-		final DeviceCompatibleDescription devCompDesc = bindNode.devCompDesc;
-		final DataDeviceCapDesc devDesc = rs.getDataForDeviceCompatibleDesc(projResponser, devCompDesc);
-		refDevDescLabel.setText(buildDevCapDescStr(devDesc));
+		refDevDescLabel.setText(bindNode.devCapDescStr);
 	}
 
 	private String buildConverterFieldString(final ConverterInfo info) {
@@ -207,46 +238,53 @@ public class DeviceBinderWizard extends JPanel {
 		}
 	}
 
-	final MobiUIResponsor mobiResp;
+	final DeviceBinderWizSource devBinderWizSource;
 
 	private static DeviceBinderWizard instance;
 
-	public static DeviceBinderWizard getInstance(final IoTSource rs, final boolean isNoCancelOperation, final Frame owner,
-			final MobiUIResponsor respo, final ThreadGroup threadPoolToken) throws Exception {
+	public static DeviceBinderWizard getInstance(final DeviceBinderWizSource devBinderSource, final boolean isNoCancelOperation, final Frame owner,
+			final String deployIPMaybeNull) throws Exception {
 		if (instance != null && instance.isDialogDispose == false) {
 		} else {
 			// 不能使用App.invokeLater，会产生反射权限不够
-			instance = new DeviceBinderWizard(rs, isNoCancelOperation, owner, respo, threadPoolToken);
+			instance = new DeviceBinderWizard(devBinderSource, isNoCancelOperation, owner, deployIPMaybeNull);
 		}
 		return instance;
 	}
 
-	private DeviceBinderWizard(final IoTSource rs, final boolean isNoCancelOperation, final Frame owner, final MobiUIResponsor respo,
-			final ThreadGroup threadPoolToken) throws Exception {
-		this.threadPoolToken = threadPoolToken;
-
+	private DeviceBinderWizard(final DeviceBinderWizSource devBindSrc, final boolean isNoCancelOperation, final Frame owner,
+			final String deployIPMaybeNull) throws Exception {
+		threadPoolToken = App.getThreadPoolToken();
+		
 		// 由于绑定窗口会可能引发Tip事件，如果是JDialog会导致焦点无法取得，所以改为JFrame
-		selfFrame = new HCJFrame((String) ResourceUtil.get(8000)) {
+		final String bindManager = ResourceUtil.get(8000);
+		final String titleStr;
+		if(deployIPMaybeNull == null) {
+			titleStr = bindManager;
+		}else {
+			titleStr = ResourceUtil.buildMaoHaoBetween(bindManager, deployIPMaybeNull);
+		}
+		selfFrame = new HCJFrame(titleStr) {
 			@Override
 			public void dispose() {
 				super.dispose();
 				isDialogDispose = true;
+				instance = null;
 			}
 		};
 
-		this.mobiResp = respo;
-		this.rs = rs;
+		this.devBinderWizSource = devBindSrc;
 
 		// 以下两段结果被其它模块使用，所以提前
 		buildConverterTree();// 可能抛出异常，需中断本构造化
 		buildDevTree();// 可能抛出异常，需中断本构造化
 
 		okButton = App.buildDefaultOKButton();
-		okButton.setToolTipText((String) ResourceUtil.get(8001));
+		okButton.setToolTipText(ResourceUtil.get(8001));
 		okButton.setEnabled(false);
 		cancelButton = App.buildDefaultCancelButton();
-		searchUnbindButton = new JButton((String) ResourceUtil.get(8002), Designer.iconDeviceGray);
-		searchUnbindButton.setToolTipText((String) ResourceUtil.get(8003));
+		searchUnbindButton = new JButton(ResourceUtil.get(8002), Designer.iconDeviceGray);
+		searchUnbindButton.setToolTipText(ResourceUtil.get(8003));
 		searchUnbindButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -306,9 +344,9 @@ public class DeviceBinderWizard extends JPanel {
 
 		{
 			refDevDescPanel = new JPanel(new BorderLayout());
-			refDevDescPanel.setBorder(new TitledBorder((String) ResourceUtil.get(8013)));
+			refDevDescPanel.setBorder(new TitledBorder(ResourceUtil.get(8013)));
 			// refDevDescLabel.setAlignmentY(Component.TOP_ALIGNMENT );
-			refDevDescPanel.add(new JScrollPane(refDevDescLabel), BorderLayout.CENTER);
+			refDevDescPanel.add(refDevDescLabel, BorderLayout.CENTER);//注：不对lable加JScrollPane，共用外部
 		}
 
 		{
@@ -324,9 +362,9 @@ public class DeviceBinderWizard extends JPanel {
 		convertLabel = new JTextField("");
 		convertLabel.setEditable(false);
 		convertLabel.setColumns(columns);
-		final String funcName = (String) ResourceUtil.get(8004);
+		final String funcName = ResourceUtil.get(8004);
 		chooseConverterButton = new JButton(funcName);
-		clearConverterButton = new JButton((String) ResourceUtil.get(8005));
+		clearConverterButton = new JButton(ResourceUtil.get(8005));
 		{
 			final JPanel subPanel = new JPanel();
 			subPanel.setLayout(new BorderLayout());
@@ -336,11 +374,11 @@ public class DeviceBinderWizard extends JPanel {
 
 			final JPanel descPanel = new JPanel();
 			descPanel.setLayout(new BorderLayout());
-			descPanel.add(new JLabel((String) ResourceUtil.get(8006)), BorderLayout.CENTER);
+			descPanel.add(new JLabel(ResourceUtil.get(8006)), BorderLayout.CENTER);
 
 			final JComponent[] components = { subPanel, chooseConverterButton, descPanel };
 			final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER);
-			buildNorthPanel.setBorder(new TitledBorder((String) ResourceUtil.get(8010)));
+			buildNorthPanel.setBorder(new TitledBorder(ResourceUtil.get(8010)));
 
 			{
 				final GridBagConstraints c = new GridBagConstraints();
@@ -393,7 +431,7 @@ public class DeviceBinderWizard extends JPanel {
 		realDevLabel = new JTextField("");
 		realDevLabel.setEditable(false);
 		realDevLabel.setColumns(columns);
-		final String realDevFuncName = (String) ResourceUtil.get(8007);
+		final String realDevFuncName = ResourceUtil.get(8007);
 		chooseRealDevButton = new JButton(realDevFuncName);
 		{
 			final JPanel subPanel = new JPanel();
@@ -403,11 +441,11 @@ public class DeviceBinderWizard extends JPanel {
 
 			final JPanel descPanel = new JPanel();
 			descPanel.setLayout(new BorderLayout());
-			descPanel.add(new JLabel((String) ResourceUtil.get(8008)), BorderLayout.CENTER);
+			descPanel.add(new JLabel(ResourceUtil.get(8008)), BorderLayout.CENTER);
 
 			final JComponent[] components = { subPanel, chooseRealDevButton, descPanel };
 			final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER);
-			buildNorthPanel.setBorder(new TitledBorder((String) ResourceUtil.get(8011)));
+			buildNorthPanel.setBorder(new TitledBorder(ResourceUtil.get(8011)));
 
 			{
 				final GridBagConstraints c = new GridBagConstraints();
@@ -459,7 +497,7 @@ public class DeviceBinderWizard extends JPanel {
 		treeScrollPane = new JScrollPane(tree);
 
 		final JPanel treePanel = new JPanel();
-		treePanel.setBorder(new TitledBorder((String) ResourceUtil.get(8009)));
+		treePanel.setBorder(new TitledBorder(ResourceUtil.get(8009)));
 		treePanel.setLayout(new BorderLayout());
 		treePanel.add(searchUnbindButton, BorderLayout.NORTH);
 		treePanel.add(treeScrollPane, BorderLayout.CENTER);
@@ -469,10 +507,19 @@ public class DeviceBinderWizard extends JPanel {
 		editPanel.setLayout(new BorderLayout());
 		editPanel.add(bindPanel, BorderLayout.CENTER);
 
-		final JSplitPane panelSubMRInfo = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treePanel, new JScrollPane(editPanel));// 如Android标准屏时，不足
-
+		JComponent centerPanel = null;
+		JSplitPane splitPane = null;
+		if(ResourceUtil.isAndroidServerPlatform()) {
+			final JPanel cPanel = new JPanel(new BorderLayout());
+			cPanel.add(treePanel, BorderLayout.WEST);
+			cPanel.add(new JScrollPane(editPanel), BorderLayout.CENTER);
+			centerPanel = cPanel;
+		}else {
+			splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treePanel, new JScrollPane(editPanel));// 如Android标准屏时，不足
+			centerPanel = splitPane;
+		}
 		setLayout(new BorderLayout());
-		add(panelSubMRInfo, BorderLayout.CENTER);
+		add(centerPanel, BorderLayout.CENTER);
 
 		jumpToFirstUnbindNode();
 
@@ -521,7 +568,9 @@ public class DeviceBinderWizard extends JPanel {
 
 		selfFrame.setSize(new Dimension(1200, 800));
 
-		panelSubMRInfo.setDividerLocation(1 - 0.618);
+		if(splitPane != null) {
+			splitPane.setDividerLocation(1 - 0.618);
+		}
 	}
 
 	@Override
@@ -650,9 +699,11 @@ public class DeviceBinderWizard extends JPanel {
 		return null;
 	}
 
-	private void buildDevTree() throws Exception {
-		final ArrayList<RealDeviceInfo> list = rs.getRealDeviceInAllProject();
-		if (list == null || list.size() == 0) {
+	private final void buildDevTree() throws Exception {
+		final DevTree devTreeSrc = devBinderWizSource.buildDevTree();
+		
+		final Vector<BindDeviceNode> realDevlist = devTreeSrc.realDevList;
+		if (realDevlist == null || realDevlist.size() == 0) {
 			return;
 		}
 
@@ -682,39 +733,40 @@ public class DeviceBinderWizard extends JPanel {
 		final HashMap<String, DefaultMutableTreeNode> proj_map = new HashMap<String, DefaultMutableTreeNode>();
 		final HashMap<String, DefaultMutableTreeNode> dev_name_map = new HashMap<String, DefaultMutableTreeNode>();
 
-		for (int i = 0; i < list.size(); i++) {
-			final RealDeviceInfo cbi = list.get(i);
-			DefaultMutableTreeNode projNode = proj_map.get(cbi.proj_id);
-			if (projNode == null) {
-				projNode = new DefaultMutableTreeNode();
-				projNode.setUserObject(new BindDeviceNode(mobiResp, BindDeviceNode.PROJ_NODE, cbi.proj_id, "", null, null));
-				dev_root.add(projNode);
+		final int projSize = devTreeSrc.projectList.size();
+		for (int i = 0; i < projSize; i++) {
+			final DefaultMutableTreeNode projNode = new DefaultMutableTreeNode();
+			final BindDeviceNode userObject = devTreeSrc.projectList.get(i);
+			projNode.setUserObject(userObject);
+			dev_root.add(projNode);
 
-				proj_map.put(cbi.proj_id, projNode);
-			}
-
-			DefaultMutableTreeNode devNameNode = dev_name_map.get(cbi.proj_id + cbi.dev_name);
-			if (devNameNode == null) {
-				devNameNode = new DefaultMutableTreeNode();
-				devNameNode.setUserObject(new BindDeviceNode(mobiResp, BindDeviceNode.DEV_NODE, cbi.proj_id, cbi.dev_name, null, null));
-				projNode.add(devNameNode);
-				dev_name_map.put(cbi.proj_id + cbi.dev_name, devNameNode);
-			}
+			proj_map.put(userObject.projID, projNode);
+		}
+		
+		final int devSize = devTreeSrc.devList.size();
+		for (int i = 0; i < devSize; i++) {
+			final BindDeviceNode bdn = devTreeSrc.devList.get(i);
+			
+			final DefaultMutableTreeNode devNameNode = new DefaultMutableTreeNode();
+			devNameNode.setUserObject(bdn);
+			proj_map.get(bdn.projID).add(devNameNode);
+			dev_name_map.put(bdn.projID + bdn.lever2Name, devNameNode);
+		}
+		
+		final int realDevSize = realDevlist.size();
+		for (int i = 0; i < realDevSize; i++) {
+			final BindDeviceNode bdn = realDevlist.get(i);
 
 			final DefaultMutableTreeNode realDevIDNode = new DefaultMutableTreeNode();
-			final DeviceBindInfo devBindInfo = new DeviceBindInfo(cbi.proj_id, cbi.dev_name);
-			devBindInfo.ref_dev_id = cbi.dev_id;
-			final BindDeviceNode userObject = new BindDeviceNode(mobiResp, BindDeviceNode.REAL_DEV_ID_NODE, cbi.proj_id, cbi.dev_name,
-					devBindInfo, null);
-			userObject.realDevBind = cbi;
+			final BindDeviceNode userObject = bdn;
 			realDevIDNode.setUserObject(userObject);
-			devNameNode.add(realDevIDNode);
+			dev_name_map.get(bdn.projID + bdn.lever2Name).add(realDevIDNode);
 		}
 	}
 
 	private void buildConverterTree() throws Exception {
-		final ArrayList<ConverterInfo> list = rs.getConverterInAllProject();
-		if (list == null || list.size() == 0) {
+		final ConverterTree converterTreeSrc = devBinderWizSource.buildConverterTree();
+		if (converterTreeSrc.projectList.size() == 0) {
 			return;
 		}
 
@@ -726,60 +778,61 @@ public class DeviceBinderWizard extends JPanel {
 		converterTree.setCellRenderer(new BindTreeCellRenderer());
 
 		final HashMap<String, DefaultMutableTreeNode> proj_map = new HashMap<String, DefaultMutableTreeNode>();
+		
+		final Vector<BindDeviceNode> projectList = converterTreeSrc.projectList;
+		for (int i = 0; i < projectList.size(); i++) {//加挂一级节点project
+			final DefaultMutableTreeNode projNode = new DefaultMutableTreeNode();
+			final BindDeviceNode elementAt = projectList.elementAt(i);
+			projNode.setUserObject(elementAt);
+			conv_root.add(projNode);
 
-		for (int i = 0; i < list.size(); i++) {
-			final ConverterInfo cbi = list.get(i);
-			DefaultMutableTreeNode projNode = proj_map.get(cbi.proj_id);
-			if (projNode == null) {
-				projNode = new DefaultMutableTreeNode();
-				projNode.setUserObject(new BindDeviceNode(mobiResp, BindDeviceNode.PROJ_NODE, cbi.proj_id, "", null, null));
-				conv_root.add(projNode);
+			proj_map.put(elementAt.projID, projNode);
+		}
 
-				proj_map.put(cbi.proj_id, projNode);
-			}
+		final Vector<BindDeviceNode> converterList = converterTreeSrc.converterList;
+		for (int i = 0; i < converterList.size(); i++) {//加挂二级节点converter
+			final BindDeviceNode converterNodeSrc = converterList.get(i);
+			final DefaultMutableTreeNode projNode = proj_map.get(converterNodeSrc.projID);
 
 			final DefaultMutableTreeNode converterNode = new DefaultMutableTreeNode();
-			final BindDeviceNode userObject = new BindDeviceNode(mobiResp, BindDeviceNode.CONVERTER_NODE, cbi.proj_id, cbi.name, null,
-					null);
-			userObject.convBind = cbi;
-			converterNode.setUserObject(userObject);
+			converterNode.setUserObject(converterNodeSrc);
 			projNode.add(converterNode);
 		}
 	}
 
 	private void buildTree() throws Exception {
-		final ArrayList<String> list = BindManager.getProjectIDList(rs);
+		final BDNTree bdnTree = devBinderWizSource.buildTree();
+		
+		final Vector<String> list = bdnTree.projectList;
 		for (int i = 0; i < list.size(); i++) {
 			final String projID = list.get(i);
 
-			if (BindManager.getTotalReferenceDeviceNumByProject(rs, projID) == 0) {
-				continue;
-			}
-
-			final ArrayList<String> robotList = BindManager.getRobotsByProjectID(rs, projID);
+			final Vector<String> robotList = bdnTree.bdnRobotList.get(i).robotIDList;
+			final BDNTreeNode treeNode = bdnTree.treeNodeList.get(i);
 
 			final DefaultMutableTreeNode projNode = new DefaultMutableTreeNode();
-			projNode.setUserObject(BindManager.buildDataNodeForProject(mobiResp, projID));
+			projNode.setUserObject(treeNode.projectNode);
 			root.add(projNode);
 
 			for (int j = 0; j < robotList.size(); j++) {
 				final String robotID = robotList.get(j);
-				final ArrayList<DeviceBindInfo> refList = BindManager.getReferenceDeviceListByRobotName(rs, projID, robotID);
-				final int refSize = refList.size();
+				
+				final DeviceBindInfo[] refList = treeNode.refList.get(j);
+				final int refSize = refList.length;
 
 				if (refSize == 0) {
 					continue;
 				}
 
+				final BindDeviceNode bdnForRobot = treeNode.bdnForRobot.get(j);
 				final DefaultMutableTreeNode robotNode = new DefaultMutableTreeNode();
-				robotNode.setUserObject(BindManager.buildDataNodeForRobot(mobiResp, projID, robotID));
+				robotNode.setUserObject(bdnForRobot);
 				projNode.add(robotNode);
 
+				final BindDeviceNode[] devBelowRobot = treeNode.devBelowRobotList.get(j);
 				for (int k = 0; k < refSize; k++) {
-					final DeviceBindInfo di = refList.get(k);
-
 					final DefaultMutableTreeNode devNode = new DefaultMutableTreeNode();
-					devNode.setUserObject(BindManager.buildDataNodeForRefDevInRobot(mobiResp, projID, robotID, di, rs));
+					devNode.setUserObject(devBelowRobot[k]);
 					robotNode.add(devNode);
 				}
 			}
@@ -878,7 +931,7 @@ public class DeviceBinderWizard extends JPanel {
 		descPanel.add(new JScrollPane(desc), BorderLayout.CENTER);
 		panel.add(descPanel);
 
-		App.showCenterPanelMain(panel, 300, 500, title, true, ok, null, listener, null, parent, true, false, null, true, false);// relativeTo会导致dev偏移到左边，故关闭为居中
+		App.showCenterPanelMain(panel, 600, 500, title, true, ok, null, listener, null, parent, true, false, null, true, false);// relativeTo会导致dev偏移到左边，故关闭为居中
 	}
 
 	public void selectTreeNodeAction(final JTree tree, final int leafNodeType, final JButton ok, final JLabel desc, final TreePath tp,
@@ -903,28 +956,23 @@ public class DeviceBinderWizard extends JPanel {
 								public void run() {
 									ok.doClick();
 								}
-							}, threadPoolToken);
+							});
 
 							return;
 						}
 
-						final ProjResponser projResponser = mobiResp.getProjResponser(bdn.projID);
 						if (leafNodeType == BindDeviceNode.CONVERTER_NODE) {
 							try {
 								final ConverterInfo convertInfo = bdn.convBind;
-								rs.getConverterDescUpDownToUserThread(projResponser, convertInfo);
-								desc.setText(buildConverterCapDescStr(projResponser, convertInfo.upDeviceCompatibleDescriptionCache,
-										convertInfo.downDeviceCompatibleDescriptionCache));
+								desc.setText(convertInfo.converterInfoDesc);
 							} catch (final Throwable e) {
 								desc.setText("");
 							}
 						} else if (leafNodeType == BindDeviceNode.REAL_DEV_ID_NODE) {
 							try {
 								final RealDeviceInfo realDevInfo = bdn.realDevBind;
-								rs.getDeviceCompatibleDescByDevice(projResponser, realDevInfo);
-								final DataDeviceCapDesc devDesc = rs.getDataForDeviceCompatibleDesc(projResponser,
-										realDevInfo.deviceCompatibleDescriptionCache);
-								desc.setText(buildDevCapDescStr(devDesc));
+								final DataDeviceCapDesc devDesc = realDevInfo.deviceCapDesc;
+								desc.setText(BindRobotSource.buildDevCapDescStr(devDesc));
 							} catch (final Throwable e) {
 								desc.setText("");
 							}
@@ -940,22 +988,6 @@ public class DeviceBinderWizard extends JPanel {
 				ok.setEnabled(false);
 			}
 		});
-	}
-
-	private String buildConverterCapDescStr(final ProjResponser pr, final DeviceCompatibleDescription upDCD,
-			final DeviceCompatibleDescription downDCD) {
-		final DataDeviceCapDesc upDataDCD = rs.getDataForDeviceCompatibleDesc(pr, upDCD);
-		final DataDeviceCapDesc downDataDCD = rs.getDataForDeviceCompatibleDesc(pr, downDCD);
-
-		return "<html>" + "<STRONG>Up Description :</STRONG><BR>" + upDataDCD.desc + "<BR><STRONG>Up Version :</STRONG><BR>" + upDataDCD.ver
-				+ "<BR><STRONG>Up Compatible :</STRONG><BR>" + upDataDCD.capList + "<BR><BR><STRONG>Down Description :</STRONG><BR>"
-				+ downDataDCD.desc + "<BR><STRONG>Down Version :</STRONG><BR>" + downDataDCD.ver
-				+ "<BR><STRONG>Down Compatible :</STRONG><BR>" + downDataDCD.capList + "</html>";
-	}
-
-	private String buildDevCapDescStr(final DataDeviceCapDesc desc) {
-		return "<html>" + "<STRONG>Description :</STRONG><BR>" + desc.desc + "<BR><STRONG>Version :</STRONG><BR>" + desc.ver
-				+ "<BR><STRONG>Compatible :</STRONG><BR>" + desc.capList + "</html>";
 	}
 
 	private void switchTreeNode(final Object obj) {
@@ -975,7 +1007,9 @@ public class DeviceBinderWizard extends JPanel {
 
 }
 
-class BindNode {
+class BindNode implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	int type;
 
 	public static final int PROJ_NODE = 1;
@@ -986,6 +1020,8 @@ class BindNode {
 }
 
 class BindDeviceNode extends BindNode {
+	private static final long serialVersionUID = 1L;
+
 	// 专用
 	BindDeviceNode(final RealDeviceInfo realDevBind, final ConverterInfo convBind) {
 		this.realDevBind = realDevBind;
@@ -1019,13 +1055,20 @@ class BindDeviceNode extends BindNode {
 					ExceptionReporter.printStackTrace(e);
 				}
 
+				final ProjResponser projResponser = mobiResp.getProjResponser(projID);
+				
 				try {
-					devCompDesc = rs.getDeviceCompatibleDescByRobotName(projID, robotOrConverterID, ref_dev_ID);
+					final DeviceCompatibleDescription devCompDesc = rs.getDeviceCompatibleDescByRobotName(projID, robotOrConverterID, ref_dev_ID);
+					final DataDeviceCapDesc devDesc = rs.getDataForDeviceCompatibleDesc(projResponser, devCompDesc);
+					devCapDescStr = BindRobotSource.buildDevCapDescStr(devDesc);
 				} catch (final Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}
 	}
+	
+	String devCapDescStr;
 
 	public boolean isBindedRealDevice() {
 		return realDevBind != null;
@@ -1037,7 +1080,8 @@ class BindDeviceNode extends BindNode {
 
 	RealDeviceInfo realDevBind;
 	ConverterInfo convBind;
-	DeviceCompatibleDescription devCompDesc;
+//	DeviceCompatibleDescription devCompDesc;
+	String DevCapDescStr;
 
 	String projID;
 	String lever2Name;

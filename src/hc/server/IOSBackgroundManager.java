@@ -16,7 +16,7 @@ public class IOSBackgroundManager {
 			@Override
 			public void doBiz() {
 				LogManager.log("force close connection when iOS keep in background for max minutes!");
-				J2SESessionManager.stopSession(coreSS, true, true, false);
+				J2SESessionManager.stopSession(coreSS, true, false);
 				setEnable(false);
 			}
 		};

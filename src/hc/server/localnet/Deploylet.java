@@ -1,14 +1,15 @@
 package hc.server.localnet;
 
+import java.io.IOException;
+
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.util.ByteArrayCacher;
 import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
 import hc.server.ui.design.LinkProjectManager;
+import hc.server.util.DelDeployedProjManager;
 import hc.util.ResourceUtil;
-
-import java.io.IOException;
 
 public class Deploylet {
 	private static final ByteArrayCacher cache = ByteUtil.byteArrayCacher;
@@ -35,9 +36,12 @@ public class Deploylet {
 		try {
 			processLoop();
 		} catch (final Throwable e) {
+			if(L.isInWorkshop) {
+				e.printStackTrace();
+			}
 		} finally {
 			if (socket != null && socket.socket != null) {
-				L.V = L.WShop ? false : LogManager.log("[Deploy] close a deploy session at " + socket.socket.hashCode());
+				L.V = L.WShop ? false : LogManager.log("[Deploy] close a deploy socket at " + socket.socket.hashCode());
 			}
 			try {
 				socket.close();
@@ -49,7 +53,9 @@ public class Deploylet {
 
 	String projectID;
 
-	private final void processLoop() throws IOException {
+	private final void processLoop() throws Throwable {
+		boolean isAcceptTran = false;
+		
 		while (true) {
 			if (socket != null && socket.socket != null) {
 				L.V = L.WShop ? false : LogManager.log("[Deploy] ready to receive at " + socket.socket.hashCode());
@@ -62,11 +68,28 @@ public class Deploylet {
 					L.V = L.WShop ? false : LogManager.log("[Deploy] receive bye at " + socket.socket.hashCode());
 				}
 				break;
+			}else if (header == DeploySocket.H_IS_ACCEPT_TRANS) {
+				final byte[] result;
+				if (ResourceUtil.isReceiveDeployFromLocalNetwork()) {
+					result = IConstant.TRUE.getBytes();
+					isAcceptTran = true;
+				}else {
+					result = IConstant.FALSE.getBytes();
+				}
+				socket.sendHeader(DeploySocket.H_IS_ACCEPT_TRANS, result.length);
+				socket.sendData(result, 0, result.length, false, false, null);
 			} else if (header == DeploySocket.H_HELLO) {
 				final byte[] projIDbs = socket.receiveData(headerLen, null);
 				final String projID = ByteUtil.buildString(projIDbs, 0, headerLen, IConstant.UTF_8);
 
-				if (LinkProjectManager.checkActiveProject(projID)) {
+				if (DelDeployedProjManager.isDeledDeployed(projID)) {
+					final String err = ResourceUtil.getErrProjIsDeledNeedRestart(null);
+					socket.sendError(err);
+					try {
+						Thread.sleep(1000);
+					}catch (final Exception e) {
+					}
+				}else if (true || LinkProjectManager.checkActiveProject(projID)) {//缺省接受所有工程，包括新且未发布
 					projectID = projID;
 					socket.sendHeader(DeploySocket.H_HELLO, headerLen);
 					socket.sendData(projIDbs, 0, headerLen, false, false, null);
@@ -129,6 +152,11 @@ public class Deploylet {
 				socket.sendHeader(DeploySocket.H_OK, 0);
 				L.V = L.WShop ? false : LogManager.log("[Deploy] succesful auth OK.");
 			} else if (header == DeploySocket.H_MD5) {
+				if(isAcceptTran == false) {
+					//没有经过checkAcceptTrans过程的会话，强制关闭
+					throw new IOException("session should be check IS_ACCEPT_TRANS first");
+				}
+				
 				final int md5Len = headerLen;
 				final byte[] md5bs = socket.receiveData(md5Len, getPasswordBS());
 				final String md5 = ByteUtil.buildString(md5bs, 0, md5Len, IConstant.UTF_8);
@@ -155,13 +183,14 @@ public class Deploylet {
 						byte[] errorBS = null;
 
 						L.V = L.WShop ? false : LogManager.log("[Deploy] succesful receive HAR data.");
-						if (LinkProjectManager.deployInLocalNetwork(dataBS, transBSLen, projectID) == -1) {
+						if (LinkProjectManager.deployInLocalNetwork(socket, dataBS, transBSLen, projectID) == -1) {
 							errorBS = DeploySocket.ERR_IS_BUSY;
 						}
 
 						cache.cycle(dataBS);
 
 						if (errorBS == null) {
+							L.V = L.WShop ? false : LogManager.log("[Deploy] successful deploy HAR, send OK!");
 							socket.sendHeader(DeploySocket.H_OK, 0);
 						} else {
 							socket.sendError(errorBS);

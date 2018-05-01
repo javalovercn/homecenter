@@ -1,11 +1,16 @@
 package hc.server.msb;
 
-public class ConverterInfo {
+import java.io.Serializable;
+
+public class ConverterInfo implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	public String proj_id;
 	public String name;
-	public Converter converter;
-	public DeviceCompatibleDescription upDeviceCompatibleDescriptionCache;
-	public DeviceCompatibleDescription downDeviceCompatibleDescriptionCache;
+	public String[] upCompItems;
+	public String[] downCompItems;
+	public String converterInfoDesc;
+	public int hashCodeForConverter;
 
 	@Override
 	public String toString() {
