@@ -1,4 +1,4 @@
-Setup HomeCenter server on a host, configure account for the end user, the end user only need to downalod mobile app and login with account.
+Setup HomeCenter server on a host, the end user is only required to downalod mobile app and login with account.
 
 ## Key Point
 1. enable parameter *isNonUIServer*
