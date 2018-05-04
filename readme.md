@@ -46,7 +46,7 @@ to implement the cross-platform UI for Android/iPhone, write with J2SE+CSS as [h
 3. debug JRuby scripts and HAR, please with desktop server, not Android server. (even if the target environment is Android server)
 4. if the target environment is Android server, it is required to test UI and listeners of HTMLMlet. (J2SE Swing is not full supported by Android server), edit in code editor of desktop server, and one-click to hot deploy to Android server if in same home intranet. (code instantly, deploy instantly, test instantly)
 5. there are two servers at same time on above step, be careful, please use difference account when register; if conflict with account, please change it or verify account in error message dialog.
-6. to print logs, please use "ProjectContext.log()" and "ProjectContext.error()", the message will be added prefix "[YourProjectID]". For Android server, the log will be print to LogCat (the filter is regex, so input is "\[YourProjectID\]", please enable [option/developer/LogCat] on Android server), and appent to log file of server also.
+6. to print logs, please use "ProjectContext.log()" and "ProjectContext.error()", the message will be added prefix "[YourProjectID]". For Android server, the log will be print to LogCat (the filter is regex, so input is "\\["), please enable [option/developer/LogCat] on Android server.
 7. to see log in console of Eclipse, create Java project in Eclipse, add starter.jar from [binary distribution](https://github.com/javalovercn/hc_server_dist), set Main class "starter.Starter", set VM arguments : "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8", and disable [option/developer/Logger] of server.
 ***
 ### How to use
