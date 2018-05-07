@@ -301,8 +301,9 @@ public class CodeWindow {
 
 			@Override
 			public void mouseEntered(final MouseEvent e) {
-				// System.out.println("========================>mouseEntered");
-				// codeHelper.flipTipKeepOn();
+				 L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseEntered codeWindow");
+				//注意：codeWindow在弹出之前，鼠标便处于此，会产生此事件，以保持。
+				 codeHelper.flipTipKeepOn();//移去此行，会导致上述情形时，自动关闭弹出提示窗口
 			}
 
 			@Override
@@ -409,7 +410,7 @@ public class CodeWindow {
 			codeList.clearSelection();
 		} else {
 			codeList.setSelectedIndex(0);
-			L.V = L.WShop ? false : LogManager.log("[Code] refilter : " + classData.get(0).codeDisplay);
+			L.V = L.WShop ? false : LogManager.log("[CodeTip] refilter : " + classData.get(0).codeDisplay);
 		}
 
 		scrollPanel.getVerticalScrollBar().setValue(0);
@@ -593,7 +594,7 @@ public class CodeWindow {
 			classFrame.setVisible(true);
 			if (scriptEditPanel != null) {
 				scriptEditPanel.autoCodeTip.setEnable(false);
-				L.V = L.WShop ? false : LogManager.log("[Code] toVisibleRunnable.");
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] toVisibleRunnable.");
 			}
 		}
 	};

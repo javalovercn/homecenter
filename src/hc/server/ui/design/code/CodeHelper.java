@@ -1540,7 +1540,7 @@ public class CodeHelper {
 		}
 		if (window.scriptEditPanel != null) {//有可能CSS先调用
 			window.scriptEditPanel.autoCodeTip.setEnable(false);
-			L.V = L.WShop ? false : LogManager.log("[Code] flipTipKeepOn.");
+			L.V = L.WShop ? false : LogManager.log("[CodeTip] flipTipKeepOn.");
 		}
 	}
 
@@ -4093,6 +4093,17 @@ public class CodeHelper {
 		boolean isRubyCharInMethod = false;
 		char[] lineChars = doc.getText(editLineStartIdx, lineEndOffset - editLineStartIdx).toCharArray();
 		{
+			for (int i = 0; i < lineChars.length; i++) {//注释行不处理
+				final char nextChar = lineChars[i];
+				if(nextChar == ' ' || nextChar == '\t') {
+					continue;
+				}else if(nextChar == '#') {
+					return false;
+				}else {
+					break;
+				}
+			}
+			
 			int i = lineIdx;
 			int charCount = 0;
 			for (; i < lineChars.length; i++) {// 补全完整的方法名

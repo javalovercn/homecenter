@@ -70,17 +70,44 @@ public class LogManager {
 
 		sb.append(calendar.get(Calendar.YEAR));
 		sb.append("-");
-		sb.append((calendar.get(Calendar.MONTH) + 1));
+		final int month = calendar.get(Calendar.MONTH) + 1;
+		if (month < 10) {
+			sb.append('0');
+		}
+		sb.append(month);
 		sb.append("-");
-		sb.append(calendar.get(Calendar.DAY_OF_MONTH));
+		final int day = calendar.get(Calendar.DAY_OF_MONTH);
+		if (day < 10) {
+			sb.append('0');
+		}
+		sb.append(day);
 		sb.append(" ");
-		sb.append(calendar.get(Calendar.HOUR_OF_DAY));
+		final int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		if (hour < 10) {
+			sb.append('0');
+		}
+		sb.append(hour);
 		sb.append(":");
-		sb.append(calendar.get(Calendar.MINUTE));
+		final int minute = calendar.get(Calendar.MINUTE);
+		if (minute < 10) {
+			sb.append('0');
+		}
+		sb.append(minute);
 		sb.append(":");
-		sb.append(calendar.get(Calendar.SECOND));
+		final int second = calendar.get(Calendar.SECOND);
+		if (second < 10) {
+			sb.append('0');
+		}
+		sb.append(second);
 		sb.append(".");
-		sb.append(calendar.get(Calendar.MILLISECOND));
+		final int ms = calendar.get(Calendar.MILLISECOND);
+		if (ms < 10) {
+			sb.append('0');
+			sb.append('0');
+		} else if (ms < 100) {
+			sb.append('0');
+		}
+		sb.append(ms);
 		sb.append(" ");
 
 		sb.append(msg);

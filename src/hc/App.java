@@ -939,9 +939,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					final String[] options = { "O K" };
-					App.showOptionDialog(null, "Cant connect server, please try late!", ResourceUtil.getProductName(),
-							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
+					showFailConnServerTryLaterDialog(e.getMessage());
 					dialog.dispose();
 					PlatformManager.getService().exitSystem();
 				}
@@ -2649,8 +2647,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 				@Override
 				public void run() {
 					final JPanel panel = new JPanel(new BorderLayout());
-					final String forDeveloping = ResourceUtil.get(9286);//9286=For programming development features, please download desktop versions such as Windows, Mac or Linux.
-					final String hotDeploy = ResourceUtil.get(9303);//9303=project can be hot deployed from desktop to Android if in local net.
+					final String forDeveloping = ResourceUtil.get(9286);//9286=for code editor, please use desktop version, such as Windows, Mac or Linux.
+					final String hotDeploy = ResourceUtil.get(9303);//9303=if in local net, project can be hot deployed from desktop code editor to Android for testing.
 					panel.add(new JLabel(ResourceUtil.wrapHTMLTag(forDeveloping + "<BR>" + hotDeploy), getSysIcon(SYS_WARN_ICON),
 							SwingConstants.LEADING), BorderLayout.CENTER);
 
@@ -2659,5 +2657,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 				}
 			});
 		}
+	}
+
+	public static void showFailConnServerTryLaterDialog(final String errMsg) {
+		final String[] options = {ResourceUtil.get(1010)};
+		final String msg = "Cant connect server [" + errMsg + "], please try late!";
+		App.showOptionDialog(null, msg, ResourceUtil.getProductName(),
+				JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
 	}
 }

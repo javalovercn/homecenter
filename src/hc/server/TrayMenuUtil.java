@@ -1490,9 +1490,7 @@ public class TrayMenuUtil {
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					final String[] options = { "O K" };
-					App.showOptionDialog(null, "Cant connect server, please try late!", ResourceUtil.getProductName(),
-							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
+					App.showFailConnServerTryLaterDialog(e.getMessage());
 				}
 			});
 			dialog.dispose();

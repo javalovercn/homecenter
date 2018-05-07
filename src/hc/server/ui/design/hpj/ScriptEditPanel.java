@@ -1040,13 +1040,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			@Override
 			public void mouseReleased(final MouseEvent e) {
 				autoCodeTip.setEnable(false);
-				L.V = L.WShop ? false : LogManager.log("[Code] mouseReleased in ScriptEditPanel.");
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseReleased in ScriptEditPanel.");
 			}
 
 			@Override
 			public void mousePressed(final MouseEvent e) {
 				autoCodeTip.setEnable(false);
-				L.V = L.WShop ? false : LogManager.log("[Code] mousePressed in ScriptEditPanel.");
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] mousePressed in ScriptEditPanel.");
 			}
 
 			@Override
@@ -1056,7 +1056,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					autoCodeTip.isClearHistroyShow = true;
 					autoCodeTip.resetTimerCount();//有可能在途的，所以要延时
 					autoCodeTip.setEnable(true);
-					L.V = L.WShop ? false : LogManager.log("[Code] mouseExited in ScriptEditPanel.");
+					L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseExited in ScriptEditPanel.");
 				}
 //				注意：不能加，进入CodeList或DocTip时，会关闭它们
 //				GlobalConditionWatcher.addWatcher(new DelayWatcher(HCTimer.HC_INTERNAL_MS * 3) {//可能正在被打开
@@ -1160,7 +1160,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			@Override
 			public void mouseClicked(final MouseEvent e) {
 				autoCodeTip.setEnable(false);
-				L.V = L.WShop ? false : LogManager.log("[Code] mouseClicked in ScriptEditPanel.");
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseClicked in ScriptEditPanel.");
 				lastMouseClickX = e.getX();
 				lastMouseClickY = e.getY();
 				designer.codeHelper.window.hide();
@@ -1239,7 +1239,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							lastShowX = moveX;
 							lastShowY = moveY;
 							autoCodeTip.setEnable(true);
-							L.V = L.WShop ? false : LogManager.log("[Code] mouseMoved in ScriptEditPanel.");
+							L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseMoved in ScriptEditPanel.");
 						}
 					}
 				} else {
@@ -1259,7 +1259,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			@Override
 			public void mouseDragged(final MouseEvent e) {
 				autoCodeTip.setEnable(false);
-				L.V = L.WShop ? false : LogManager.log("[Code] mouseDragged in ScriptEditPanel.");
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseDragged in ScriptEditPanel.");
 			}
 		});
 
@@ -1539,7 +1539,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				autoCodeTip.setEnable(false);
 				window.autoDocPopTip.setEnable(false);
 				codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(false);
-				L.V = L.WShop ? false : LogManager.log("[Code] keyPressed in ScriptEditPanel.");
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] keyPressed in ScriptEditPanel.");
 				
 				if (window.isVisible()) {
 					window.keyPressed(event);
@@ -1631,7 +1631,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			public void mouseWheelMoved(final MouseWheelEvent e) {
 				designer.codeHelper.flipTipStop();
 				autoCodeTip.setEnable(false);
-				L.V = L.WShop ? false : LogManager.log("[Code] mouseWheelMoved in ScriptEditPanel.");
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseWheelMoved in ScriptEditPanel.");
 			}
 		});
 
@@ -2798,7 +2798,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	public final void notifyLostWindowFocus() {
 		autoCodeTip.setEnable(false);
 		designer.codeHelper.window.hide();
-		L.V = L.WShop ? false : LogManager.log("[Code] notifyLostWindowFocus.");
+		L.V = L.WShop ? false : LogManager.log("[CodeTip] notifyLostWindowFocus.");
 	}
 
 	final Runnable clearSelectionBGDelay = new Runnable() {// 否则导致paste，只清除selection，而没insert新内容
