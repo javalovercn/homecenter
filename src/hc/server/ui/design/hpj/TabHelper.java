@@ -1,4 +1,4 @@
-package hc.server.ui.design.code;
+package hc.server.ui.design.hpj;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -15,8 +15,7 @@ import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.Stack;
 import hc.server.ui.design.UpgradeManager;
-import hc.server.ui.design.hpj.ScriptEditPanel;
-import hc.server.ui.design.hpj.ScriptModelManager;
+import hc.server.ui.design.code.TabBlock;
 
 public class TabHelper {
 	private static final Highlighter.HighlightPainter CODE_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(
@@ -40,8 +39,8 @@ public class TabHelper {
 		sep.initColor(false, 0);
 	}
 
-	public final static Stack tabBlockStack = new Stack(2);
-	public static TabBlock currentTabBlock;
+	final static Stack tabBlockStack = new Stack(2);
+	static TabBlock currentTabBlock;
 
 	private final static TabBlock innerClassTabBlock = new TabBlock(0, null, 0);
 
@@ -226,6 +225,21 @@ public class TabHelper {
 			}
 			SwingUtilities.invokeLater(refreshLightParameter);
 		}
+	}
+	
+	public static boolean removeSelection(final TabBlock currentTabBlock, final JTextPane scriptPanel, final int selectionOrPasteLen) {
+		if (selectionOrPasteLen > 0 && currentTabBlock == null) {
+			//处于普通选择模式，并键入情形
+			final int selectionStart = scriptPanel.getSelectionStart();
+			try {
+				scriptPanel.getDocument().remove(selectionStart, selectionOrPasteLen);
+				return true;
+			} catch (final BadLocationException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return false;
 	}
 
 	static final Runnable refreshLightParameter = new Runnable() {

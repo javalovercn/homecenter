@@ -1,7 +1,5 @@
 package hc.server.ui.design.hpj;
 
-import hc.server.ui.design.code.TabHelper;
-
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.Map;
@@ -27,7 +25,7 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 		namePanel.add(nameField);
 		namePanel.add(testBtn);
 		namePanel.add(formatBtn);
-		namePanel.add(scriptBtn);
+		namePanel.add(stringBtn);
 		namePanel.add(commentBtn);
 
 		final JPanel jtascriptPanel = new JPanel();

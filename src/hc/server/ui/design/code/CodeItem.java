@@ -10,7 +10,9 @@ import java.util.Vector;
 
 import javax.swing.event.ChangeListener;
 
+import hc.core.L;
 import hc.core.util.IntValue;
+import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 
 public class CodeItem implements Comparable<CodeItem> {
@@ -51,6 +53,8 @@ public class CodeItem implements Comparable<CodeItem> {
 		String typeStr = "";
 		if (type == TYPE_CLASS) {
 			typeStr = "class";
+		}else if(type == TYPE_VARIABLE) {
+			typeStr = "var";
 		}else if (type == TYPE_CLASS_IMPORT) {
 				typeStr = "class_import";
 		} else if (type == TYPE_RESOURCES) {
@@ -117,20 +121,27 @@ public class CodeItem implements Comparable<CodeItem> {
 	}
 	
 	/**
-	 * 完全匹配前缀
+	 * 前缀或包含
 	 * @param preCodeLower
 	 * @return
 	 */
-	public final boolean matchPreCode(final String preCodeLower) {
+	public final boolean matchStartWithOrIndexOf(final String preCodeLower) {
 		initCodeMatchAndLower();
 		
-		return codeMatchLower.indexOf(preCodeLower) >= 0;
+		return matchPreCodeSimilar(preCodeLower) > 0;
+	}
+	
+	public final boolean matchStartWithOnly(final String preCodeLower) {
+		initCodeMatchAndLower();
+		
+		return matchPreCodeSimilar(preCodeLower) == MATCH_START_WITH;//StartWithOnly
 	}
 	
 	private final static char[][] subStringParts = new char[64][];
 	private static int subStringPartsSize;
 	
 	public static final int MATCH_MAX = Integer.MAX_VALUE;
+	public static final int MATCH_START_WITH = MATCH_MAX;
 	public static final int MATCH_HALF = MATCH_MAX / 2;
 	private static final int SIMILAR_TYPE = CodeItem.TYPE_METHOD;
 	
@@ -142,6 +153,32 @@ public class CodeItem implements Comparable<CodeItem> {
 		}
 	}
 	
+	/**
+	 * 0 means not startWith or indexOf
+	 * @param preCodeLower
+	 * @return
+	 */
+	private final int matchPreCodeSimilar(final String preCodeLower) {
+		final int matchIdx = codeMatchLower.indexOf(preCodeLower, 0);
+		if(matchIdx == 0) {
+			matchSimilarValue = MATCH_START_WITH;//StartWithOnly
+			return matchSimilarValue;
+		}
+		if(matchIdx > 0) {
+			matchSimilarValue = MATCH_HALF;
+			return matchSimilarValue;
+		}
+		
+		return 0;
+	}
+	
+	/**
+	 * 相似度匹配，比如输入"getServer"，可能最佳匹配为"getApplicationServer"。
+	 * @param preCodeLower
+	 * @param preCodeLowerChars
+	 * @param preCodeLowerCharsLen
+	 * @return
+	 */
 	public final int similarity(final String preCodeLower, final char[] preCodeLowerChars, final int preCodeLowerCharsLen) {
 		matchSimilarValue = 0;
 		
@@ -155,13 +192,12 @@ public class CodeItem implements Comparable<CodeItem> {
 		{
 			final int matchIdx = codeMatchLower.indexOf(preCodeLower, 0);
 			if(matchIdx == 0) {
-				matchSimilarValue = MATCH_MAX;
+				matchSimilarValue = MATCH_START_WITH;
 				return matchSimilarValue;
 			}
 			if(matchIdx > 0) {//可以匹配如XX_MESSAGE
-				if(type == CodeItem.TYPE_FIELD 
-						|| type == CodeItem.TYPE_CLASS_IMPORT
-						|| type == CodeItem.TYPE_CSS) {
+				if(type == CodeItem.TYPE_METHOD
+						|| type == CodeItem.TYPE_CLASS_IMPORT) {
 					matchSimilarValue = MATCH_HALF;
 					return matchSimilarValue;
 				}
@@ -176,17 +212,35 @@ public class CodeItem implements Comparable<CodeItem> {
 		initCodeLowMatchSubStrings();
 		
 		final int partNum = codeLowMatchSubStrings.length;
-		
+		int maxPartMatchChars = 0;//某段连接匹配字符数，比如"ser"匹配"getSer"时，为3
+		boolean isMatchOnePartFull = false;
 		for (int j = 0; j < preCodeLowerCharsLen; j++) {
 			for (int i = 0; i < partNum; i++) {
 				final char[] parts = codeLowMatchSubStrings[i];
 				
-				for (int k = 0; k < parts.length; k++) {
+				int currPartMatchChars = 0;
+				final int partLen = parts.length;
+				for (int k = 0; k < partLen; k++) {
 					if(parts[k] == preCodeLowerChars[j + k]) {
-						matchSimilarValue++;
+						currPartMatchChars++;
 					}else {
 						break;
 					}
+				}
+				
+				if(currPartMatchChars == 0) {
+				}else if(currPartMatchChars == 1 || currPartMatchChars == 2) {
+					matchSimilarValue++;
+				}else {
+					matchSimilarValue += currPartMatchChars * 100;
+				}
+				
+				if(partLen > 0 && currPartMatchChars == partLen) {
+					isMatchOnePartFull = true;
+				}
+				
+				if(currPartMatchChars > maxPartMatchChars) {
+					maxPartMatchChars = currPartMatchChars;
 				}
 			}
 		}
@@ -194,6 +248,13 @@ public class CodeItem implements Comparable<CodeItem> {
 		if(matchSimilarValue < 4 && matchSimilarValue < preCodeLowerCharsLen) {//滤掉如：addContainerListener jch => matchSimilarValue == 1
 			matchSimilarValue = 0;
 		}
+		
+		//最低3个长度，比如"ser"(for "getApplicationServerID")时，但也可以"id"(for "getApplicationServerID"，因为isMatchOnePartFull)
+		if(isMatchOnePartFull == false && maxPartMatchChars < 3) {
+			matchSimilarValue = 0;//去掉ctx匹配"getToolTipText"时，matchSimilarValue返回3
+		}
+		
+		L.V = L.WShop ? false : LogManager.log("[CodeTip] [" + codeDisplay + "] similarity : " + matchSimilarValue);
 		return matchSimilarValue;
 	}
 
@@ -289,8 +350,8 @@ public class CodeItem implements Comparable<CodeItem> {
 				&& Modifier.isPrivate(modifiers) == false;
 	}
 
-	public final static int TYPE_VARIABLE = 1;// 优先排序
-	public final static int TYPE_FIELD = 2;
+	public final static int TYPE_VARIABLE = 1;// 优先排序，比如button=new JButton()
+	public final static int TYPE_FIELD = 2;//含自定义类的@ctx(in init)，所以要优先TYPE_METHOD
 	public final static int TYPE_METHOD = 3;
 	public final static int TYPE_PACKAGE = 4;// Deprecated
 	public final static int TYPE_IMPORT = 5;
@@ -385,9 +446,14 @@ public class CodeItem implements Comparable<CodeItem> {
 
 	@Override
 	public final int compareTo(final CodeItem o) {// 注意：如果增加field，请同步到equals()
-		final double matchSimilarDiff = o.matchSimilarValue - this.matchSimilarValue;
+		final double matchSimilarDiff = o.matchSimilarValue - this.matchSimilarValue;//startWith优先于indexOf
 		if(matchSimilarDiff != 0) {
 			return (matchSimilarDiff>0?1:-1);
+		}
+		
+		int result = this.type - o.type;
+		if(result != 0) {//优先显示最近的变量或Field
+			return result;
 		}
 		
 		if (fmClass == CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_STRUCT && o.fmClass != CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_STRUCT) {
@@ -399,14 +465,9 @@ public class CodeItem implements Comparable<CodeItem> {
 			return invokeCount;
 		}
 
-		int result = this.type - o.type;
+		result = codeDisplay.compareToIgnoreCase(o.codeDisplay);// 可将bor/Border规在一块
 		if (result == 0) {
-			result = codeDisplay.compareToIgnoreCase(o.codeDisplay);// 可将bor/Border规在一块
-			if (result == 0) {
-				return o.overrideMethodLevel - overrideMethodLevel;// 子类居上
-			} else {
-				return result;
-			}
+			return o.overrideMethodLevel - overrideMethodLevel;// 子类居上
 		} else {
 			return result;
 		}

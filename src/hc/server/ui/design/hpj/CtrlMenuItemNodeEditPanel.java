@@ -110,7 +110,7 @@ public class CtrlMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 			final JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 			btnPanel.add(testBtn);
 			btnPanel.add(formatBtn);
-			btnPanel.add(scriptBtn);
+			btnPanel.add(stringBtn);
 			btnPanel.add(commentBtn);
 			script_panel.add(btnPanel, BorderLayout.NORTH);
 			script_panel.add(jtascriptPanel, BorderLayout.CENTER);

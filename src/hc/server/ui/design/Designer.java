@@ -38,7 +38,6 @@ import java.util.NoSuchElementException;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.Icon;
@@ -411,7 +410,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 		});
 
-		if (System.getProperty(Constant.DESIGNER_IN_TEST) != null) {
+		if (getDesignInTestProperty() != null) {
 			try {
 				Thread.sleep(2000);// 等待CodeInvokeCounter save
 			} catch (final Exception e) {
@@ -524,11 +523,36 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	private Icon getSampleIcon() {
 		return loadImg("gift_24.png");
 	}
+	
+	private final void notifyLostEditPanelFocus() {
+		if(nodeEditPanel != null) {
+			nodeEditPanel.notifyLostEditPanelFocus();
+		}
+	}
+	
+	private final void notifyLostEditPanelFocusForDesignButton() {
+		notifyLostEditPanelFocus();
+	}
 
 	private NodeEditPanel nodeEditPanel = emptyNodeEditPanel;
-	final JButton sampleButton = new JButton(EXAMPLE, getSampleIcon());
-	final JButton saveButton = new JButton("Save", loadImg("save_24.png"));
-	final JButton searchButton = new JButton("Search", loadImg("search_24.png"));
+	final DesignButton sampleButton = new DesignButton(EXAMPLE, getSampleIcon()) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
+	final DesignButton saveButton = new DesignButton("Save", loadImg("save_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
+	final DesignButton searchButton = new DesignButton("Search", loadImg("search_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
 	SearchDialog searchDialog;
 
 	final DownlistButton activeButton = new DownlistButton(ACTIVE, loadImg("deploy_24.png")) {
@@ -546,16 +570,66 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}
 			});
 		}
+
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();			
+		}
 	};
-	final JButton deactiveButton = new JButton(DEACTIVE, loadImg("undeploy_24.png"));
-	final JButton addItemButton = new JButton("Add Item", loadImg("controller_24.png"));
-	final JButton newButton = new JButton("New Project", loadImg("new_24.png"));
-	final JButton saveAsButton = new JButton(SAVE_AS_TEXT, loadImg("shareout_24.png"));
-	final JButton loadButton = new JButton("Load", loadImg("sharein_24.png"));
-	final JButton certButton = new JButton("Developer Certificates", loadImg("cert_24.png"));
-	final JButton shiftProjButton = new JButton("Shift Project", new ImageIcon(ResourceUtil.loadImage("menu_24.png")));
-	final JButton helpButton = new JButton("Help", loadImg("faq_24.png"));
-	final JButton rebindButton = new JButton("Rebind", loadImg("device_24.png"));
+	final DesignButton deactiveButton = new DesignButton(DEACTIVE, loadImg("undeploy_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
+	final DesignButton addItemButton = new DesignButton("Add Item", loadImg("controller_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();			
+		}
+	};
+	final DesignButton newButton = new DesignButton("New Project", loadImg("new_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
+	final DesignButton saveAsButton = new DesignButton(SAVE_AS_TEXT, loadImg("shareout_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
+	final DesignButton loadButton = new DesignButton("Load", loadImg("sharein_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
+	final DesignButton certButton = new DesignButton("Developer Certificates", loadImg("cert_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
+	final DesignButton shiftProjButton = new DesignButton("Shift Project", new ImageIcon(ResourceUtil.loadImage("menu_24.png"))) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
+	final DesignButton helpButton = new DesignButton("Help", loadImg("faq_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
+	final DesignButton rebindButton = new DesignButton("Rebind", loadImg("device_24.png")) {
+		@Override
+		public void onToolbarActionForCommon() {
+			notifyLostEditPanelFocusForDesignButton();
+		}
+	};
 	DefaultMutableTreeNode selectedNode;
 	final JPanel editPanel = new JPanel();
 
@@ -848,15 +922,20 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		setModified(false);
 
 		{
-			final Action saveAction = new AbstractAction() {
+			final Action saveAction = new DesignAbstractAction() {
 				@Override
-				public void actionPerformed(final ActionEvent event) {
+				public void actionPerformedExt(final ActionEvent event) {
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run() {
 							save();
 						}
 					}, threadPoolToken);
+				}
+
+				@Override
+				public void onToolbarActionForCommon() {
+					notifyLostEditPanelFocusForDesignButton();
 				}
 			};
 			ResourceUtil.buildAcceleratorKeyOnAction(saveAction, KeyEvent.VK_S);// 同时支持Windows下的Ctrl+S和Mac下的Command+S
@@ -867,15 +946,20 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}
 
 		{
-			final Action searchAction = new AbstractAction() {
+			final Action searchAction = new DesignAbstractAction() {
 				@Override
-				public void actionPerformed(final ActionEvent e) {
+				public void actionPerformedExt(final ActionEvent e) {
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run() {
 							search();
 						}
 					}, threadPoolToken);
+				}
+
+				@Override
+				public void onToolbarActionForCommon() {
+					notifyLostEditPanelFocusForDesignButton();
 				}
 			};
 			ResourceUtil.buildAcceleratorKeyOnAction(searchAction, KeyEvent.VK_H);// 同时支持Windows下的Ctrl+S和Mac下的Command+S
@@ -1045,9 +1129,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				+ "<BR><BR>You can one click to hot deploy project to Android server, <STRONG>NO</STRONG> same account, if in local net."
 				+ "</html>");
 		{
-			final Action deployAction = new AbstractAction() {
+			final Action deployAction = new DesignAbstractAction() {
 				@Override
-				public void actionPerformed(final ActionEvent e) {// 注意：e是不被使用，参见activeButton.getList();
+				public void actionPerformedExt(final ActionEvent e) {// 注意：e是不被使用，参见activeButton.getList();
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run() {
@@ -1115,6 +1199,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							deployProcess(map, ec);
 						}
 					}, threadPoolToken);
+				}
+
+				@Override
+				public void onToolbarActionForCommon() {
+					notifyLostEditPanelFocusForDesignButton();
 				}
 			};
 			ResourceUtil.buildAcceleratorKeyOnAction(deployAction, KeyEvent.VK_D);
@@ -1741,9 +1830,13 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		checkActiveEnable();
 		checkDeactiveEnable();
 	}
+	
+	private final String getDesignInTestProperty() {
+		return System.getProperty(Constant.DESIGNER_IN_TEST);
+	}
 
 	private void checkHARButtonsEnableInBackground() {
-		if (System.getProperty(Constant.DESIGNER_IN_TEST) == null) {
+		if (getDesignInTestProperty() == null) {
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
@@ -2250,9 +2343,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 		final NodeEditPanel nep = nm.switchNodeEditPanel(nodeData.type, nodeData, this);
 		final NodeEditPanel oldPanel = nodeEditPanel;
-		if (nodeEditPanel != null) {
-			nodeEditPanel.notifyLostEditPanelFocus();
-		}
+		notifyLostEditPanelFocus();
 
 		if (nep == null) {
 			nodeEditPanel = Designer.emptyNodeEditPanel;
@@ -3079,8 +3170,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		if (instance == null) {
 			return false;
 		}
+		
+		notifyLostEditPanelFocus();
 
-		if (isModified()) {
+		if (getDesignInTestProperty() == null && isModified()) {
 			final int out = modifyNotify();
 			if (out == JOptionPane.YES_OPTION) {
 				final Map<String, Object> map = save();

@@ -9,14 +9,14 @@ import java.util.Vector;
 
 import javax.swing.Action;
 import javax.swing.Icon;
-import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import hc.core.L;
 import hc.core.util.LogManager;
+import hc.server.ui.design.DesignButton;
 
-public abstract class DownlistButton extends JButton {
+public abstract class DownlistButton extends DesignButton {
 	private final Vector<ListAction> actionList = new Vector<ListAction>();
 	private Action defaultAction;
 

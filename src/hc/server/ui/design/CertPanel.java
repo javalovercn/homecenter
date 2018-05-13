@@ -1,21 +1,5 @@
 package hc.server.ui.design;
 
-import hc.App;
-import hc.core.util.StringUtil;
-import hc.res.ImageSrc;
-import hc.server.AbstractDelayBiz;
-import hc.server.HCActionListener;
-import hc.server.HCTablePanel;
-import hc.server.ProcessingWindowManager;
-import hc.server.ui.ClientDesc;
-import hc.server.ui.ClosableWindow;
-import hc.server.util.SignHelper;
-import hc.server.util.SignItem;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-import hc.util.SecurityDataProtector;
-import hc.util.StringBuilderCacher;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -58,13 +42,29 @@ import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 
+import hc.App;
+import hc.core.util.StringUtil;
+import hc.res.ImageSrc;
+import hc.server.AbstractDelayBiz;
+import hc.server.HCActionListener;
+import hc.server.HCTablePanel;
+import hc.server.ProcessingWindowManager;
+import hc.server.ui.ClientDesc;
+import hc.server.ui.ClosableWindow;
+import hc.server.util.SignHelper;
+import hc.server.util.SignItem;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
+import hc.util.SecurityDataProtector;
+import hc.util.StringBuilderCacher;
+
 /**
  * 注意：必须是X509Certificate证书，参见{@link SignHelper#verifyJar(File, X509Certificate[])}
  *
  */
 public class CertPanel extends CertListPanel {
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
-	final String save = (String) ResourceUtil.get(1017);
+	final String save = ResourceUtil.get(1017);
 	final boolean isLimitOneAlias = true;
 
 	final HCTablePanel tablePanel;
@@ -140,8 +140,8 @@ public class CertPanel extends CertListPanel {
 	public CertPanel(final Component relativeTo, final String certPassword) {
 		super(certPassword);
 
-		final String saveButtonText = (String) ResourceUtil.get(1017);
-		final String title = (String) ResourceUtil.get(9220);
+		final String saveButtonText = ResourceUtil.get(1017);
+		final String title = ResourceUtil.get(9220);
 		dialog = (JFrame) App.buildCloseableWindow(true, null, title, false);
 		// final JFrame self = (owner==null && (dialog instanceof
 		// JFrame))?(JFrame)dialog:owner;
@@ -153,7 +153,7 @@ public class CertPanel extends CertListPanel {
 
 		contentPane.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
 
-		addBut = new JButton((String) ResourceUtil.get(9016), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
+		addBut = new JButton(ResourceUtil.get(9016), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
 		addBut.setToolTipText("<html>" + "create a pare of self-signed public key and private key to current store.<BR><BR>"
 				+ "if you publish an app and then lose the key with which you signed your app, "
 				+ "<BR>you will not be able to publish any updates to your app." + "</html>");
@@ -164,18 +164,18 @@ public class CertPanel extends CertListPanel {
 		}
 
 		saveBut = new JButton(saveButtonText, new ImageIcon(ImageSrc.OK_ICON));
-		changePwdBut = new JButton((String) ResourceUtil.get(1007), new ImageIcon(ImageSrc.PASSWORD_ICON));
+		changePwdBut = new JButton(ResourceUtil.get(1007), new ImageIcon(ImageSrc.PASSWORD_ICON));
 		changePwdBut.setToolTipText("<html>set/change password of developer certificates."
 				+ "<BR>it will be effective after click <STRONG>[" + saveButtonText + "]</STRONG>.</html>");
 
-		exitBut = new JButton((String) ResourceUtil.get(1011), new ImageIcon(ImageSrc.CANCEL_ICON));
-		removeBut = new JButton((String) ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
+		exitBut = new JButton(ResourceUtil.get(1011), new ImageIcon(ImageSrc.CANCEL_ICON));
+		removeBut = new JButton(ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
 		// removeBut.setToolTipText("<html>" + (String)ResourceUtil.get(9141) +
 		// "</html>");
-		final String str_import = (String) ResourceUtil.get(9223);
+		final String str_import = ResourceUtil.get(9223);
 		importBut = new JButton(str_import, new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_IMPORT_22_PATH)));
 		importBut.setToolTipText("<html>import private key, chain from CA to current store.</html>");
-		final String str_backup = (String) ResourceUtil.get(9221);
+		final String str_backup = ResourceUtil.get(9221);
 		backupBut = new JButton(str_backup, new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_BACKUP_22_PATH)));
 		backupBut.setToolTipText("backup developer certificates to disk or USB.");
 		backupBut.addActionListener(new HCActionListener(new Runnable() {
@@ -195,7 +195,7 @@ public class CertPanel extends CertListPanel {
 
 		backupBut.setEnabled(SecurityDataProtector.getDevCertFile().exists());
 
-		final String str_restore = (String) ResourceUtil.get(9222);
+		final String str_restore = ResourceUtil.get(9222);
 		restoreBut = new JButton(str_restore, new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_RESTORE_22_PATH)));
 		restoreBut.setToolTipText(
 				"<html>restore developer certificates from a backup file," + "<BR>the current certificates will be overrided.</html>");
@@ -250,13 +250,13 @@ public class CertPanel extends CertListPanel {
 						}
 					});
 
-					App.showCenterPanelMain(totalPanel, 0, 0, (String) ResourceUtil.get(1007), false, null, null, listener, null, dialog,
+					App.showCenterPanelMain(totalPanel, 0, 0, ResourceUtil.get(1007), false, null, null, listener, null, dialog,
 							true, false, null, false, false);
 				}
 			}
 		}, threadPoolToken));
 
-		descBut = new JButton((String) ResourceUtil.get(9095), new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_CERT_22_PATH)));
+		descBut = new JButton(ResourceUtil.get(9095), new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_CERT_22_PATH)));
 		// descBut.setToolTipText((String)ResourceUtil.get(9143));
 
 		addBut.addActionListener(new HCActionListener(new Runnable() {
@@ -595,34 +595,33 @@ public class CertPanel extends CertListPanel {
 				append(sb, "SigAlgName", cert.getSigAlgName());
 
 				final JPanel panel = new JPanel(new BorderLayout());
-				panel.setBorder(new TitledBorder((String) ResourceUtil.get(9095)));
+				panel.setBorder(new TitledBorder(ResourceUtil.get(9095)));
 				final String sbStr = sb.toString();
 				StringBuilderCacher.cycle(sb);
 
 				panel.add(new JLabel("<html>" + sbStr + "</html>"));
 				final ActionListener listener = null;
-				App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9095), false, null, null, listener, null, dialog, true,
+				App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(9095), false, null, null, listener, null, dialog, true,
 						false, null, false, false);
 			}
 		}, threadPoolToken));
-		final JToolBar buttonsList = new JToolBar();
-		buttonsList.setLayout(new GridLayout(1, 0, ClientDesc.hgap, ClientDesc.vgap));
-		buttonsList.add(addBut);
-		// buttonsList.add(importBut);
-		// buttonsList.add(removeBut);
-		buttonsList.add(descBut);
-		buttonsList.add(changePwdBut);
-		buttonsList.addSeparator();
-		buttonsList.add(restoreBut);
-		buttonsList.add(backupBut);
-		buttonsList.addSeparator();
-		buttonsList.add(saveBut);
-		buttonsList.add(exitBut);
+		final JToolBar toolBar = new JToolBar();
+		toolBar.add(addBut);
+		// toolBar.add(importBut);
+		// toolBar.add(removeBut);
+		toolBar.add(descBut);
+		toolBar.add(changePwdBut);
+		toolBar.addSeparator();
+		toolBar.add(restoreBut);
+		toolBar.add(backupBut);
+		toolBar.addSeparator();
+		toolBar.add(saveBut);
+		toolBar.add(exitBut);
 
 		final JScrollPane scrollpane = new JScrollPane(tablePanel.table);
 		scrollpane.setPreferredSize(new Dimension(350, 200));
 		contentPane.add(scrollpane, BorderLayout.CENTER);
-		contentPane.add(buttonsList, BorderLayout.NORTH);
+		contentPane.add(toolBar, BorderLayout.NORTH);
 	}
 
 	/**
@@ -631,7 +630,7 @@ public class CertPanel extends CertListPanel {
 	 * @param extAction
 	 */
 	private final void showInputCertPwd(final ActionListener extAction) {
-		final String title_pwd = (String) ResourceUtil.get(1007);
+		final String title_pwd = ResourceUtil.get(1007);
 
 		final JPanel panel1 = new JPanel();
 		final JPasswordField field1 = new JPasswordField("", Designer.COLUMNS_PWD_DEV_CERT);
@@ -669,7 +668,7 @@ public class CertPanel extends CertListPanel {
 		}
 
 		final JPanel descPanel = new JPanel(new BorderLayout());
-		descPanel.setBorder(new TitledBorder((String) ResourceUtil.get(9095)));
+		descPanel.setBorder(new TitledBorder(ResourceUtil.get(9095)));
 		descPanel.add(new JLabel("<html>" + Designer.DESC_PASSWORD_OF_DEVELOPER_CERTIFICATE + "</html>"));
 
 		final JPanel totalPanel = new JPanel(new BorderLayout());
@@ -693,8 +692,8 @@ public class CertPanel extends CertListPanel {
 					}
 				} else {
 					JOptionPane.showMessageDialog(dialog,
-							StringUtil.replace((String) ResourceUtil.get(9077), "{min}", "" + App.MIN_PWD_LEN), // 含密码不一致
-							(String) ResourceUtil.get(9076), JOptionPane.ERROR_MESSAGE);
+							StringUtil.replace(ResourceUtil.get(9077), "{min}", "" + App.MIN_PWD_LEN), // 含密码不一致
+							ResourceUtil.get(9076), JOptionPane.ERROR_MESSAGE);
 					showInputCertPwd(extAction);
 				}
 			}
@@ -776,30 +775,30 @@ public class CertPanel extends CertListPanel {
 		// required to input alias name.
 		// panel.add(f_Alias);
 
-		panel.add(new JLabel(CertListPanel.COL_NAME_EXPIRES + " (" + (String) ResourceUtil.get(9226) + ")"));
+		panel.add(new JLabel(CertListPanel.COL_NAME_EXPIRES + " (" + ResourceUtil.get(9226) + ")"));
 		panel.add(yearSpinner);
 
-		panel.add(new JLabel((String) ResourceUtil.get(9213)));
+		panel.add(new JLabel(ResourceUtil.get(9213)));
 		f_CN = new JTextField("", columns);
 		panel.add(f_CN);
 
-		panel.add(new JLabel((String) ResourceUtil.get(9214)));
+		panel.add(new JLabel(ResourceUtil.get(9214)));
 		f_OU = new JTextField("", columns);
 		panel.add(f_OU);
 
-		panel.add(new JLabel((String) ResourceUtil.get(9215)));
+		panel.add(new JLabel(ResourceUtil.get(9215)));
 		f_O = new JTextField("", columns);
 		panel.add(f_O);
 
-		panel.add(new JLabel((String) ResourceUtil.get(9216)));
+		panel.add(new JLabel(ResourceUtil.get(9216)));
 		f_L = new JTextField("", columns);
 		panel.add(f_L);
 
-		panel.add(new JLabel((String) ResourceUtil.get(9217)));
+		panel.add(new JLabel(ResourceUtil.get(9217)));
 		f_S = new JTextField("", columns);
 		panel.add(f_S);
 
-		panel.add(new JLabel((String) ResourceUtil.get(9218)));
+		panel.add(new JLabel(ResourceUtil.get(9218)));
 		f_C = new JTextField("", columns);
 		panel.add(f_C);
 
@@ -849,7 +848,7 @@ public class CertPanel extends CertListPanel {
 			}
 		});
 
-		App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9220), true, null, null, listener, null, dialog, true, false, null,
+		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(9220), true, null, null, listener, null, dialog, true, false, null,
 				false, false);
 	}
 

@@ -29,14 +29,10 @@ import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentEvent.EventType;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
-import javax.swing.text.AbstractDocument;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Caret;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -45,23 +41,18 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.TabSet;
 import javax.swing.text.TabStop;
 import javax.swing.tree.MutableTreeNode;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoManager;
-import javax.swing.undo.UndoableEdit;
 
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
-import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
+import hc.server.ui.design.code.CodeDeclare;
 import hc.server.ui.design.code.CodeHelper;
 import hc.server.ui.design.code.CodeWindow;
-import hc.server.ui.design.code.TabHelper;
 import hc.server.util.CSSUtil;
 import hc.server.util.IDArrayGroup;
 import hc.util.ResourceUtil;
@@ -83,14 +74,21 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	private static final Pattern spliter_pattern = Pattern.compile("([\\{\\};:])");
 
 	private final void initSytleBlock(final String text, final int offset, final boolean isReplace) {
-		final StyledDocument document = (StyledDocument) cssEditPane.getDocument();
-		document.setCharacterAttributes(offset, text.length(), VALUE_LIGHTER, true);
-
-		buildSytleHighlight(cssEditPane, class_pattern, CLASS_LIGHTER, offset, text, isReplace);
-		buildSytleHighlight(cssEditPane, item_pattern, ITEM_LIGHTER, offset, text, isReplace);// 要置于字符串之前，因为字符串中可能含有数字
-		buildSytleHighlight(cssEditPane, var_pattern, VARIABLE_LIGHTER, offset, text, isReplace);
-		buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, offset, text, isReplace);// 字符串中含有#{}，所以要置于STR_LIGHTER之前
-		buildSytleHighlightForSpliter(cssEditPane, spliter_pattern, SPLITTER_LIGHTER, offset, text, isReplace);// 字符串中含有#{}，所以要置于STR_LIGHTER之前
+		cssUndoListener.enableSkipAddUndoableEditForColor(true);
+		
+		try {
+			final StyledDocument document = (StyledDocument) cssEditPane.getDocument();
+			document.setCharacterAttributes(offset, text.length(), VALUE_LIGHTER, true);
+	
+			buildSytleHighlight(cssEditPane, class_pattern, CLASS_LIGHTER, offset, text, isReplace);
+			buildSytleHighlight(cssEditPane, item_pattern, ITEM_LIGHTER, offset, text, isReplace);// 要置于字符串之前，因为字符串中可能含有数字
+			buildSytleHighlight(cssEditPane, var_pattern, VARIABLE_LIGHTER, offset, text, isReplace);
+			buildSytleHighlightForSpliter(cssEditPane, spliter_pattern, SPLITTER_LIGHTER, offset, text, isReplace);
+			
+			buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, offset, text, true);//要置于最后
+		}finally {
+			cssUndoListener.enableSkipAddUndoableEditForColor(false);
+		}
 	}
 
 	private static final void buildSytleHighlightForSpliter(final JTextPane pane, final Pattern pattern,
@@ -135,19 +133,27 @@ public class CSSNodeEditPanel extends NameEditPanel {
 		public void run() {
 			final String allText = cssEditPane.getText();
 			initSytleBlock(allText, 0, false);
-
-			buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, 0, allText, true);
 		}
 	};
 
-	private final void colorStyle() {
+	private final void colorStyle(final boolean isFromInit) {
 		SwingUtilities.invokeLater(colorRunnable);
+		
+		if(isFromInit) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					cssEditPane.getDocument().addUndoableEditListener(cssUndoListener);//注意：必须处于colorRunnable之后
+				}
+			});
+		}
 	}
 
 	private final Runnable buildCommentUncommentAction() {
 		return new Runnable() {
 			@Override
 			public void run() {
+				cssUndoListener.setSignificant();
 				if (CSSUtil.comment(cssEditPane)) {
 					colorRunnable.run();
 					cssEditPane.requestFocus();
@@ -164,15 +170,15 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			+ "4. if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect."
 			+ "</html>");
 
-	CSSUndoableEditListener cssUndoListener;
-	UndoManager cssUndoManager;
+	HCUndoableEditListener cssUndoListener;
+	HCUndoManager cssUndoManager;
 	final HCTextPane cssEditPane = new HCTextPane(new CSSSelectWordAction()) {
 		@Override
 		public void paste() {
 			try {
-				cssUndoListener.setUndoModel(CSSUndoableEditListener.UNDO_MODEL_PASTE);
+				cssUndoListener.setSignificant();
 				super.paste();
-				colorStyle();
+				colorStyle(false);
 			} catch (final Throwable e) {
 				ExceptionReporter.printStackTrace(e);
 			}
@@ -180,9 +186,9 @@ public class CSSNodeEditPanel extends NameEditPanel {
 
 		@Override
 		public void cut() {
-			cssUndoListener.setUndoModel(CSSUndoableEditListener.UNDO_MODEL_CUT);
+			cssUndoListener.setSignificant();
 			super.cut();
-			colorStyle();
+			colorStyle(false);
 		}
 
 		@Override
@@ -197,8 +203,6 @@ public class CSSNodeEditPanel extends NameEditPanel {
 						final int endOff = ScriptEditPanel.getLineEndOffset(cssDocument, line);
 						final int length = endOff - startOff;
 						initSytleBlock(cssDocument.getText(startOff, length), startOff, true);
-
-						buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, 0, cssEditPane.getText(), true);
 					} catch (final BadLocationException e) {
 					}
 				}
@@ -376,7 +380,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 							final String txt = sb.toString();
 							appendEnterText(txt, newPosition);
 							isDoneEnter = true;
-							colorStyle();
+							colorStyle(false);
 						} else if (inputSelfBackEnd == false) {
 							// 复制上行的缩进
 							sb.append(String.valueOf(chars, 0, charIdxRemovedTab));
@@ -433,6 +437,12 @@ public class CSSNodeEditPanel extends NameEditPanel {
 		cssScrollPane.setRowHeaderView(lineNumber);
 		cssScrollPane.getVerticalScrollBar().setUnitIncrement(ServerUIUtil.SCROLLPANE_VERTICAL_UNIT_PIXEL);
 
+		cssEditPane.addCaretListener(new CaretListener() {
+			@Override
+			public void caretUpdate(final CaretEvent e) {
+			}
+		});
+		
 		jumpRunnable = new EditorJumpRunnable() {
 			final SimpleAttributeSet defaultBackground = ScriptEditPanel.buildBackground(cssEditPane.getBackground());
 			final Runnable jumpLoc = new Runnable() {
@@ -493,6 +503,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
+						cssUndoListener.setSignificant();
 						cssEditPane.setText(CSSUtil.format(cssEditPane.getText()));
 						colorRunnable.run();
 						cssEditPane.requestFocus();
@@ -540,7 +551,6 @@ public class CSSNodeEditPanel extends NameEditPanel {
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 					try {
-						cssUndoListener.setUndoModel(CSSUndoableEditListener.UNDO_MODEL_ENTER);
 						actionOnEnterKey();
 					} catch (final Exception e1) {
 					}
@@ -597,12 +607,24 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			@Override
 			public void keyTyped(final KeyEvent event) {
 				if (isEventConsumed) {
-					ScriptEditPanel.consumeEvent(event);// otherwise display
-														// shortcut key.
+					ScriptEditPanel.consumeEvent(event);// otherwise display shortcut key.
 					return;
 				}
 
 				final char inputChar = event.getKeyChar();
+				if (HCUndoManager.isCtrlKey(inputChar)) {
+				}else {
+					//注意：此段代码不能与isCtrlKey合并，
+//					cssUndoListener.setSignificant();//比如在selection时，键入'e'，注意：必须在此处进行setSignificant和removeSelection
+					TabHelper.removeSelection(null, cssEditPane, selectionLen);
+				}
+				
+				if (inputChar == KeyEvent.VK_ENTER) {
+					// 具体转由actionOnEnterKey()
+					ScriptEditPanel.consumeEvent(event);//注意：移去此段代码，会导致undo不正常
+					return;
+				}
+				
 				final int modifiers = event.getModifiers();
 
 				if (codeHelper == null) {
@@ -616,7 +638,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 						final int caretPosition = cssEditPane.getCaretPosition();
 						final Rectangle caretRect = cssEditPane.modelToView(caretPosition);
 						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.inputForCSSInCSSEditor(0, cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
+						codeHelper.inputForCSSInCSSEditor(CodeDeclare.buildNewInstance(), cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
 					} catch (final Exception e) {
 						if (L.isInWorkshop) {
 							ExceptionReporter.printStackTrace(e);
@@ -636,7 +658,8 @@ public class CSSNodeEditPanel extends NameEditPanel {
 
 			boolean isEventConsumed;
 			CodeHelper codeHelper;
-
+			int selectionLen;
+			
 			@Override
 			public void keyPressed(final KeyEvent event) {
 				final int keycode = event.getKeyCode();
@@ -644,6 +667,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 				if (codeHelper == null) {
 					codeHelper = designer.codeHelper;
 				}
+				cssUndoListener.setSignificant();
 				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
 				// 无输入字符时的触发提示代码
 				isEventConsumed = false;
@@ -654,7 +678,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 						final int caretPosition = cssEditPane.getCaretPosition();
 						final Rectangle caretRect = cssEditPane.modelToView(caretPosition);
 						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.inputForCSSInCSSEditor(0, cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
+						codeHelper.inputForCSSInCSSEditor(CodeDeclare.buildNewInstance(), cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
 					} catch (final Exception e) {
 						if (L.isInWorkshop) {
 							ExceptionReporter.printStackTrace(e);
@@ -676,17 +700,21 @@ public class CSSNodeEditPanel extends NameEditPanel {
 					if (keycode == KeyEvent.VK_Z) {
 						// ctrl + z
 						cssundo();
+						return;
 					} else if (keycode == KeyEvent.VK_Y) {
 						// ctrl + y
 						cssredo();
+						return;
 					}
 				} else if (keycode == KeyEvent.VK_Z) {
 					if (isMacOS) {
 						if (modifiers == KeyEvent.META_MASK) {
 							// cmd+z
 							cssundo();
+							return;
 						} else if (modifiers == (KeyEvent.META_MASK | KeyEvent.SHIFT_MASK)) {
 							cssredo();
+							return;
 						}
 					}
 				}
@@ -696,8 +724,26 @@ public class CSSNodeEditPanel extends NameEditPanel {
 					isEventConsumed = true;
 					return;
 				}
-
-				cssUndoListener.setUndoModel(CSSUndoableEditListener.UNDO_MODEL_TYPE);
+				
+				final int selectionStart = cssEditPane.getSelectionStart();
+				final int selectionEnd = cssEditPane.getSelectionEnd();
+				if (selectionEnd > selectionStart) {
+					selectionLen = selectionEnd - selectionStart;
+				} else {
+					selectionLen = 0;
+				}
+				
+				if (HCUndoManager.isCtrlKey(keycode)) {
+//					ScriptEditPanel.consumeEvent(event);//注意：此处不能consumeEvent
+//					isEventConsumed = true;
+					final boolean isRemSelection = TabHelper.removeSelection(null, cssEditPane, selectionLen);
+					
+					if(isRemSelection && HCUndoManager.isDelOrBackspaceKey(keycode)) {
+						ScriptEditPanel.consumeEvent(event);//注意：DelOrBackspaceKey一定要在此处consumeEvent
+						isEventConsumed = true;
+					}
+					return;//不能return，因为后续需要removeSelection
+				}
 			}
 		});
 
@@ -720,14 +766,14 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	private final void cssundo() {
 		if (cssUndoManager.canUndo()) {
 			cssUndoManager.undo();
-			colorStyle();
+			//不需要更新修改到tree节点，
 		}
 	}
 
 	private final void cssredo() {
 		if (cssUndoManager.canRedo()) {
 			cssUndoManager.redo();
-			colorStyle();
+			//不需要更新修改到tree节点，
 		}
 	}
 
@@ -735,26 +781,26 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	public void init(final MutableTreeNode data, final JTree tree) {
 		super.init(data, tree);
 
-		if (cssUndoManager == null) {
-			cssUndoManager = new UndoManager();
-			cssUndoManager.setLimit(100);
-			cssUndoListener = new CSSUndoableEditListener(this, cssUndoManager);
-
-			cssEditPane.getDocument().addUndoableEditListener(cssUndoListener);
+		if (cssUndoManager != null) {
+			cssUndoManager.discardAllEdits();
+		}else {
+			cssUndoManager = new HCUndoManager(cssEditPane);
+			cssUndoManager.setLimit(HCUndoManager.MAX_LIMIT);
+			cssUndoListener = new HCUndoableEditListener(this, cssUndoManager, cssEditPane);
 		}
 
+		cssEditPane.getDocument().removeUndoableEditListener(cssUndoListener);
+		
 		String text = designer.getProjCSS();
 		if (text.indexOf('\r') >= 0) {
 			text = text.replace("\r", "");
 		}
 		cssEditPane.setText(text);
-		colorStyle();
-
+		colorStyle(true);
 	}
 
 	@Override
 	public void loadAfterShow(final Runnable run) {
-		cssUndoListener.isForbidRecordUndoEdit = false;
 		cssUndoManager.discardAllEdits();
 		cssEditPane.setCaretPosition(0);
 		cssEditPane.requestFocus();
@@ -764,7 +810,6 @@ public class CSSNodeEditPanel extends NameEditPanel {
 
 	@Override
 	public void notifyLostEditPanelFocus() {
-		cssUndoListener.isForbidRecordUndoEdit = true;
 		super.notifyLostEditPanelFocus();
 
 		final String sameFullName = designer.updateCssClassOfProjectLevel(cssDocument);
@@ -782,183 +827,6 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	@Override
 	public JComponent getMainPanel() {
 		return cssPanel;
-	}
-
-}
-
-class CSSUndoableEditListener implements UndoableEditListener {
-	static final int UNDO_MODEL_TYPE = 1;
-	static final int UNDO_MODEL_PASTE = 2;
-	static final int UNDO_MODEL_CUT = 3;
-	static final int UNDO_MODEL_ENTER = 4;
-
-	boolean isForbidRecordUndoEdit = true;
-	final UndoManager manager;
-	final CSSNodeEditPanel panel;
-	private int undoModel = 0;
-
-	final void setUndoModel(final int model) {
-		undoModel = model;
-	}
-
-	CSSUndoableEditListener(final CSSNodeEditPanel panel, final UndoManager manager) {
-		this.manager = manager;
-		this.panel = panel;
-	}
-
-	@Override
-	public void undoableEditHappened(final UndoableEditEvent e) {
-		if (isForbidRecordUndoEdit == false) {
-			final UndoableEdit edit = e.getEdit();
-			final AbstractDocument.DefaultDocumentEvent dde = ResourceUtil.getDocumentEventType(edit);
-			if (dde.getType() == DocumentEvent.EventType.CHANGE) {
-				return;
-			}
-			manager.addEdit(new CSSUndoableEdit(panel, edit, undoModel, dde));
-		}
-	}
-}
-
-class CSSUndoableEdit implements UndoableEdit {
-	final int beforeCaretPos;
-	int afterCaretPos;
-	final UndoableEdit base;
-	final JTextPane cssPane;
-	final int undoModel;
-	final Caret caret;
-	int selectionLen;
-	final CSSNodeEditPanel panel;
-	final boolean isModi;
-	final long saveToken;
-	final AbstractDocument.DefaultDocumentEvent dde;
-
-	CSSUndoableEdit(final CSSNodeEditPanel panel, final UndoableEdit base, final int undoModel,
-			final AbstractDocument.DefaultDocumentEvent dde) {
-		this.panel = panel;
-		this.dde = dde;
-		this.cssPane = panel.cssEditPane;
-		this.caret = cssPane.getCaret();
-		beforeCaretPos = caret.getDot();
-		this.base = base;
-		this.undoModel = undoModel;
-		isModi = this.panel.isModified();
-		saveToken = this.panel.getSaveToken();
-
-		if (isModi == false) {
-			this.panel.notifyModified(true);// 由于REMOVE和INSERT都是isModi==false,所以强制后续的INSERT为ture
-		}
-
-		final EventType type = dde.getType();
-		if (type == DocumentEvent.EventType.REMOVE) {
-			if (undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE) {
-				selectionLen = 1;
-			} else {
-				selectionLen = dde.getLength();
-			}
-		} else if (type == DocumentEvent.EventType.INSERT) {
-			if (undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE) {
-			} else {
-				selectionLen = dde.getLength();
-			}
-		}
-
-		if (undoModel == CSSUndoableEditListener.UNDO_MODEL_ENTER) {
-			ContextManager.getThreadPool().run(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(ThreadPriorityManager.UI_WAIT_FOR_EVENTQUEUE);
-					} catch (final Exception e) {
-					}
-					afterCaretPos = caret.getDot();
-					// System.out.println("afterCaretPos : " + afterCaretPos);
-				}
-			});
-		}
-	}
-
-	@Override
-	public void undo() throws CannotUndoException {
-		base.undo();
-		if (beforeCaretPos > 0) {
-			if (undoModel == CSSUndoableEditListener.UNDO_MODEL_PASTE) {
-				if (dde.getType() == DocumentEvent.EventType.INSERT) {
-					caret.setDot(beforeCaretPos - selectionLen);
-				} else {
-					caret.setDot(beforeCaretPos);
-				}
-			}
-		}
-		if (saveToken == panel.getSaveToken()) {
-			if (isModi == false) {
-				panel.notifyModified(false);
-			}
-		} else {
-			if (panel.isModified() == false) {
-				panel.notifyModified(true);
-			}
-		}
-	}
-
-	@Override
-	public boolean canUndo() {
-		return base.canUndo();
-	}
-
-	@Override
-	public void redo() throws CannotRedoException {
-		base.redo();
-		if (saveToken == panel.getSaveToken()) {
-			if (isModi == false) {
-				panel.notifyModified(true);
-			}
-		}
-
-		if (afterCaretPos > 0) {
-			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER) {
-				caret.setDot(afterCaretPos);
-			}
-		}
-	}
-
-	@Override
-	public boolean canRedo() {
-		return base.canRedo();
-	}
-
-	@Override
-	public void die() {
-		base.die();
-	}
-
-	@Override
-	public boolean addEdit(final UndoableEdit anEdit) {
-		return base.addEdit(anEdit);
-	}
-
-	@Override
-	public boolean replaceEdit(final UndoableEdit anEdit) {
-		return base.replaceEdit(anEdit);
-	}
-
-	@Override
-	public boolean isSignificant() {
-		return base.isSignificant();
-	}
-
-	@Override
-	public String getPresentationName() {
-		return base.getPresentationName();
-	}
-
-	@Override
-	public String getUndoPresentationName() {
-		return base.getUndoPresentationName();
-	}
-
-	@Override
-	public String getRedoPresentationName() {
-		return base.getRedoPresentationName();
 	}
 
 }

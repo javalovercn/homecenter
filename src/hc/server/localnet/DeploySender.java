@@ -74,7 +74,7 @@ public class DeploySender {
 			return client;
 		} catch (final Throwable e) {
 			if (L.isInWorkshop) {
-				LogManager.errToLog("[Deploy] fail to connect : " + ip + ", exception : " + e.toString());
+				LogManager.log("[Deploy] fail to connect : " + ip + ", exception : " + e.toString());
 			}
 		}
 		return null;

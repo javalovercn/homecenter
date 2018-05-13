@@ -49,13 +49,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentEvent.EventType;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Caret;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
@@ -70,10 +66,6 @@ import javax.swing.text.TabSet;
 import javax.swing.text.TabStop;
 import javax.swing.text.View;
 import javax.swing.tree.MutableTreeNode;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoManager;
-import javax.swing.undo.UndoableEdit;
 
 import hc.App;
 import hc.core.ContextManager;
@@ -84,7 +76,6 @@ import hc.core.util.BooleanValue;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringBufferCacher;
-import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.CallContext;
 import hc.server.HCActionListener;
@@ -106,7 +97,6 @@ import hc.server.ui.design.code.CodeHelper;
 import hc.server.ui.design.code.CodeItem;
 import hc.server.ui.design.code.CodeWindow;
 import hc.server.ui.design.code.ReturnType;
-import hc.server.ui.design.code.TabHelper;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.engine.ScriptValue;
@@ -311,6 +301,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			if (startIdx == 0 && endIdx == 0) {
 				return;
 			}
+			
+			scriptUndoListener.setSignificant();
 
 			try {
 				final int beginLineNo = getLineOfOffset(jtaDocment, Math.min(startIdx, endIdx));
@@ -421,7 +413,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	}
 
 	final JButton commentBtn = buildCommentUncommentButton(commentUncommentAction);
-	final DownlistButton scriptBtn = new DownlistButton("To String") {
+	final DownlistButton stringBtn = new DownlistButton("To String") {
 		final char TAB = '\t';
 
 		@Override
@@ -433,6 +425,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				showSelectCodesFirst();
 				return;
 			}
+			
+			scriptUndoListener.setSignificant();
 
 			final boolean isLineEnd = isSelectLineEnd();
 
@@ -500,6 +494,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			jtaScript.replaceSelection(scripts);
 
 			doAfterModifyBlock(true);
+			
+			jtaScript.requestFocusInWindow();
+		}
+
+		@Override
+		public void onToolbarActionForCommon() {
+			//不需要考虑notifyLostEditPanelFocusForDesignButton
 		}
 	};
 	int modifierKeysPressed = 0;
@@ -705,6 +706,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							// });
 
 							testBtn.setEnabled(true);
+							jtaScript.requestFocusInWindow();
 							isClicked = false;
 						}
 					}, threadPoolToken);
@@ -722,8 +724,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
+							scriptUndoListener.setSignificant();
 							format(jtaDocment);
 							// initColor(false);
+							jtaScript.requestFocusInWindow();
 						}
 					});
 				}
@@ -746,30 +750,30 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			// surround.add(new SurroundListAction("for"));
 			// for ‹ name ›+ in expression ‹ do › body
 			// end
-			scriptBtn.addListAction(new SurroundListAction("if", " true"));
+			stringBtn.addListAction(new SurroundListAction("if", " true"));
 			// if boolean-expression ‹ then › body
 			// ‹ elsif boolean-expression ‹ then › body ›*
 			// ‹ else body ›
 			// end
-			scriptBtn.addListAction(new SurroundListAction("loop", " do"));
-			scriptBtn.addListAction(new SurroundListAction("while", " true"));
+			stringBtn.addListAction(new SurroundListAction("loop", " do"));
+			stringBtn.addListAction(new SurroundListAction("while", " true"));
 			// while boolean-expression ‹ do › body
 			// end
 			// This executes body zero or more times as long as
 			// boolean-expression is true.
-			scriptBtn.addListAction(new SurroundListAction("until", " false"));
+			stringBtn.addListAction(new SurroundListAction("until", " false"));
 			// until boolean-expression ‹ do › body
 			// end
 			// This executes body zero or more times as long as
 			// boolean-expression is false.
-			scriptBtn.addListAction(new SurroundListAction("unless", " false"));
+			stringBtn.addListAction(new SurroundListAction("unless", " false"));
 			// unless boolean-expression ‹ then › body
 			// ‹ else body ›
 			// end
-			scriptBtn.addListAction(new SurroundListAction(SurroundListAction.BLOCK_BEGIN));
-			scriptBtn.addListAction(new SurroundListAction(SurroundListAction.BLOCK_END));
+			stringBtn.addListAction(new SurroundListAction(SurroundListAction.BLOCK_BEGIN));
+			stringBtn.addListAction(new SurroundListAction(SurroundListAction.BLOCK_END));
 		}
-		scriptBtn.setDefaultAction(new AbstractAction() {
+		stringBtn.setDefaultAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				final String selectedText = jtaScript.getSelectedText();
@@ -777,6 +781,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					showSelectCodesFirst();
 					return;
 				}
+				
+				scriptUndoListener.setSignificant();
 
 				final StringBuilder sb = StringBuilderCacher.getFree();
 
@@ -836,6 +842,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				// string sources to clipboard!", ResourceUtil.getInfoI18N(),
 				// JOptionPane.INFORMATION_MESSAGE,
 				// App.getSysIcon(App.SYS_INFO_ICON));
+				
+				jtaScript.requestFocusInWindow();
 			}
 
 			private final void appendLine(final StringBuilder sb, final char[] chars, final int startIdx, final int len) {
@@ -879,10 +887,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				sb.append("\\n\")\n");
 			}
 		});
-		scriptBtn.setToolTipText("<html>" + "translate scripts to a string for ProjectContext.<STRONG>eval</STRONG>."
+		stringBtn.setToolTipText("<html>" + "translate scripts to a string for ProjectContext.<STRONG>eval</STRONG>."
 				+ "<BR><BR>Do as following steps :" + "<BR>1. select scripts in <STRONG>" + JRubyNodeEditPanel.JRUBY_SCRIPT
 				+ "</STRONG> panel," + "<BR>2. click this button,</html>");
-		scriptBtn.setIcon(Designer.loadImg("script_16.png"));
+		stringBtn.setIcon(Designer.loadImg("script_16.png"));
 
 		// jtaScript.setTabSize(2);
 
@@ -1005,11 +1013,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					if (TabHelper.pushTabOrEnterKey()) {
 					} else {
 						try {
-							isModifySourceForRebuildAST = false;// disable
-																// caretUpdate
-																// event
-							scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_ENTER);
-
+							isModifySourceForRebuildAST = false;// disable caretUpdate event
 							actionOnEnterKey(jtaDocment);
 						} catch (final Exception ex) {
 						}
@@ -1239,7 +1243,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							lastShowX = moveX;
 							lastShowY = moveY;
 							autoCodeTip.setEnable(true);
-							L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseMoved in ScriptEditPanel.");
+//							L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseMoved in ScriptEditPanel.");//产生太多，故关闭
 						}
 					}
 				} else {
@@ -1280,6 +1284,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 												// in JRE 6.
 					return;
 				}
+				final char inputChar = event.getKeyChar();
+				if (HCUndoManager.isCtrlKey(inputChar)) {
+				}else {
+					//注意：此段代码不能与isCtrlKey合并，
+//					scriptUndoListener.setSignificant();//比如在selection时，键入'e'，注意：必须在此处进行setSignificant和removeSelection
+					TabHelper.removeSelection(TabHelper.currentTabBlock, jtaScript, selectionLen);
+				}
 				synchronized (scriptEventLock) {
 					if (codeHelper == null) {
 						codeHelper = designer.codeHelper;
@@ -1292,7 +1303,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						consumeEventLocal(event);
 						return;
 					}
-					final char inputChar = event.getKeyChar();
+					
 					final int modifiers = event.getModifiers();
 					// final int keycode = event.getKeyCode();
 					// System.out.println("keyCode : " + keycode + ", inputChar
@@ -1329,18 +1340,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 					if (inputChar == KeyEvent.VK_ENTER) {
 						// 具体转由actionOnEnterKey()
-						consumeEventLocal(event);
+						consumeEventLocal(event);//注意：移去此段代码，会导致undo不正常
 						return;
 					}
 
-					isModifySourceForRebuildAST = true;// enable key and
-														// caretUpdate newline
-
-					if (inputChar == KeyEvent.VK_BACK_SPACE || inputChar == KeyEvent.VK_DELETE) {
-						scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL);
-					} else {
-						scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_TYPE);
-					}
+					isModifySourceForRebuildAST = true;// enable key and caretUpdate newline
 
 					try {
 						final int position = jtaScript.getCaretPosition();
@@ -1426,9 +1430,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 							// 处于#之后
 							for (int i = partSplitIdx; i < lineCharsLen; i++) {
-								if (lineChars[i] == '#' && ((i + 1 == lineCharsLen) || (i + 1 < lineCharsLen) && lineChars[i + 1] != '{')) {// 但不含"Hello
-																																			// #{}
-																																			// world"
+								if (lineChars[i] == '#' && ((i + 1 == lineCharsLen) || (i + 1 < lineCharsLen) && lineChars[i + 1] != '{')) {// 但不含"Hello #{} world"
 									return;
 								}
 							}
@@ -1548,14 +1550,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					return;
 				}
 
-				final int selectionStart = jtaScript.getSelectionStart();
-				final int selectionEnd = jtaScript.getSelectionEnd();
-				if (selectionEnd > selectionStart) {
-					selectionLen = selectionEnd - selectionStart;
-				} else {
-					selectionLen = 0;
-				}
-
+				scriptUndoListener.setSignificant();
+				
 				synchronized (scriptEventLock) {
 					final int keycode = event.getKeyCode();
 					// switch (keycode) {
@@ -1587,34 +1583,52 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						if (keycode == KeyEvent.VK_Z) {
 							// ctrl + z
 							undo();
+							return;
 						} else if (keycode == KeyEvent.VK_Y) {
 							// ctrl + y
 							redo();
+							return;
 						}
 					} else if (keycode == KeyEvent.VK_Z) {
 						if (isMacOS) {
 							if (modifierKeysPressed == KeyEvent.META_MASK) {
 								// cmd+z
 								undo();
+								return;
 							} else if (modifierKeysPressed == (KeyEvent.META_MASK | KeyEvent.SHIFT_MASK)) {
 								redo();
+								return;
 							}
 						}
 					}
-
+					
 					if (keycode == KeyEvent.VK_ESCAPE) {
 						TabHelper.pushEscKey();
 						consumeEventLocal(event);// 清空可能占用的modifierKeysPressed
 						isEventConsumed = true;
 						return;
 					}
-
-					if (keycode == KeyEvent.VK_BACK_SPACE || keycode == KeyEvent.VK_DELETE) {
-						scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL);
+					
+					final int selectionStart = jtaScript.getSelectionStart();
+					final int selectionEnd = jtaScript.getSelectionEnd();
+					if (selectionEnd > selectionStart) {
+						selectionLen = selectionEnd - selectionStart;
 					} else {
-						scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_TYPE);
+						selectionLen = 0;
 					}
-				}
+					
+					if (HCUndoManager.isCtrlKey(keycode)) {
+//						ScriptEditPanel.consumeEvent(event);//注意：此处不能consumeEvent
+//						isEventConsumed = true;
+						final boolean isRemSelection = TabHelper.removeSelection(TabHelper.currentTabBlock, jtaScript, selectionLen);
+						
+						if(isRemSelection && HCUndoManager.isDelOrBackspaceKey(keycode)) {
+							consumeEventLocal(event);//注意：DelOrBackspaceKey一定要在此处consumeEvent
+							isEventConsumed = true;
+						}
+						return;//不能return，因为后续需要removeSelection
+					}
+				}//end synchronized
 			}
 		});
 
@@ -1871,13 +1885,14 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 		if (scriptUndoManager != null) {
 			scriptUndoManager.discardAllEdits();
-			scriptUndoListener.isForbidRecordUndoEdit = true;
 		} else {
-			scriptUndoManager = new UndoManager();
-			scriptUndoManager.setLimit(100);
-			scriptUndoListener = new ScriptUndoableEditListener(this, scriptUndoManager);
+			scriptUndoManager = new HCUndoManager(jtaScript);
+			scriptUndoManager.setLimit(HCUndoManager.MAX_LIMIT);
+			scriptUndoListener = new HCUndoableEditListener(this, scriptUndoManager, jtaScript);
 		}
 
+		jtaDocment.removeUndoableEditListener(scriptUndoListener);
+		
 		jtaScript.setText("");
 		errRunInfo.setText("");
 
@@ -1886,8 +1901,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 	}
 
-	private ScriptUndoableEditListener scriptUndoListener;
-	private UndoManager scriptUndoManager;
+	private HCUndoableEditListener scriptUndoListener;
+	private HCUndoManager scriptUndoManager;
 	public final AbstractDocument jtaDocment;
 	public final StyledDocument jtaStyledDocment;
 	final int fontHeight, halfFontHeight, quarFontHeight;
@@ -1903,8 +1918,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		@Override
 		public void paste() {
 			try {
+				scriptUndoListener.setSignificant();
+				
 				isModifySourceForRebuildAST = false;
-				scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_PASTE);
 				final int oldCaretPos = jtaScript.getCaretPosition();
 				final int oldLineNo = getLineOfOffsetWithoutException(jtaDocment, oldCaretPos);
 
@@ -1960,8 +1976,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		public void cut() {
 			// synchronized (modifyAndColorAll) {
 			isModifySourceForRebuildAST = false;
-			scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_CUT);
-
+			scriptUndoListener.setSignificant();
+			
 			super.cut();
 
 			try {
@@ -2255,7 +2271,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 	@Override
 	public void loadAfterShow(final Runnable run) {
-		scriptUndoListener.isForbidRecordUndoEdit = false;
 		scriptUndoManager.discardAllEdits();
 
 		ContextManager.getThreadPool().run(focusJtaScript);
@@ -2276,13 +2291,19 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			return;
 		}
 
-		jtaStyledDocment.setCharacterAttributes(offset, text.length(), DEFAULT_LIGHTER, true);
-
-		// buildHighlight(hc_map_pattern, MAP_LIGHTER, offset, text, isReplace);
-		buildHighlight(num_pattern, NUM_LIGHTER, offset, text, isReplace);// 要置于字符串之前，因为字符串中可能含有数字
-		buildHighlight(keywords_pattern, KEYWORDS_LIGHTER, offset, text, isReplace);
-		buildHighlight(var_pattern, VAR_LIGHTER, offset, text, isReplace);
-		buildHighlightForStringAndRem(offset, text, isReplace, isFromInit);
+		scriptUndoListener.enableSkipAddUndoableEditForColor(true);
+		
+		try {
+			jtaStyledDocment.setCharacterAttributes(offset, text.length(), DEFAULT_LIGHTER, true);
+	
+			// buildHighlight(hc_map_pattern, MAP_LIGHTER, offset, text, isReplace);
+			buildHighlight(num_pattern, NUM_LIGHTER, offset, text, isReplace);// 要置于字符串之前，因为字符串中可能含有数字
+			buildHighlight(keywords_pattern, KEYWORDS_LIGHTER, offset, text, isReplace);
+			buildHighlight(var_pattern, VAR_LIGHTER, offset, text, isReplace);
+			buildHighlightForStringAndRem(offset, text, isReplace, isFromInit);
+		}finally {
+			scriptUndoListener.enableSkipAddUndoableEditForColor(false);
+		}
 	}
 
 	private final void buildHighlight(final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text,
@@ -2315,13 +2336,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		if (scriptUndoManager.canUndo()) {
 			isModifySourceForRebuildAST = false;
 			scriptUndoManager.undo();
-			// ContextManager.getThreadPool().run(new Runnable() {
-			// @Override
-			// public void run() {
-			//// rebuildASTNode();
-			// App.invokeLaterUI(colorAll);
-			// }
-			// }, threadPoolToken);
+			SwingUtilities.invokeLater(new Runnable() {
+				 @Override
+				 public void run() {
+					 rebuildASTNode();
+				 }
+			 });
 		}
 		// }
 	}
@@ -2331,19 +2351,19 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		if (scriptUndoManager.canRedo()) {
 			isModifySourceForRebuildAST = false;
 			scriptUndoManager.redo();
-			// ContextManager.getThreadPool().run(new Runnable() {
-			// @Override
-			// public void run() {
-			// rebuildASTNode();
-			// App.invokeLaterUI(colorAll);
-			// }
-			// }, threadPoolToken);
+			 SwingUtilities.invokeLater(new Runnable() {
+				 @Override
+				 public void run() {
+					 rebuildASTNode();
+				 }
+			 });
 		}
 		// }
 	}
 
 	@Override
 	public final void notifyLostEditPanelFocus() {
+		updateScript(jtaScript.getText());
 		super.notifyLostEditPanelFocus();
 	}
 	
@@ -2927,241 +2947,6 @@ class UnderlineHighlightPainter extends LayeredHighlighter.LayerPainter {
 	}
 
 	protected Color color;
-}
-
-class ScriptUndoableEditListener implements UndoableEditListener {
-	static final int UNDO_MODEL_TYPE = 1;
-	static final int UNDO_MODEL_PASTE = 2;
-	static final int UNDO_MODEL_CUT = 3;
-	static final int UNDO_MODEL_ENTER = 4;
-	static final int UNDO_MODEL_BACK_OR_DEL = 5;
-
-	boolean isForbidRecordUndoEdit = true;
-	private int undoModel = UNDO_MODEL_BACK_OR_DEL;
-	final UndoManager manager;
-	final ScriptEditPanel panel;
-
-	final void setUndoModel(final int model) {
-		undoModel = model;
-	}
-
-	ScriptUndoableEditListener(final ScriptEditPanel panel, final UndoManager manager) {
-		this.manager = manager;
-		this.panel = panel;
-	}
-
-	@Override
-	public void undoableEditHappened(final UndoableEditEvent e) {
-		if (isForbidRecordUndoEdit == false) {
-			final UndoableEdit edit = e.getEdit();
-			final AbstractDocument.DefaultDocumentEvent dde = ResourceUtil.getDocumentEventType(edit);
-			if (dde.getType() == DocumentEvent.EventType.CHANGE) {
-				return;
-			}
-			manager.addEdit(new HCUndoableEdit(panel, edit, undoModel, dde));
-		}
-	}
-}
-
-class HCUndoableEdit implements UndoableEdit {
-	final int beforeCaretPos;
-	int afterCaretPos;
-	final UndoableEdit base;
-	final HCTextPane jta;
-	final int undoModel;
-	final Caret caret;
-	int selectionLen;
-	final ScriptEditPanel panel;
-	final boolean isModi;
-	final long saveToken;
-	final AbstractDocument.DefaultDocumentEvent dde;
-
-	HCUndoableEdit(final ScriptEditPanel panel, final UndoableEdit base, final int undoModel,
-			final AbstractDocument.DefaultDocumentEvent dde) {
-		this.panel = panel;
-		this.dde = dde;
-		this.jta = panel.jtaScript;
-		this.caret = jta.getCaret();
-		beforeCaretPos = caret.getDot();
-		this.base = base;
-		this.undoModel = undoModel;
-		isModi = this.panel.isModified();
-		saveToken = this.panel.getSaveToken();
-
-		if (isModi == false) {
-			this.panel.notifyModified(true);// 由于REMOVE和INSERT都是isModi==false,所以强制后续的INSERT为ture
-		}
-
-		final EventType type = dde.getType();
-		if (type == DocumentEvent.EventType.REMOVE) {
-			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_TYPE || undoModel == ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL) {
-				selectionLen = 1;
-			} else {
-				selectionLen = dde.getLength();
-			}
-		} else if (type == DocumentEvent.EventType.INSERT) {
-			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_TYPE || undoModel == ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL) {
-			} else {
-				selectionLen = dde.getLength();
-			}
-		}
-
-		if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER) {
-			ContextManager.getThreadPool().run(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(ThreadPriorityManager.UI_WAIT_FOR_EVENTQUEUE);
-					} catch (final Exception e) {
-					}
-					afterCaretPos = caret.getDot();
-					// System.out.println("afterCaretPos : " + afterCaretPos);
-				}
-			});
-		}
-	}
-
-	@Override
-	public void undo() throws CannotUndoException {
-		final Document document = jta.getDocument();
-
-		final int oldLineNo = ScriptEditPanel.getLineOfOffsetWithoutException(document, jta.getCaretPosition());
-
-		base.undo();
-
-		if (beforeCaretPos > 0) {
-			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_PASTE) {
-				if (dde.getType() == DocumentEvent.EventType.INSERT) {
-					caret.setDot(beforeCaretPos - selectionLen);
-				} else {
-					caret.setDot(beforeCaretPos);
-				}
-			} else if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER) {
-				caret.setDot(beforeCaretPos - selectionLen);
-			}
-		}
-
-		try {
-			final int newLineNo = ScriptEditPanel.getLineOfOffset(document, jta.getCaretPosition());
-			if (oldLineNo != newLineNo) {
-				if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER) {
-				} else {
-					panel.rebuildASTNode();
-					panel.format(document);
-				}
-				panel.updateScript(jta.getText());
-			} else {
-				jta.refreshCurrLineAfterKey(newLineNo);
-			}
-		} catch (final Exception e) {
-		}
-
-		if (saveToken == panel.getSaveToken()) {
-			if (isModi == false) {
-				panel.notifyModified(false);
-			}
-		} else {
-			if (panel.isModified() == false) {
-				panel.notifyModified(true);
-			}
-		}
-	}
-
-	@Override
-	public boolean canUndo() {
-		return base.canUndo();
-	}
-
-	@Override
-	public void redo() throws CannotRedoException {
-		final Document document = jta.getDocument();
-
-		final int oldLineNo = ScriptEditPanel.getLineOfOffsetWithoutException(document, jta.getCaretPosition());
-
-		base.redo();
-
-		if (afterCaretPos > 0) {
-			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER) {
-
-				final Document doc = jta.getDocument();
-				try {
-					final int lineNo = ScriptEditPanel.getLineOfOffset(doc, afterCaretPos + 1);
-					final int startOff = ScriptEditPanel.getLineStartOffset(doc, lineNo);
-					final int endOff = ScriptEditPanel.getLineEndOffset(doc, lineNo);
-					final String strEnd = doc.getText(startOff, endOff - startOff);// redo可能产生end
-
-					// panel.initBlock(strEnd, startOff, true);
-					final Matcher matcher = ScriptEditPanel.keywords_pattern.matcher(strEnd);
-					if (matcher.find()) {
-						final int start = matcher.start() + startOff - 1;
-						final int end = matcher.end() + startOff;
-						panel.jtaStyledDocment.setCharacterAttributes(start, end - start, ScriptEditPanel.KEYWORDS_LIGHTER, true);
-					} else {
-						panel.jtaStyledDocment.setCharacterAttributes(startOff, endOff - startOff, ScriptEditPanel.DEFAULT_LIGHTER, true);
-					}
-				} catch (final Exception e) {
-				}
-				caret.setDot(afterCaretPos);
-			}
-		}
-
-		try {
-			final int newLineNo = ScriptEditPanel.getLineOfOffset(document, jta.getCaretPosition());
-			if (oldLineNo != newLineNo) {
-				panel.doAfterModifyBlock(true);
-			} else {
-				jta.refreshCurrLineAfterKey(newLineNo);
-			}
-		} catch (final Exception e) {
-		}
-
-		if (saveToken == panel.getSaveToken()) {
-			if (isModi == false) {
-				panel.notifyModified(true);
-			}
-		}
-	}
-
-	@Override
-	public boolean canRedo() {
-		return base.canRedo();
-	}
-
-	@Override
-	public void die() {
-		base.die();
-	}
-
-	@Override
-	public boolean addEdit(final UndoableEdit anEdit) {
-		return base.addEdit(anEdit);
-	}
-
-	@Override
-	public boolean replaceEdit(final UndoableEdit anEdit) {
-		return base.replaceEdit(anEdit);
-	}
-
-	@Override
-	public boolean isSignificant() {
-		return base.isSignificant();
-	}
-
-	@Override
-	public String getPresentationName() {
-		return base.getPresentationName();
-	}
-
-	@Override
-	public String getUndoPresentationName() {
-		return base.getUndoPresentationName();
-	}
-
-	@Override
-	public String getRedoPresentationName() {
-		return base.getRedoPresentationName();
-	}
-
 }
 
 class CSSListCellRenderer extends JLabel implements ListCellRenderer {

@@ -314,7 +314,9 @@ public class DocHelper {
 
 			@Override
 			public void mouseEntered(final MouseEvent e) {
-				 //codeHelper.flipTipKeepOn();//注：参见mouseMoved
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseEntered DocHelper");
+				//注意：codeWindow在弹出之前，鼠标便处于此，会产生此事件，以保持。
+				 codeHelper.flipTipKeepOn();//移去此行，会导致上述情形时，自动关闭弹出提示窗口
 			}
 
 			final HTMLDocument hDoc = (HTMLDocument) docPane.getDocument();

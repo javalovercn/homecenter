@@ -904,7 +904,7 @@ public class CodeHelper {
 					final int reqAccessLevelOrAbove;
 					if (i == topClassIdx) {// 后来者居上
 						if (isInClassDefNode(codeContext.bottomNode) == defNode) {
-							if (preCodeType == PRE_TYPE_BEFORE_INSTANCE) {
+							if (codeDeclare.preCodeType == PRE_TYPE_BEFORE_INSTANCE) {
 								reqAccessLevelOrAbove = ACC_PRIVATE;
 							} else {
 								reqAccessLevelOrAbove = ACC_PROTECTED;
@@ -915,7 +915,7 @@ public class CodeHelper {
 						}
 					} else {
 						if (isInDefClass) {
-							if (preCodeType == PRE_TYPE_BEFORE_INSTANCE) {
+							if (codeDeclare.preCodeType == PRE_TYPE_BEFORE_INSTANCE) {
 								reqAccessLevelOrAbove = ACC_PRIVATE;
 							} else {
 								reqAccessLevelOrAbove = ACC_PROTECTED;
@@ -1010,7 +1010,7 @@ public class CodeHelper {
 				continue;
 			}
 
-			if (preCodeSplitIsDot) {
+			if (codeDeclare.preCodeSplitIsDot) {
 				if (tryMethod.isForMaoHaoOnly) {
 					continue;
 				}
@@ -1912,6 +1912,7 @@ public class CodeHelper {
 		}
 	}
 
+	public final static int VAR_UN_INIT = 0;
 	public final static int VAR_LOCAL = 1 << 1;
 	public final static int VAR_GLOBAL = 1 << 2;
 	public final static int VAR_INSTANCE = 1 << 3;
@@ -3788,7 +3789,7 @@ public class CodeHelper {
 		final int lineIdx = scriptIdx - editLineStartIdx;
 		final char[] lineChars = doc.getText(editLineStartIdx, lineIdx).toCharArray();
 
-		if (inputCSSClassOrPropInDesigner(0, lineChars, lineIdx, scriptIdx, textPane, doc, fontHeight)) {
+		if (inputCSSClassOrPropInDesigner(CodeDeclare.buildNewInstance(), lineChars, lineIdx, scriptIdx, textPane, doc, fontHeight)) {
 			return true;
 		}
 
@@ -3798,7 +3799,7 @@ public class CodeHelper {
 		if (isForcePopup == false && outAndCycle.size() == 0) {
 			return false;
 		}
-		if (preCodeSplitIsDot) {
+		if (codeDeclare.preCodeSplitIsDot) {
 			final int size = outAndCycle.size();
 			for (int i = size - 1; i >= 0; i--) {
 				if (outAndCycle.get(i).isForMaoHaoOnly) {
@@ -3806,7 +3807,7 @@ public class CodeHelper {
 				}
 			}
 		}
-		if (isForceResTip == false && preCodeType == PRE_TYPE_RESOURCES) {
+		if (isForceResTip == false && codeDeclare.preCodeType == PRE_TYPE_RESOURCES) {
 			if (matchRes(outAndCycle, preCode) == false) {
 				return false;
 			}
@@ -3819,7 +3820,7 @@ public class CodeHelper {
 		final Point caretPointer = new Point(caretRect.x, caretRect.y);
 		final int input_x = win_loc.x + ((caretPointer == null) ? 0 : caretPointer.x);
 		final int input_y = win_loc.y + ((caretPointer == null) ? 0 : caretPointer.y);
-		window.toFront(preCodeType, codeClass, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);// JRuby代码
+		window.toFront(codeDeclare, codeClass, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);// JRuby代码
 		return true;
 	}
 	
@@ -4042,7 +4043,7 @@ public class CodeHelper {
 		}
 	}
 
-	private final boolean inputCSSClassOrPropInDesigner(final int preCodeType, final char[] lineChars, final int lineIdx,
+	private final boolean inputCSSClassOrPropInDesigner(final CodeDeclare codeDeclare, final char[] lineChars, final int lineIdx,
 			final int scriptIdx, final HCTextPane textPane, final Document doc, final int fontHeight) {
 		final CSSIdx cssIdx = getCSSIdx(lineChars, lineIdx, lineChars.length);
 
@@ -4052,7 +4053,7 @@ public class CodeHelper {
 
 		if (cssIdx.cssPropIdx != -1) {
 			preCode = String.valueOf(lineChars, cssIdx.cssPropIdx, lineIdx - cssIdx.cssPropIdx).trim();// 因为;号可能有空格，所以要trim
-			inputPropertyForCSSInCSSEditor(preCodeType, preCode, textPane, fontHeight, scriptIdx);
+			inputPropertyForCSSInCSSEditor(codeDeclare, preCode, textPane, fontHeight, scriptIdx);
 			return true;
 		}
 
@@ -4067,7 +4068,7 @@ public class CodeHelper {
 			final Point win_loc = textPane.getLocationOnScreen();
 			final int input_x = win_loc.x + caretPointer.x;
 			final int input_y = win_loc.y + caretPointer.y;
-			window.toFront(preCodeType, null, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);// CSS class
+			window.toFront(codeDeclare, null, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);// CSS class
 			return true;
 		} catch (final Throwable e) {
 			e.printStackTrace();
@@ -4161,9 +4162,9 @@ public class CodeHelper {
 
 		L.V = L.WShop ? false : LogManager.log("codeClass : " + codeClass + ", preCode : " + preCode);
 
-		if (codeClass == null && (preCodeType == PRE_TYPE_AFTER_IMPORT_ONLY || preCodeType == PRE_TYPE_AFTER_IMPORTJAVA
-				|| preCodeType == PRE_TYPE_BEFORE_INSTANCE || preCodeType == PRE_TYPE_AFTER_INCLUDE
-				|| preCodeType == PRE_TYPE_AFTER_INSTANCE_OR_CLASS) && preCode != null && preCode.length() > 0) {
+		if (codeClass == null && (codeDeclare.preCodeType == PRE_TYPE_AFTER_IMPORT_ONLY || codeDeclare.preCodeType == PRE_TYPE_AFTER_IMPORTJAVA
+				|| codeDeclare.preCodeType == PRE_TYPE_BEFORE_INSTANCE || codeDeclare.preCodeType == PRE_TYPE_AFTER_INCLUDE
+				|| codeDeclare.preCodeType == PRE_TYPE_AFTER_INSTANCE_OR_CLASS) && preCode != null && preCode.length() > 0) {
 			// focus for class define，如落焦在java.lang.Thread或Thread
 			final String className = preCode;
 			preCode = new String(lineChars, startIdx, endIdx - startIdx);
@@ -4175,8 +4176,8 @@ public class CodeHelper {
 					// 比如Thread，需转为java.lang.Thread
 					final CodeContext newCodeCtx = new CodeContext(true, codeContext.codeHelper, codeContext.contextNode, rowIdx);
 					JRubyClassDesc jcd;
-					if ((pre_var_tag_ins_or_global & VAR_INSTANCE) != 0 || (pre_var_tag_ins_or_global & VAR_GLOBAL) != 0) {
-						jcd = findParaClass(newCodeCtx, preCode, pre_var_tag_ins_or_global);
+					if ((codeDeclare.pre_var_tag_ins_or_global & VAR_INSTANCE) != 0 || (codeDeclare.pre_var_tag_ins_or_global & VAR_GLOBAL) != 0) {
+						jcd = findParaClass(newCodeCtx, preCode, codeDeclare.pre_var_tag_ins_or_global);
 					} else {
 						jcd = findParaClass(newCodeCtx, preCode, VAR_LOCAL);
 					}
@@ -4232,7 +4233,7 @@ public class CodeHelper {
 //			window.startAutoPopTip(item, textPane, sep);
 			window.docHelper.popDocTipWindow(item, window.classFrame, window.layoutLimit);
 		} else {
-			window.toFront(preCodeType, codeClass, textPane, input_x, input_y, autoTipOut, preCode, scriptIdx, fontHeight);
+			window.toFront(codeDeclare, codeClass, textPane, input_x, input_y, autoTipOut, preCode, scriptIdx, fontHeight);
 		}
 		return true;
 	}
@@ -4242,7 +4243,7 @@ public class CodeHelper {
 				|| nextChar == '_';
 	}
 
-	public final void inputForCSSInCSSEditor(final int preCodeType, final HCTextPane textPane, final Document cssDocument,
+	public final void inputForCSSInCSSEditor(final CodeDeclare codeDeclare, final HCTextPane textPane, final Document cssDocument,
 			final Point caretPosition, final int fontHeight, final int scriptIdx) {
 		String preCode = null;
 
@@ -4275,9 +4276,9 @@ public class CodeHelper {
 			}
 
 			if (preCode != null) {
-				inputPropertyForCSSInCSSEditor(preCodeType, preCode.trim(), textPane, fontHeight, scriptIdx);
+				inputPropertyForCSSInCSSEditor(codeDeclare, preCode.trim(), textPane, fontHeight, scriptIdx);
 			} else {
-				inputVariableForCSSInCSSEditor(preCodeType, textPane, caretPosition, fontHeight, scriptIdx);
+				inputVariableForCSSInCSSEditor(codeDeclare, textPane, caretPosition, fontHeight, scriptIdx);
 			}
 		} catch (final Throwable e) {
 			e.printStackTrace();
@@ -4285,7 +4286,7 @@ public class CodeHelper {
 		}
 	}
 
-	private final void inputPropertyForCSSInCSSEditor(final int preCodeType, final String preCode, final HCTextPane textPane,
+	private final void inputPropertyForCSSInCSSEditor(final CodeDeclare codeDeclare, final String preCode, final HCTextPane textPane,
 			final int fontHeight, final int scriptIdx) {
 		try {
 			final Point win_loc = textPane.getLocationOnScreen();
@@ -4304,13 +4305,13 @@ public class CodeHelper {
 			// ((caretPosition==null)?0:caretPosition.x);
 			// final int input_y = win_loc.y +
 			// ((caretPosition==null)?0:caretPosition.y);
-			window.toFront(preCodeType, Object.class, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);
+			window.toFront(codeDeclare, Object.class, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);
 		} catch (final Throwable e) {
 			e.printStackTrace();
 		}
 	}
 
-	private final void inputVariableForCSSInCSSEditor(final int preCodeType, final HCTextPane textPane, final Point caretPosition,
+	private final void inputVariableForCSSInCSSEditor(final CodeDeclare codeDeclare, final HCTextPane textPane, final Point caretPosition,
 			final int fontHeight, final int scriptIdx) {
 		final Point win_loc = textPane.getLocationOnScreen();
 		clearArray(outAndCycle);
@@ -4335,7 +4336,7 @@ public class CodeHelper {
 
 		final int input_x = win_loc.x + ((caretPosition == null) ? 0 : caretPosition.x);
 		final int input_y = win_loc.y + ((caretPosition == null) ? 0 : caretPosition.y);
-		window.toFront(preCodeType, Object.class, textPane, input_x, input_y, outAndCycle, "", scriptIdx, fontHeight);
+		window.toFront(codeDeclare, Object.class, textPane, input_x, input_y, outAndCycle, "", scriptIdx, fontHeight);
 	}
 
 	// /**
@@ -4373,12 +4374,12 @@ public class CodeHelper {
 				do {
 					String searchParaName;
 					boolean isInstance = false;
-					if (varDefNode instanceof InstAsgnNode && (pre_var_tag_ins_or_global & VAR_INSTANCE) != 0) {// @classVar
+					if (varDefNode instanceof InstAsgnNode && (codeDeclare.pre_var_tag_ins_or_global & VAR_INSTANCE) != 0) {// @classVar
 																												// =
 																												// 100
 						searchParaName = ((InstAsgnNode) varDefNode).getName();
 						isInstance = true;
-					} else if (varDefNode instanceof ConstDeclNode && (pre_var_tag_ins_or_global & VAR_LOCAL) != 0) {// (ConstDeclNode:CLASS_CONST,
+					} else if (varDefNode instanceof ConstDeclNode && (codeDeclare.pre_var_tag_ins_or_global & VAR_LOCAL) != 0) {// (ConstDeclNode:CLASS_CONST,
 																														// (FixnumNode))
 						searchParaName = ((ConstDeclNode) varDefNode).getName();
 					} else {
@@ -4448,15 +4449,15 @@ public class CodeHelper {
 					final SourcePosition position = aMethod.getPosition();
 					final boolean isInInitMethod = position.getStartLine() < codeContext.rowIdx
 							&& codeContext.rowIdx < position.getEndLine();
-					appendVarDefInInitializeMethod(aMethod.getBody(), pre_var_tag_ins_or_global, out, codeContext, isInInitMethod);
+					appendVarDefInInitializeMethod(aMethod.getBody(), codeDeclare.pre_var_tag_ins_or_global, out, codeContext, isInInitMethod);
 					// break;//可能有多个init
 				}
 			}
 
-			if ((pre_var_tag_ins_or_global & VAR_CLASS) != 0 || (pre_var_tag_ins_or_global & VAR_INSTANCE) != 0) {
+			if ((codeDeclare.pre_var_tag_ins_or_global & VAR_CLASS) != 0 || (codeDeclare.pre_var_tag_ins_or_global & VAR_INSTANCE) != 0) {
 				// 提取class var
 				final Node body = ((ClassNode) defClass).getBody();
-				appendVarDefInInitializeMethod(body, pre_var_tag_ins_or_global, out, codeContext, false);
+				appendVarDefInInitializeMethod(body, codeDeclare.pre_var_tag_ins_or_global, out, codeContext, false);
 			}
 		} else if (defClass instanceof IterNode) {
 			final IterNode iterNode = (IterNode) defClass;
@@ -4471,7 +4472,7 @@ public class CodeHelper {
 						final SourcePosition position = aMethod.getPosition();
 						final boolean isInInitMethod = position.getStartLine() < codeContext.rowIdx
 								&& codeContext.rowIdx < position.getEndLine();
-						appendVarDefInInitializeMethod(aMethod.getBody(), pre_var_tag_ins_or_global, out, codeContext, isInInitMethod);
+						appendVarDefInInitializeMethod(aMethod.getBody(), codeDeclare.pre_var_tag_ins_or_global, out, codeContext, isInInitMethod);
 						break;
 					}
 				}
@@ -4623,30 +4624,30 @@ public class CodeHelper {
 
 	public final void initPreCode(final char[] lineHeader, final int columnIdx, final int rowIdx) {
 		clearArray(outAndCycle);
-		preCodeSplitIsDot = false;
-		varIsNotValid = false;
+		codeDeclare.preCodeSplitIsDot = false;
+		codeDeclare.varIsNotValid = false;
 		preClass = null;
 		backgroundDefClassNode = null;
 		codeContext = new CodeContext(this, root, rowIdx);
 
-		preCodeType = getPreCodeType(lineHeader, columnIdx, rowIdx);
-		if (preCodeType == PRE_TYPE_NEWLINE) {
-			pre_var_tag_ins_or_global = VAR_UNKNOW;// VAR_LOCAL | VAR_INSTANCE |
+		codeDeclare.preCodeType = getPreCodeType(lineHeader, columnIdx, rowIdx);
+		if (codeDeclare.preCodeType == PRE_TYPE_NEWLINE) {
+			codeDeclare.pre_var_tag_ins_or_global = VAR_UNKNOW;// VAR_LOCAL | VAR_INSTANCE |
 													// VAR_GLOBAL;
-			getVariables(rowIdx, root, true, "", outAndCycle, pre_var_tag_ins_or_global);
-		} else if (preCodeType == PRE_TYPE_RESOURCES) {
+			getVariables(rowIdx, root, true, "", outAndCycle, codeDeclare.pre_var_tag_ins_or_global);
+		} else if (codeDeclare.preCodeType == PRE_TYPE_RESOURCES) {
 			getResources(outAndCycle, getRequireLibs(root, outRequireLibs), true);
-		} else if (preCodeType == PRE_TYPE_AFTER_IMPORT_ONLY) {
+		} else if (codeDeclare.preCodeType == PRE_TYPE_AFTER_IMPORT_ONLY) {
 			getSubPackageAndClasses(outAndCycle, getRequireLibs(root, outRequireLibs), true, true);
-		} else if (preCodeType == PRE_TYPE_AFTER_IMPORTJAVA) {
+		} else if (codeDeclare.preCodeType == PRE_TYPE_AFTER_IMPORTJAVA) {
 			getSubPackageAndClasses(outAndCycle, getRequireLibs(root, outRequireLibs), false, true);
-		} else if (preCodeType == PRE_TYPE_AFTER_INCLUDE) {
-			pre_var_tag_ins_or_global = VAR_CLASS;
-			getVariables(rowIdx, root, false, preCode, outAndCycle, pre_var_tag_ins_or_global);
+		} else if (codeDeclare.preCodeType == PRE_TYPE_AFTER_INCLUDE) {
+			codeDeclare.pre_var_tag_ins_or_global = VAR_CLASS;
+			getVariables(rowIdx, root, false, preCode, outAndCycle, codeDeclare.pre_var_tag_ins_or_global);
 			getSubPackageAndClasses(outAndCycle, getRequireLibs(root, outRequireLibs), true, true);
-		} else if (preCodeType == PRE_TYPE_IN_DEF_CLASS_FOR_METHOD_FIELD_ONLY) {
+		} else if (codeDeclare.preCodeType == PRE_TYPE_IN_DEF_CLASS_FOR_METHOD_FIELD_ONLY) {
 			getMethodAndFieldForInstance(true, backgroundDefClassNode, false, outAndCycle, false, true, false);
-		} else if (preCodeType == PRE_TYPE_OVERRIDE_METHOD) {
+		} else if (codeDeclare.preCodeType == PRE_TYPE_OVERRIDE_METHOD) {
 			// final int shiftBackLen = DEF_MEMBER.length() + 1 +
 			// preCode.length();
 			final JRubyClassDesc desc = codeContext.getDefJRubyClassDesc();// isInDefClass(root,
@@ -4658,11 +4659,11 @@ public class CodeHelper {
 				getMethodAndFieldForInstance(true, desc, false, outAndCycle, true, false, false);
 				Collections.sort(outAndCycle);
 			}
-		} else if (preCodeType == PRE_TYPE_BEFORE_INSTANCE) {
-			getVariables(rowIdx, root, true, "", outAndCycle, pre_var_tag_ins_or_global);// 情形：在行首输入im，可能后续为import或ImageIO
-		} else if (preCodeType == PRE_TYPE_AFTER_INSTANCE_OR_CLASS_BUT_NOT_VALID) {
+		} else if (codeDeclare.preCodeType == PRE_TYPE_BEFORE_INSTANCE) {
+			getVariables(rowIdx, root, true, "", outAndCycle, codeDeclare.pre_var_tag_ins_or_global);// 情形：在行首输入im，可能后续为import或ImageIO
+		} else if (codeDeclare.preCodeType == PRE_TYPE_AFTER_INSTANCE_OR_CLASS_BUT_NOT_VALID) {
 			outAndCycle.clear();
-		} else if (preCodeType == PRE_TYPE_AFTER_INSTANCE_OR_CLASS) {
+		} else if (codeDeclare.preCodeType == PRE_TYPE_AFTER_INSTANCE_OR_CLASS) {
 			if (preClass != null) {
 				if (preClass.isInstance) {
 					clearArray(outAndCycle);
@@ -4686,18 +4687,18 @@ public class CodeHelper {
 				}
 				Collections.sort(outAndCycle);
 			} else {// 直接从背景中取类，会出现preClass==null
-				if ((pre_var_tag_ins_or_global & VAR_INSTANCE) != 0 || (pre_var_tag_ins_or_global & VAR_GLOBAL) != 0) {
+				if ((codeDeclare.pre_var_tag_ins_or_global & VAR_INSTANCE) != 0 || (codeDeclare.pre_var_tag_ins_or_global & VAR_GLOBAL) != 0) {
 					clearArray(outAndCycle);
 
 					appendInsOrGlobalFromDef();
 
 					Collections.sort(outAndCycle);
 				} else {
-					if (preCodeSplitIsDot == false) {
+					if (codeDeclare.preCodeSplitIsDot == false) {
 						// getVariables(root, true, "", out, scriptIdx,
 						// pre_var_tag_ins_or_global);//改为，增加preCode过滤
 						// final int startTipIdx = scriptIdx - preCode.length();
-						getVariables(rowIdx, root, true, preCode, outAndCycle, pre_var_tag_ins_or_global);
+						getVariables(rowIdx, root, true, preCode, outAndCycle, codeDeclare.pre_var_tag_ins_or_global);
 					}
 				}
 			}
@@ -4752,10 +4753,7 @@ public class CodeHelper {
 																				// 1.在类定义内，进行方法或属性访问
 																				// 2.访问变量
 	public final static int PRE_TYPE_BEFORE_INSTANCE = 5;// JLab myLa $my @my
-	private final static int PRE_TYPE_AFTER_INSTANCE_OR_CLASS = 6;// JLable.
-																	// myLabel.
-																	// $myLabel.
-																	// @my.
+	public final static int PRE_TYPE_AFTER_INSTANCE_OR_CLASS = 6;// JLable. myLabel. $myLabel. @my.
 	private final static int PRE_TYPE_AFTER_INSTANCE_OR_CLASS_BUT_NOT_VALID = 7;
 	private final static int PRE_TYPE_RESOURCES = 8;// "/test/res/hc_16.png"
 	public final static int PRE_TYPE_OVERRIDE_METHOD = 9;
@@ -4763,10 +4761,7 @@ public class CodeHelper {
 
 	public String preCode, lastMousePreCode;
 	public boolean isForceResTip = false;
-	private int pre_var_tag_ins_or_global;
-	public boolean preCodeSplitIsDot;
-	public boolean varIsNotValid;
-	public int preCodeType;
+	public final CodeDeclare codeDeclare = new CodeDeclare();
 	private JRubyClassDesc preClass;
 	private JRubyClassDesc backgroundDefClassNode;
 
@@ -5202,7 +5197,7 @@ public class CodeHelper {
 
 		buildClassItem(out, JRUBY_CLASS_FOR_NEW);
 
-		if (preCodeSplitIsDot == false && backgroundDefClassNode != null) {
+		if (codeDeclare.preCodeSplitIsDot == false && backgroundDefClassNode != null) {
 			final MethodDefNode method = isInMethodDefNode(codeContext.bottomNode);
 
 			if (method == null) {
@@ -5468,7 +5463,7 @@ public class CodeHelper {
 				preClass = jcd;
 
 				final int cutPreIdx = idxMaoHaoAgainForField + MAO_HAO_ONLY.length;
-				preCodeSplitIsDot = false;
+				codeDeclare.preCodeSplitIsDot = false;
 				preCode = String.valueOf(lineHeader, cutPreIdx, columnIdx - cutPreIdx);
 				return PRE_TYPE_AFTER_INSTANCE_OR_CLASS;
 			}
@@ -5492,7 +5487,7 @@ public class CodeHelper {
 							final JRubyClassDesc out = findClassFromRightAssign(node, codeContext);
 							if (out != null) {
 								preClass = out;
-								preCodeSplitIsDot = true;
+								codeDeclare.preCodeSplitIsDot = true;
 								preCode = String.valueOf(lineHeader, i + 1, columnIdx - i - 1);
 								return PRE_TYPE_AFTER_INSTANCE_OR_CLASS;
 							}
@@ -5518,7 +5513,7 @@ public class CodeHelper {
 				final JRubyClassDesc jcd = buildJRubyClassDesc(tryClass, false);
 				preClass = jcd;
 
-				preCodeSplitIsDot = false;
+				codeDeclare.preCodeSplitIsDot = false;
 				final int maohaoCutIdx = maohaoIdx + MAO_HAO_ONLY.length;
 				preCode = String.valueOf(lineHeader, maohaoCutIdx, columnIdx - maohaoCutIdx);
 				return PRE_TYPE_AFTER_INSTANCE_OR_CLASS;
@@ -5547,7 +5542,7 @@ public class CodeHelper {
 			backgroundDefClassNode = desc;
 		}
 
-		if (varIsNotValid) {
+		if (codeDeclare.varIsNotValid) {
 			return PRE_TYPE_AFTER_INSTANCE_OR_CLASS_BUT_NOT_VALID;
 		}
 
@@ -5583,7 +5578,7 @@ public class CodeHelper {
 	private final JRubyClassDesc findPreCodeAfterVar(final char[] lineHeader, final int columnIdx, final int rowIdx,
 			final int partStartIdx) {
 		preCode = "";
-		pre_var_tag_ins_or_global = VAR_UNKNOW;
+		codeDeclare.pre_var_tag_ins_or_global = VAR_UNKNOW;
 
 		for (int i = columnIdx - 1; i >= partStartIdx; i--) {
 			final char c = lineHeader[i];
@@ -5592,7 +5587,7 @@ public class CodeHelper {
 			} else if (c == '.') {
 				final int offset = i + 1;
 				preCode = String.valueOf(lineHeader, offset, columnIdx - offset);
-				preCodeSplitIsDot = true;
+				codeDeclare.preCodeSplitIsDot = true;
 				return findPreVariableOrMethodOut(lineHeader, i, rowIdx, partStartIdx);
 			} else if (c == '"') {
 				while (i >= partStartIdx && lineHeader[--i] != '"' && lineHeader[i - 1] != '\\') {
@@ -5607,28 +5602,28 @@ public class CodeHelper {
 					// a = JLable::PARA_1
 					final int offset = i + 1;
 					preCode = String.valueOf(lineHeader, offset, columnIdx - offset);
-					preCodeSplitIsDot = false;
+					codeDeclare.preCodeSplitIsDot = false;
 					return findPreVariableOrMethodOut(lineHeader, i - 1, rowIdx, partStartIdx);
 				}
 			} else {
 				final int offset;
 				if (c == PRE_CLASS_VAR_OR_INS_CHAR) {// @
 					if (isPreClassChar(lineHeader, i)) {
-						pre_var_tag_ins_or_global = VAR_CLASS;
+						codeDeclare.pre_var_tag_ins_or_global = VAR_CLASS;
 						offset = i - 1;
 					} else {
-						pre_var_tag_ins_or_global = VAR_INSTANCE;
+						codeDeclare.pre_var_tag_ins_or_global = VAR_INSTANCE;
 						offset = i;
 					}
 				} else if (c == PRE_GLOBAL_DALLOR_CHAR) {// $
-					pre_var_tag_ins_or_global = VAR_GLOBAL;
+					codeDeclare.pre_var_tag_ins_or_global = VAR_GLOBAL;
 					offset = i;
 				} else {
 					offset = i + 1;
 				}
 				preCode = String.valueOf(lineHeader, offset, columnIdx - offset);
-				if (pre_var_tag_ins_or_global == VAR_INSTANCE && PRE_CLASS_INSTANCE_STR.equals(preCode)) {
-					pre_var_tag_ins_or_global |= VAR_CLASS;// 增补，有可能用户还需输入VAR_CLASS
+				if (codeDeclare.pre_var_tag_ins_or_global == VAR_INSTANCE && PRE_CLASS_INSTANCE_STR.equals(preCode)) {
+					codeDeclare.pre_var_tag_ins_or_global |= VAR_CLASS;// 增补，有可能用户还需输入VAR_CLASS
 				}
 				return null;
 			}
@@ -5894,7 +5889,7 @@ public class CodeHelper {
 					// 重新计算preCode
 					final int preCodeIdx = columnIdx + 1;
 					preCode = String.valueOf(lineHeader, preCodeIdx, lineHeader.length - preCodeIdx);
-					preCodeSplitIsDot = true;
+					codeDeclare.preCodeSplitIsDot = true;
 					return jcd;
 				} else if (JRUBY_JAVA_CLASS.equals(v) && i >= partStartIdx && lineHeader[i] == '.') {// clazInJar.java_class.resource()
 					final JRubyClassDesc jcd = buildJRubyClassDesc(JRUBY_JAVA_CLASS_AGENT, false);
@@ -5961,7 +5956,7 @@ public class CodeHelper {
 				return buildJRubyClassDesc(rcd.claz, false);
 			}
 
-			varIsNotValid = true;
+			codeDeclare.varIsNotValid = true;
 			return null;
 		}
 	}

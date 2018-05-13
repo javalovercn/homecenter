@@ -45,7 +45,6 @@ import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.I18nTitlesEditor;
-import hc.server.ui.design.code.TabHelper;
 import hc.server.ui.design.engine.RubyExector;
 import hc.util.ResourceUtil;
 

@@ -41,6 +41,7 @@ import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.server.ui.design.hpj.ScriptModelManager;
+import hc.server.ui.design.hpj.TabHelper;
 import hc.util.ClassUtil;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
@@ -425,7 +426,7 @@ public class CodeWindow {
 		for (int i = 0; i < size; i++) {
 			final CodeItem codeItem = src.get(i);
 
-			if (preCodeType == CodeHelper.PRE_TYPE_OVERRIDE_METHOD) {
+			if (codeDeclare.preCodeType == CodeHelper.PRE_TYPE_OVERRIDE_METHOD) {
 				if (codeItem.isOverrideable() == false) {
 					continue;
 				}
@@ -440,14 +441,35 @@ public class CodeWindow {
 			// codeItem.codeLowMatch + ", code : " + codeItem.code + ",
 			// fieldOrMethod : " + codeItem.fieldOrMethodOrClassName);
 
-			if (preLen == 0 
-					|| (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS && codeItem.matchPreCode(preCodeLower)) 
-					|| codeItem.similarity(preCodeLower, preCodeLowerChars, preCodeLowerCharsLen) > 0) {
+			final int type = codeItem.type;
+			
+			if (preLen == 0) {
 				addItemExcludeOverride(codeItem, target);
+			}else if(type == CodeItem.TYPE_METHOD) {
+				if((codeDeclare.pre_var_tag_ins_or_global == CodeHelper.VAR_LOCAL 
+								|| codeDeclare.pre_var_tag_ins_or_global == CodeHelper.VAR_UNKNOW
+								|| codeDeclare.pre_var_tag_ins_or_global == CodeHelper.VAR_UN_INIT)
+							&& codeItem.similarity(preCodeLower, preCodeLowerChars, preCodeLowerCharsLen) > 0){
+					addItemExcludeOverride(codeItem, target);
+				}
+			}else if(type == CodeItem.TYPE_CLASS//直接全定义，或import中的codeItem.isFullPackageAndClassName 可能为true或false 
+					|| type == CodeItem.TYPE_FIELD//ProjectContext::mobi => EVENT_SYS_MOBILE_LOGIN
+					|| type == CodeItem.TYPE_VARIABLE//button=new JButton("")
+					|| type == CodeItem.TYPE_CSS//CSS 属性供doc之用
+					|| type == CodeItem.TYPE_CSS_VAR) {
+				if(codeItem.matchStartWithOrIndexOf(preCodeLower)) {
+					addItemExcludeOverride(codeItem, target);//注：不符合则不显示
+				}
+			}else if(type == CodeItem.TYPE_RESOURCES) {
+				if(codeItem.matchStartWithOnly(preCodeLower)) {
+					addItemExcludeOverride(codeItem, target);//注：不符合则不显示
+				}
+			}else if(codeItem.similarity(preCodeLower, preCodeLowerChars, preCodeLowerCharsLen) > 0) {
+				addItemExcludeOverride(codeItem, target);//注：不符合则不显示
 			}
-		}
+		}// end for
 		
-		if(preCodeType == CodeHelper.PRE_TYPE_BEFORE_INSTANCE) {
+		if(codeDeclare.preCodeType == CodeHelper.PRE_TYPE_BEFORE_INSTANCE) {
 			if(preCodeLowerCharsLen >= ClassImporter.MIN_PRE_LEN) {
 				final BooleanValue isImportClassesDone = codeHelper.isImportClassesDone;
 				if(isImportClassesDone.value == false) {
@@ -521,12 +543,12 @@ public class CodeWindow {
 	final Rectangle rect = new Rectangle(0, 0, 1, 1);
 
 	public boolean isWillOrAlreadyToFront;
-	public int preCodeType;
+	private CodeDeclare codeDeclare;
 
-	public final void toFront(final int preCodeType, final Class codeClass, final HCTextPane eventFromComponent,
+	public final void toFront(final CodeDeclare codeDeclare, final Class codeClass, final HCTextPane eventFromComponent,
 			final int x, final int y, final ArrayList<CodeItem> list, final String preCode, final int scriptIdx, final int fontHeight) {
 		noCodeListDelayCloseDocTipTimer.isEnable();
-		this.preCodeType = preCodeType;
+		this.codeDeclare = codeDeclare;
 
 		isWillOrAlreadyToFront = true;
 		docHelper.isForMouseOverTip = false;
