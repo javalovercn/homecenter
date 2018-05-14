@@ -446,10 +446,11 @@ public class CodeWindow {
 			if (preLen == 0) {
 				addItemExcludeOverride(codeItem, target);
 			}else if(type == CodeItem.TYPE_METHOD) {
-				if((codeDeclare.pre_var_tag_ins_or_global == CodeHelper.VAR_LOCAL 
-								|| codeDeclare.pre_var_tag_ins_or_global == CodeHelper.VAR_UNKNOW
-								|| codeDeclare.pre_var_tag_ins_or_global == CodeHelper.VAR_UN_INIT)
-							&& codeItem.similarity(preCodeLower, preCodeLowerChars, preCodeLowerCharsLen) > 0){
+//				注意：如果需要限制，采用排除法，而非穷举法
+//				codeDeclare.pre_var_tag_ins_or_global == CodeHelper.VAR_LOCAL 
+//						|| codeDeclare.pre_var_tag_ins_or_global == CodeHelper.VAR_UNKNOW
+//						|| codeDeclare.pre_var_tag_ins_or_global == CodeHelper.VAR_UN_INIT
+				if(codeItem.similarity(preCodeLower, preCodeLowerChars, preCodeLowerCharsLen) > 0){
 					addItemExcludeOverride(codeItem, target);
 				}
 			}else if(type == CodeItem.TYPE_CLASS//直接全定义，或import中的codeItem.isFullPackageAndClassName 可能为true或false 
