@@ -2059,12 +2059,25 @@ public class ProjectContext {
 	public final Object setAttribute(final String name, final Object obj) {
 		return att_map.put(name, obj);
 	}
+	
+	/**
+	 * if name is not exists or not Boolean object, then return false
+	 * <BR><BR>
+	 * it is equals with {@link #getBooleanAttribute(String)}
+	 * @param name
+	 * @return
+	 * @see #isTrueAttribute(String, boolean)
+	 */
+	public final boolean isTrueAttribute(final String name) {
+		return getBooleanAttribute(name);
+	}
 
 	/**
 	 * if name is not exists or not Boolean object, then return false
 	 * 
 	 * @param name
 	 * @return
+	 * @see #isTrueAttribute(String)
 	 * @see #getBooleanAttribute(String, boolean)
 	 */
 	public final boolean getBooleanAttribute(final String name) {
@@ -2074,13 +2087,27 @@ public class ProjectContext {
 		}
 		return false;
 	}
-
+	
+	/**
+	 * if name is not exists or not Boolean object, then return defaultValue.
+	 * <BR><BR>
+	 * it is equals with {@link #getBooleanAttribute(String, boolean)}
+	 * @param name
+	 * @param defaultValue
+	 * @return
+	 * @see #isTrueAttribute(String)
+	 */
+	public final boolean isTrueAttribute(final String name, final boolean defaultValue) {
+		return getBooleanAttribute(name, defaultValue);
+	}
+	
 	/**
 	 * if name is not exists or not Boolean object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
 	 * @return the value of attribute <code>name</code>
+	 * @see #isTrueAttribute(String, boolean)
 	 * @see #getBooleanAttribute(String)
 	 */
 	public final boolean getBooleanAttribute(final String name, final boolean defaultValue) {
@@ -5043,17 +5070,25 @@ public class ProjectContext {
 	}
 
 	/**
-	 * send a voice to client/mobile.<BR>
+	 * send a voice to client/mobile if in session level, or send same
+	 * voice to all client sessions if in project level.<BR>
 	 * <BR>
 	 * if you want show this voice as a moving message and speech again, please use
 	 * {@link #sendMovingMsg(String)}. <BR>
 	 * <BR>
-	 * 
+	 * if meet one of following, the voice is traded as a moving message on client/mobile.<BR>
+	 * 1. TTS is not available in client/mobile,<BR>
+	 * 2. the language of TTS supported is not the locale of client/mobile,<BR>
+	 * 3. client/mobile is mute,<BR>
 	 * @param voice
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.63
 	 */
 	public final void sendVoice(final String voice) {
+		if(voice == null || voice.length() == 0) {
+			return;
+		}
+		
 		if (__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)) {
 			return;
 		}

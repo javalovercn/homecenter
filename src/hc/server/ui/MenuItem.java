@@ -41,7 +41,7 @@ public class MenuItem {
 	String itemURLLower;
 	I18NStoreableHashMapWithModifyFlag i18nName;
 	String itemListenerOri;
-	final ScriptValue itemListener = new ScriptValue();
+	final ScriptValue itemListenerSV = new ScriptValue();
 	String extendMap;
 
 	BufferedImage cacheOriImage;
@@ -120,9 +120,9 @@ public class MenuItem {
 	 */
 	public void setScripts(final String scripts) {
 		itemListenerOri = scripts;
-		synchronized (itemListener) {
-			itemListener.isOptimized = false;
-			itemListener.value = scripts;
+		synchronized (itemListenerSV) {
+			itemListenerSV.isOptimized = false;
+			itemListenerSV.value = scripts;
 		}
 	}
 

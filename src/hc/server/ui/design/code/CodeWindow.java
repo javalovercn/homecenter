@@ -277,6 +277,7 @@ public class CodeWindow {
 		codeList.addMouseMotionListener(new MouseMotionListener() {
 			@Override
 			public void mouseMoved(final MouseEvent e) {
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] flipTipKeepOn from CodeList.");
 				codeHelper.flipTipKeepOn();
 			}
 

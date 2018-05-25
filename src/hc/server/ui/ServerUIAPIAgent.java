@@ -262,7 +262,7 @@ public class ServerUIAPIAgent {
 	}
 
 	public final static ScriptValue getMobiMenuItem_Listener(final MenuItem item) {
-		return item.itemListener;
+		return item.itemListenerSV;
 	}
 
 	public final static String getMobiMenuItem_extendMap(final MenuItem item) {

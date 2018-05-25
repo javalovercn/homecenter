@@ -5,6 +5,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.StringReader;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
@@ -150,7 +152,7 @@ public class CodeHelper {
 	 */
 	public static final boolean DISABLE_SAME_METHOD_NAME = true;
 
-	private static final String JRUBY_CLASS_INITIALIZE_DEF = "initialize";
+	public static final String JRUBY_CLASS_INITIALIZE_DEF = "initialize";
 	private static final String JRUBY_INCLUDE = "include";
 	public static final String JRUBY_NEW = "new";
 	public static final String JRUBY_NEW_METHOD = JRUBY_NEW + "(";
@@ -3640,7 +3642,9 @@ public class CodeHelper {
 	}
 
 	private Object errorHighlighter;
-
+	private final ArrayList<Object> warnVarUnDefinedHighlighter = new ArrayList<Object>(8);
+	final VarChecker varChecker = new VarChecker();
+	
 	public final boolean updateScriptASTNode(final ScriptEditPanel sep, final String scripts, final boolean isModifySource) {
 		if (isModifySource == false) {
 			return true;
@@ -3654,6 +3658,26 @@ public class CodeHelper {
 				highlighter.removeHighlight(errorHighlighter);
 				errorHighlighter = null;
 			}
+			final int warnVarUnDefinedHighlighterSize = warnVarUnDefinedHighlighter.size();
+			for (int i = 0; i < warnVarUnDefinedHighlighterSize; i++) {
+				final Object hi = warnVarUnDefinedHighlighter.get(i);
+				final Highlighter highlighter = sep.jtaScript.getHighlighter();
+				highlighter.removeHighlight(hi);
+			}
+			warnVarUnDefinedHighlighter.clear();
+			final ArrayList<Node> result = varChecker.check(root);
+			final int sizeOfResult = result.size();
+			for (int i = 0; i < sizeOfResult; i++) {
+				final Node one = result.get(i);
+				final Highlighter highlighter = sep.jtaScript.getHighlighter();
+				try {
+					final SourcePosition position = one.getPosition();
+					final Object oneLighter = highlighter.addHighlight(position.getStartOffset(), position.getEndOffset(), ScriptEditPanel.UN_DEFINED_WARN_PAINTER);
+					warnVarUnDefinedHighlighter.add(oneLighter);
+				} catch (final BadLocationException ex) {
+				}
+			}
+			
 			// if(L.isInWorkshop){
 			// printNode(root);
 			// }
@@ -3668,7 +3692,14 @@ public class CodeHelper {
 					highlighter.removeHighlight(errorHighlighter);
 					errorHighlighter = null;
 				}
-
+				final int warnVarUnDefinedHighlighterSize = warnVarUnDefinedHighlighter.size();
+				for (int i = 0; i < warnVarUnDefinedHighlighterSize; i++) {
+					final Object hi = warnVarUnDefinedHighlighter.get(i);
+					final Highlighter highlighter = sep.jtaScript.getHighlighter();
+					highlighter.removeHighlight(hi);
+				}
+				warnVarUnDefinedHighlighter.clear();
+				
 				final SyntaxException se = (SyntaxException) e;
 				final SourcePosition sp = se.getPosition();
 				try {
@@ -6071,6 +6102,7 @@ public class CodeHelper {
 
 			@Override
 			public void mouseMoved(final MouseEvent e) {
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] flipTipKeepOn from mouseMoved JScrollPane. XOnScreen : " + e.getXOnScreen() + ", YOnScreen : " + e.getYOnScreen());
 				codeHelper.flipTipKeepOn();
 			}
 
@@ -6079,8 +6111,38 @@ public class CodeHelper {
 
 			}
 		};
-		scrollPanel.getHorizontalScrollBar().addMouseMotionListener(motionListern);
-		scrollPanel.getVerticalScrollBar().addMouseMotionListener(motionListern);
+		
+		final MouseListener mouseListener = new MouseListener() {
+			
+			@Override
+			public void mouseReleased(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mousePressed(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseExited(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseEntered(final MouseEvent e) {
+				L.V = L.WShop ? false : LogManager.log("[CodeTip] flipTipKeepOn from mouseEntered JScrollPane.");
+				codeHelper.flipTipKeepOn();//弹出代码提示窗口之前，鼠标位于此
+			}
+			
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+			}
+		};
+		final JScrollBar horizontalScrollBar = scrollPanel.getHorizontalScrollBar();
+		horizontalScrollBar.addMouseMotionListener(motionListern);
+		horizontalScrollBar.addMouseListener(mouseListener);
+		
+		final JScrollBar verticalScrollBar = scrollPanel.getVerticalScrollBar();
+		verticalScrollBar.addMouseMotionListener(motionListern);
+		verticalScrollBar.addMouseListener(mouseListener);
 	}
 
 	/**

@@ -112,11 +112,11 @@ public class HCJRubyEngine {
 		String script;
 		synchronized (sv) {
 			if(sv.isOptimized == false) {
+				sv.isOptimized = true;
 				script = sv.value;
 				script = RubyExector.replaceImport(script);
 				script = UpgradeManager.preProcessScript(script);
 				sv.value = script;
-				sv.isOptimized = true;
 			}else {
 				script = sv.value;
 			}

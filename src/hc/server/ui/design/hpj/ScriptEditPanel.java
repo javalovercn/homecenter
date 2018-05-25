@@ -150,6 +150,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private static final SimpleAttributeSet UNDERLINE_REMOVE_LIGHTER = buildUnderline(false);
 
 	public static final UnderlineHighlightPainter SYNTAX_ERROR_PAINTER = new UnderlineHighlightPainter(Color.red);
+	public static final UnderlineHighlightPainter UN_DEFINED_WARN_PAINTER = new UnderlineHighlightPainter(Color.decode("#E1912A"));
 
 	public final static Object scriptEventLock = new Object();
 
@@ -1210,6 +1211,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 					final boolean codeWinIsShowing = designer.codeHelper.window.isVisible();
 					if (codeWinIsShowing) {
+						L.V = L.WShop ? false : LogManager.log("[CodeTip] mouseMoved in ScriptEditPane, x : " + e.getX() + ", y : " + e.getY());
 						if (System.currentTimeMillis() - autoCodeTip.lastShowMS > 400
 								&& (Math.abs(e.getX() - lastShowX) >= fontHeight
 										|| Math.abs(e.getY() - lastShowY) >= halfFontHeight)) {

@@ -1091,12 +1091,38 @@ public final class ClientSession {
 			return value;
 		}
 	}
+	
+	/**
+	 * if name is not exists or not Boolean object, then return false.
+	 * <BR><BR>
+	 * it is equals with {@link #getBooleanAttribute(String)}
+	 * @param attributeName
+	 * @return
+	 * @see #isTrueAttribute(String, boolean)
+	 */
+	public final boolean isTrueAttribute(final String attributeName) {
+		return getBooleanAttribute(attributeName);
+	}
+	
+	/**
+	 * if name is not exists or not Boolean object, then return defaultValue.
+	 * <BR><BR>
+	 * is is equals with {@link #getBooleanAttribute(String, boolean)}
+	 * @param attributeName
+	 * @param defaultValue
+	 * @return
+	 * @see #isTrueAttribute(String)
+	 */
+	public final boolean isTrueAttribute(final String attributeName, final boolean defaultValue) {
+		return getBooleanAttribute(attributeName, defaultValue);
+	}
 
 	/**
 	 * if name is not exists or not Boolean object, then return false
 	 * 
 	 * @param name
 	 * @return
+	 * @see #isTrueAttribute(String)
 	 * @see #getBooleanAttribute(String, boolean)
 	 */
 	public final boolean getBooleanAttribute(final String name) {
@@ -1113,6 +1139,7 @@ public final class ClientSession {
 	 * @param name
 	 * @param defaultValue
 	 * @return the value of attribute <code>name</code>
+	 * @see #isTrueAttribute(String, boolean)
 	 * @see #getBooleanAttribute(String)
 	 */
 	public final boolean getBooleanAttribute(final String name, final boolean defaultValue) {
