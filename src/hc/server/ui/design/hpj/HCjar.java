@@ -441,10 +441,10 @@ public class HCjar {
 							(menuColNum == null) ? 0 : Integer.parseInt(menuColNum), MainMenuIdx == idx);
 					final DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(menu);
 
-					// 四大事件
-					buildMenuEventNodes(map, idx, root, eventFolder);
+					root.add(menuNode);//先加载menu
 
-					root.add(menuNode);
+					// 四大事件
+					buildMenuEventNodes(map, idx, root, eventFolder);//再加载Events
 
 					if (menu.isMainMenu) {
 						out_mainMenuNode = menuNode;

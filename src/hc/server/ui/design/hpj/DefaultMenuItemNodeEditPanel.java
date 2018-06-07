@@ -1,13 +1,13 @@
 package hc.server.ui.design.hpj;
 
-import hc.core.util.HCURL;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import hc.core.util.HCURL;
+import hc.util.ResourceUtil;
 
 public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 
@@ -24,7 +24,7 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 		myCommand_Panel.add(jtascriptPanel, BorderLayout.CENTER);
 
 		noJRubyTip.setLayout(new BorderLayout());
-		noJRubyTip.add(new JLabel("There is no other editable content for current type item."), BorderLayout.NORTH);
+		noJRubyTip.add(new JLabel("There is no editable content for current type item."), BorderLayout.NORTH);
 
 		setLayout(new BorderLayout());
 		add(iconPanel, BorderLayout.NORTH);

@@ -10,10 +10,13 @@ import java.net.SocketAddress;
 import hc.core.ContextManager;
 import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
 import hc.util.HttpUtil;
 
 public class ReceiveDeployServer {
 	public static final boolean KEEP_RUNNING = true;
+	public static final String ACCEPT_VERSION = "7.88";
+	public static final String PARA_SPLITER = StringUtil.SPLIT_LEVEL_1_AT;
 	
 	final static int port = 56152;
 

@@ -37,6 +37,10 @@ public class DeploySender {
 	public final byte sayHelloProject(final String projectID) throws IOException{
 		return socket.sayHelloProject(projectID);
 	}
+	
+	public final String getHelloError() {
+		return socket.getHelloError();
+	}
 
 	public static boolean isAlive(final String ip, final Designer designer) {
 

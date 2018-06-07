@@ -61,18 +61,26 @@ public class DeploySocket {
 		sendMsg(bs);
 	}
 	
+	private String helloErrMsg;
+	
+	public final String getHelloError() {
+		return helloErrMsg;
+	}
+	
 	public final byte sayHelloProject(final String projectID) throws IOException{
-		final byte[] projectBS = ByteUtil.getBytes(projectID, IConstant.UTF_8);
-		final int projectBSLen = projectBS.length;
+		final String parameters = projectID + ReceiveDeployServer.PARA_SPLITER + ReceiveDeployServer.ACCEPT_VERSION;
+		final byte[] paraBS = ByteUtil.getBytes(parameters, IConstant.UTF_8);
+		final int paraBSLen = paraBS.length;
 
-		sendHeader(DeploySocket.H_HELLO, projectBSLen);
-		sendData(projectBS, 0, projectBSLen, false, false, null);
+		sendHeader(DeploySocket.H_HELLO, paraBSLen);
+		sendData(paraBS, 0, paraBSLen, false, false, null);
 
-		final byte header = receive();//如果是deled工程，则可能为H_ERROR
+		final byte header = receive();//如果是deled工程，则可能为H_ERROR；或版本不一致
 		final int respLen = receiveDataLen();
 		if(respLen > 0) {
 			final byte[] dataBS = receiveData(respLen, null);
 			if(dataBS != null) {
+				helloErrMsg = ByteUtil.bytesToStr(dataBS, 0, respLen);
 				cache.cycle(dataBS);
 			}
 		}

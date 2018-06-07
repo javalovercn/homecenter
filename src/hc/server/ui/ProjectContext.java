@@ -3391,7 +3391,7 @@ public class ProjectContext {
 	 * 1. language ("en", "fr", "ro", "ru", etc.) <br>
 	 * 2. language-region ("en-US", "es-419", "zh-CN", etc.)<br>
 	 * 3. language-region ("zh-Hans-CN", "zh-Hant-CN", etc.)<br>
-	 * <BR><STRONG>Important : </STRONG><br>in Chinese mainland, it normally returns "zh-Hans-CN" in iPhone, NOT "zh-CN" in Android client.
+	 * <BR><STRONG>Important : </STRONG><br>in Chinese mainland, it normally returns "zh-Hans-CN" for iPhone, and "zh-CN" for Android client.
 	 * <br><br>
 	 * Know more :<BR>
 	 * 1. to find the best match from an I18N map, see {@link #matchLocale(String, Map)}.<BR>

@@ -126,6 +126,35 @@ public class HttpUtil {
 
 		return str;
 	}
+	
+	/**
+	 * 比如搜索串『abc(doSometh(abc) + efg)』，可能存在嵌套()情形
+	 * @param startIdx
+	 * @param str
+	 * @return end index, exclude ) 
+	 */
+	public static final int searchEndIdxForRightKuoHao(int startIdx, final String str) {
+		int endIdx = -1;
+		int deep = 0;
+		try {
+			char nextChar;
+			while(true) {
+				nextChar = str.charAt(startIdx++);
+				if(nextChar == '(') {
+					deep++;
+				}else if(nextChar == ')') {
+					if(deep == 0) {
+						endIdx = startIdx;
+						break;
+					}else {
+						deep--;
+					}
+				}
+			}
+		}catch (final Exception e) {
+		}
+		return endIdx;
+	}
 
 	public static String getHtmlLineStartTag() {
 		return " <STRONG>·</STRONG> ";

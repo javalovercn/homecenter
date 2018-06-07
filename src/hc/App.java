@@ -827,7 +827,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		
 		ResourceUtil.notifyDoneInit();
 
-		if(ReceiveDeployServer.KEEP_RUNNING || ResourceUtil.isReceiveDeployFromLocalNetwork()) {//强制keepRunning，以便内网被发现，
+		if((ReceiveDeployServer.KEEP_RUNNING && ResourceUtil.isAndroidServerPlatform()) //强制keepRunning，以便内网被发现，但仅限Android
+				|| ResourceUtil.isReceiveDeployFromLocalNetwork()) {
 			ReceiveDeployServer.startServer();
 		}
 		

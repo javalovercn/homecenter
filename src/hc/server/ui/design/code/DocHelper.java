@@ -36,6 +36,7 @@ import hc.core.util.StringUtil;
 import hc.server.DefaultManager;
 import hc.util.ClassUtil;
 import hc.util.HttpUtil;
+import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 
@@ -328,6 +329,7 @@ public class DocHelper {
 			final String strParameterSpliter = String.valueOf(parameterSpliter);
 			final int parameterSpliterLength = 1;
 			final Pattern removePackageName = Pattern.compile("\\b(\\w+\\.)");
+			final Pattern douHaoWithoutSpacePattern = Pattern.compile(",(?! )");
 			final ClassLoader classLoader = DocHelper.class.getClassLoader();
 
 			private static final String PROPDEF = "propdef-";
@@ -361,7 +363,7 @@ public class DocHelper {
 					} catch (final Exception e1) {
 						e1.printStackTrace();
 					}
-					// LogManager.log("click href : " + href);
+					L.V = L.WShop ? false : LogManager.log("click href : " + href);
 				}
 			}
 
@@ -392,6 +394,7 @@ public class DocHelper {
 
 				try {
 					if (href != null) {
+						L.V = L.WShop ? false : LogManager.log("click href : " + href);
 						// ../../javax/swing/JComponent.html#getAutoscrolls--
 						// click href : ../../../hc/server/ui/HTMLMlet.html
 						// click href :
@@ -463,6 +466,10 @@ public class DocHelper {
 									final int firstParameterSpliterIdx = methodPart.indexOf(parameterSpliter);
 									if (firstParameterSpliterIdx < 0) {
 										fieldOrMethodName = removePackageName.matcher(methodPart).replaceAll("");
+										
+										//注意：JDK8文档含空格，但JDK10却不含空格
+										//add(java.awt.Component,int) => add(java.awt.Component, int)//,加入必需的空格
+										fieldOrMethodName = douHaoWithoutSpacePattern.matcher(fieldOrMethodName).replaceAll(", ");
 									} else {
 										final String methodName = methodPart.substring(0, firstParameterSpliterIdx);
 										String parameter = methodPart.substring(firstParameterSpliterIdx + parameterSpliterLength,
@@ -819,7 +826,8 @@ public class DocHelper {
 	private static final String ruby_method_i = "method-i-";
 	private static final String ruby_method_c = "method-c-";
 	private static final String[] arrowType = { "&rarr; ", " => " };
-
+	private static final Pattern preJavaBeanPattern = Pattern.compile("<pre><a href=(.*?)>@\\w+</a>");
+	
 	public static final String DOC_CLASS_DESC_KEY = "DOC_CLASS_DESC_KEY";
 
 	public static final String NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME = "";
@@ -1045,6 +1053,15 @@ public class DocHelper {
 
 		return null;
 	}
+	
+	static String j2seDocVersion;
+	
+	private static String getJ2SEDocVersion() {
+		if(j2seDocVersion == null) {
+			j2seDocVersion = PropertiesManager.getValue(PropertiesManager.p_J2SEDocVersion);
+		}
+		return j2seDocVersion;
+	}
 
 	private static void processDoc(final CodeHelper codeHelper, final String clasName, final HashMap<String, String> docMap,
 			final String docContent, final String simpleClassName) {
@@ -1052,11 +1069,22 @@ public class DocHelper {
 			final Matcher matcher = classDescPattern.matcher(docContent);
 			if (matcher.find()) {
 				String doc = matcher.group(1);
-				final String hr = "<hr>\n<br>\n";
-				final int hrIdx = doc.indexOf(hr, 0);
-				if (hrIdx >= 0) {
-					doc = doc.substring(hrIdx + hr.length());
+				
+				{
+					final boolean isUseJDK8 = J2SEDocHelper.j2seDoc8.length() > 0;
+					String hr = "<hr>\n<br>\n";
+					int hrIdx = doc.indexOf(hr, 0);//JDK 8 Doc。注意：由于HC_Doc是采用Java 8生成，所以存在混合情形，即与j2seDoc10_0_1共存
+					if(hrIdx < 0) {
+						hr = "<hr>\n";//注意：有可能只是这种情形，不能用"\n<hr>\n"
+						hrIdx = doc.indexOf(hr, 0);//JDK 10 Doc
+					}
+					if (hrIdx >= 0) {
+						doc = doc.substring(hrIdx + hr.length());
+					}
 				}
+				
+				doc = replacePreJavaBean(doc);
+				
 				doc = doc.replaceFirst("<pre>", "<strong>");
 				doc = doc.replaceFirst("</pre>", "</strong><BR><BR>");
 				docMap.put(DOC_CLASS_DESC_KEY, doc);
@@ -1083,6 +1111,21 @@ public class DocHelper {
 				processListBlock(codeHelper, clasName, docContent.substring(detailDocIdx), docMap, true, simpleClassName, false);
 			}
 		}
+	}
+
+	private static String replacePreJavaBean(String doc) {
+		final Matcher javaBeanMatcher = preJavaBeanPattern.matcher(doc);
+		if(javaBeanMatcher.find()) {
+			final int beanEndIdx = javaBeanMatcher.end(0);
+			final int endIdx = HttpUtil.searchEndIdxForRightKuoHao(beanEndIdx + 1, doc);
+			if(endIdx > 0) {
+				doc = doc.substring(endIdx);
+			}else {
+				doc = doc.substring(beanEndIdx);
+			}
+			doc = "<pre>" + doc;
+		}
+		return doc;
 	}
 
 	private static void processListBlock(final CodeHelper codeHelper, final String clasName, final String docContent,
@@ -1159,7 +1202,9 @@ public class DocHelper {
 	}
 
 	private static void processItem(final CodeHelper codeHelper, final String clasName, final HashMap<String, String> docMap,
-			final String item, final boolean isForMethod, final String simpleClassName, final boolean isForConstruct) {
+			String item, final boolean isForMethod, final String simpleClassName, final boolean isForConstruct) {
+		item = replacePreJavaBean(item);
+		item = StringUtil.replaceFirst(item, "&#8203;", "");//JDK 10.0.1 出现 methodName&#8203;(
 		final Matcher matchFieldOrMethodName = fieldOrMethodNamePattern.matcher(item);
 		if (matchFieldOrMethodName.find()) {
 			String fieldOrMethodName = matchFieldOrMethodName.group(1);

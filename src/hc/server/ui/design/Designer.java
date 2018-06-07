@@ -1125,8 +1125,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 		activeButton.setToolTipText("<html>" + "(" + ResourceUtil.getAbstractCtrlKeyText() + " + D)"
 				+ "<BR>after click activate, current project will be active and menu will be displayed to mobile."
-				+ "<BR><BR><STRONG>Note :</STRONG><BR>if the project is modified, please <STRONG>re-activate</STRONG> it with this button."
-				+ "<BR><BR>You can one click to hot deploy project to Android server, <STRONG>NO</STRONG> same account, if in local net."
+				+ "<BR><BR>if the project is modified, please <STRONG>re-activate</STRONG> it with this button."
+				+ "<BR><BR>When in local net, one click to hot deploy project to Android server for test, <STRONG>NO</STRONG> same accounts are required."
 				+ "</html>");
 		{
 			final Action deployAction = new DesignAbstractAction() {
@@ -1623,7 +1623,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}
 			}catch (final Exception e) {
 				sender.close();
-				App.showErrorMessageDialog(null, ResourceUtil.get(9301), ResourceUtil.getErrorI18N());//9301=target server version is too low, please upgrade it!
+				App.showErrorMessageDialog(null, ResourceUtil.get(9301), ResourceUtil.getErrorI18N());//9301=versions are not same, please upgrade first!
 				return;
 			}
 			
@@ -1635,7 +1635,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}
 				if(header == DeploySocket.H_HELLO) {
 				}else if(header == DeploySocket.H_ERROR) {
-					App.showErrorMessageDialog(instance, ResourceUtil.getErrProjIsDeledNeedRestart(null), ResourceUtil.getErrorI18N());
+					String helloError = sender.getHelloError();
+					if(helloError == null) {
+						helloError = ResourceUtil.get(9301);
+					}
+					App.showErrorMessageDialog(instance, helloError, ResourceUtil.getErrorI18N());//可能版本不兼容
 					return;
 				}
 				

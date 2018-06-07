@@ -13,6 +13,7 @@ import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.RootServerConnector;
 import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
 import hc.server.ui.design.Designer;
 import hc.util.CheckSum;
 import hc.util.IBiz;
@@ -22,7 +23,9 @@ import hc.util.ResourceUtil;
 
 public class J2SEDocHelper {
 	private static final String j2seDoc = "j2sedoc.jar";
-
+	public static final String j2seDoc10_0_1 = "10.0.1";
+	public static final String j2seDoc8 = "8";
+	
 	private static boolean isBuildIn = checkIsBuildIn();
 	private static ClassLoader j2seDocLoader;
 
@@ -52,16 +55,21 @@ public class J2SEDocHelper {
 
 		boolean isSuccDownDoc = false;
 		final File docFile = new File(ResourceUtil.getBaseDir(), j2seDoc);
-		if (PropertiesManager.getValue(PropertiesManager.p_J2SEDocVersion) == null) {
+
+		//注意：如更新版本，请复制"j2sedoc.jar.10.0.1"
+		final String j2seDocVersion = j2seDoc10_0_1;
+		final String sha512J2seDoc = "45d95726a6db056309fe3dff1c0cf402ab173e85e754118ec0875f14feed0d4a970523f1a214f36d973814a07419ca8f17c8946fa6af2e1eaa3a1e9294ae7cbc";
+		final String md5 = "4993a10af1409ae7be539378fa64da20";
+		
+		final String oldVersion = PropertiesManager.getValue(PropertiesManager.p_J2SEDocVersion);
+		if (oldVersion == null || StringUtil.higher(j2seDocVersion, oldVersion)) {
 			if (isDownloading) {
 				return;
 			}
 			isDownloading = true;
 			docFile.delete();
-			final String j2seDocVersion = "8";
-			final String sha512J2seDoc = "f962ad8af2434e00bde525ecf3b29aeb03be9745b3856da1870de22f0c38d1606b226c1bad27da5d8693f5caabcdbcb69f9df07af371a9a25213c4a117ba465f";
-			final CheckSum checkSum = new CheckSum("ffc867acdf4b7411fa0d6aa3be10a7df", sha512J2seDoc);
-			final String downloadURL = RootServerConnector.HTTS_HC_44X + "/download/" + j2seDoc;
+			final CheckSum checkSum = new CheckSum(md5, sha512J2seDoc);
+			final String downloadURL = RootServerConnector.HTTS_HC_44X + "/download/" + j2seDoc + "." + j2seDocVersion;
 			final MultiThreadDownloader mtd = new MultiThreadDownloader();
 			final Vector<String> urls = new Vector<String>(1);
 			urls.add(downloadURL);

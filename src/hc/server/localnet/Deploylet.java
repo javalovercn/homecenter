@@ -7,6 +7,7 @@ import hc.core.L;
 import hc.core.util.ByteArrayCacher;
 import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
 import hc.server.ui.design.LinkProjectManager;
 import hc.server.util.DelDeployedProjManager;
 import hc.util.ResourceUtil;
@@ -80,17 +81,26 @@ public class Deploylet {
 				socket.sendData(result, 0, result.length, false, false, null);
 			} else if (header == DeploySocket.H_HELLO) {
 				final byte[] projIDbs = socket.receiveData(headerLen, null);
-				final String projID = ByteUtil.buildString(projIDbs, 0, headerLen, IConstant.UTF_8);
+				final String parameters = ByteUtil.buildString(projIDbs, 0, headerLen, IConstant.UTF_8);
+				final String[] paraArray = StringUtil.splitToArray(parameters, ReceiveDeployServer.PARA_SPLITER);
+				final String projectID = paraArray[0];
 
-				if (DelDeployedProjManager.isDeledDeployed(projID)) {
+				if (paraArray.length > 1 && (ReceiveDeployServer.ACCEPT_VERSION.equals(paraArray[1]) == false)){//版本不一致
+					final String noSameVersion = ResourceUtil.get(9301);//9301=versions are not same, please upgrade first!
+					socket.sendError(noSameVersion);
+					try {
+						Thread.sleep(1000);
+					}catch (final Exception e) {
+					}
+				}else if (DelDeployedProjManager.isDeledDeployed(projectID)) {
 					final String err = ResourceUtil.getErrProjIsDeledNeedRestart(null);
 					socket.sendError(err);
 					try {
 						Thread.sleep(1000);
 					}catch (final Exception e) {
 					}
-				}else if (true || LinkProjectManager.checkActiveProject(projID)) {//缺省接受所有工程，包括新且未发布
-					projectID = projID;
+				}else if (true || LinkProjectManager.checkActiveProject(projectID)) {//缺省接受所有工程，包括新且未发布
+					this.projectID = projectID;
 					socket.sendHeader(DeploySocket.H_HELLO, headerLen);
 					socket.sendData(projIDbs, 0, headerLen, false, false, null);
 				} else {
