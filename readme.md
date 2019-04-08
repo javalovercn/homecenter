@@ -1,3 +1,6 @@
+### root server is shutdown, this server can't be connected by client any more!
+
+
 ### Snapshot of mobile
 ![screenshot](http://homecenter.mobi/images/sc6.png)
 ![screenshot](http://homecenter.mobi/images/sc_mlet_bg.png)
